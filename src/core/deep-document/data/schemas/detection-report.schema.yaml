@@ -1,0 +1,115 @@
+# Detection Report Schema (V7)
+# Validation structure for domain detection output
+# Used by: GATE_D conditions GD-01 through GD-13
+
+version: "7.0.0"
+required_fields:
+  - metadata
+  - domains_detected
+  - domains_auto_included
+  - final_domains
+  - counter_check_results
+
+metadata:
+  type: object
+  required:
+    - detection_timestamp
+    - total_rules_evaluated
+    - detection_duration_ms
+  optional:
+    - notes
+
+domains_detected:
+  type: array
+  min_items: 0
+  item_schema:
+    required:
+      - domain_name
+      - confidence
+      - evidence
+    optional:
+      - threshold
+      - detection_method
+  validation:
+    - "Domain names must match domain-detection-rules.yaml"
+    - "Confidence must be >= threshold for domain"
+    - "Evidence must be non-empty array"
+
+  evidence:
+    type: array
+    item_schema:
+      required:
+        - condition
+        - matched
+        - files
+      optional:
+        - count
+        - threshold
+    validation:
+      - "Files must exist in repo_inventory"
+
+domains_auto_included:
+  type: array
+  min_items: 0
+  item_schema:
+    required:
+      - domain_name
+      - reason
+    validation:
+      - "Reason must be 'auto_apply: true' or 'transitive dependency'"
+
+final_domains:
+  type: array
+  min_items: 1
+  validation:
+    - "Must include all detected domains"
+    - "Must include all auto-included domains"
+    - "Must include all transitive dependencies"
+    - "No duplicates allowed"
+
+counter_check_results:
+  type: array
+  min_items: 3
+  max_items: 3
+  item_schema:
+    required:
+      - check_id
+      - status
+      - findings
+    validation:
+      - "check_id must be: CC1_grounding | CC2_phantom_hunt | CC3_gaming_detection"
+      - "status must be: PASS | FAIL"
+
+  cc1_grounding:
+    check_id: "CC1_grounding"
+    description: "Sample 3 evidence items per domain, verify files exist (Method #85)"
+    severity: BLOCKER
+    validation: "Sample files must exist in repo_inventory"
+
+  cc2_phantom_hunt:
+    check_id: "CC2_phantom_hunt"
+    description: "Re-scan borderline domains (0.65-0.80), verify stable (Method #168)"
+    severity: ERROR
+    validation: "No phantom domains (confidence drops >20%)"
+
+  cc3_gaming_detection:
+    check_id: "CC3_gaming_detection"
+    description: "Verify detection based on >=3 files (Method #61 Pre-mortem)"
+    severity: WARNING
+    validation: "Each detected domain has >=3 evidence files"
+
+# GATE_D enforcement points
+gate_d_validations:
+  gd_01: "File exists: detection-report.yaml"
+  gd_02: "All required fields present"
+  gd_03: "final_domains[] non-empty"
+  gd_04: "All detected domains have confidence >= threshold"
+  gd_05: "All evidence files exist in repo_inventory"
+  gd_06: "Base domains auto-included (iac-agnostic, typescript-library, testing-patterns)"
+  gd_07: "Transitive dependencies resolved"
+  gd_08: "No circular dependencies"
+  gd_09: "Counter-check CC1 PASS (grounding)"
+  gd_10: "Counter-check CC2 PASS or WARNING (phantom hunt)"
+  gd_11: "Counter-check CC3 PASS or WARNING (gaming detection)"
+  gd_12: "Domain count reasonable (1-10 domains)"
+  gd_13: "All counter-checks executed (count == 3)"

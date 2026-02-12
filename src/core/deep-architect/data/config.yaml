@@ -1,0 +1,444 @@
+# Deep-Architect V1.0 — Configuration
+# Process parameters, thresholds, depth levels
+
+metadata:
+  version: "1.0.0"
+  description: "Configuration for deep-architect process"
+  last_updated: "2026-02-11"
+
+# ==============================================================================
+# DEPTH LEVELS (User Selectable)
+# ==============================================================================
+
+depth_levels:
+  quick:
+    description: "Fast architecture design for simple systems"
+    counter_checks_min: 1
+    iterations_max: 1
+    time_estimate: "2.5-5 hours"
+    use_case: "Proof of concept, prototype, simple CRUD"
+    operations_depth: "shallow"
+    adversary_depth: "basic"
+
+  standard:
+    description: "Standard architecture design for production systems"
+    counter_checks_min: 2
+    iterations_max: 3
+    time_estimate: "5-10 hours"
+    use_case: "Production services, business applications"
+    operations_depth: "moderate"
+    adversary_depth: "comprehensive"
+
+  deep:
+    description: "Thorough architecture design for critical systems"
+    counter_checks_min: 3
+    iterations_max: 10
+    time_estimate: "10-15 hours"
+    use_case: "Critical infrastructure, financial, healthcare, safety"
+    operations_depth: "exhaustive"
+    adversary_depth: "exhaustive"
+
+# ==============================================================================
+# EXECUTION MODES (Context-Dependent)
+# ==============================================================================
+
+execution_modes:
+  iterative:
+    description: "Iterative refinement with user checkpoints"
+    checkpoint_max: 4
+    phases_per_iteration: 2
+    requirements_stability: "low (0.0-0.4)"
+    team_maturity: "high"
+    domain: "web, data, cloud"
+    rationale: "Low stability requires frequent validation (MA-002)"
+
+  waterfall:
+    description: "Sequential execution with final approval"
+    checkpoint_max: 1
+    phases_per_iteration: 7
+    requirements_stability: "high (0.7-1.0)"
+    team_maturity: "any"
+    domain: "embedded, compliance-heavy"
+    rationale: "High stability allows upfront design"
+
+  hybrid:
+    description: "Waterfall canonical, iterative adversary"
+    checkpoint_max: 2
+    phases_per_iteration: 4
+    requirements_stability: "medium (0.4-0.7)"
+    team_maturity: "medium"
+    domain: "any"
+    rationale: "Balance between structure and flexibility"
+
+# ==============================================================================
+# TIMELINE ESTIMATES (With Planning Fallacy Buffer)
+# ==============================================================================
+
+timeline:
+  buffer_multiplier: 1.25
+  rationale: "MA-008: +25% planning fallacy mitigation"
+
+  simple_architecture:
+    base_estimate: "2.5-5 hours"
+    with_buffer: "3.1-6.25 hours"
+    characteristics:
+      - "≤5 components"
+      - "≤10 entities"
+      - "Single deployment target"
+      - "No external integrations"
+
+  medium_architecture:
+    base_estimate: "5-10 hours"
+    with_buffer: "6.25-12.5 hours"
+    characteristics:
+      - "5-15 components"
+      - "10-30 entities"
+      - "2-3 deployment targets"
+      - "Few external integrations"
+
+  complex_architecture:
+    base_estimate: "10-15 hours"
+    with_buffer: "12.5-18.75 hours"
+    characteristics:
+      - ">15 components"
+      - ">30 entities"
+      - "Multiple deployment targets"
+      - "Many external integrations"
+      - "Compliance requirements"
+
+# ==============================================================================
+# VALIDATION CONFIGURATION
+# ==============================================================================
+
+validation:
+  bounded_count: 10
+  bounded_rationale: "MA-004: Prevents infinite scope, acknowledges blind spots"
+
+  issue_ranking:
+    formula: "severity × impact × likelihood"
+    severity_scale: "1-5 (1=minor, 5=critical)"
+    impact_scale: "1-5 (1=local, 5=system-wide)"
+    likelihood_scale: "1-5 (1=rare, 5=certain)"
+    top_n: 10
+
+  validation_test_types:
+    - "Architecture walkthrough"
+    - "Scenario analysis"
+    - "Assumption stress test"
+    - "Dependency analysis"
+    - "Performance modeling"
+    - "Security review"
+    - "Compliance check"
+    - "Complexity analysis"
+    - "Failure mode simulation"
+    - "Scalability projection"
+
+# ==============================================================================
+# CHECKPOINT CONFIGURATION
+# ==============================================================================
+
+checkpoints:
+  max_count: 4
+  rationale: "MA-003: Prevents approval fatigue"
+
+  recommended_positions:
+    checkpoint_1:
+      phase: 1
+      name: "Canonical Operations Review"
+      description: "Review decomposition, boundaries, responsibilities"
+      artifacts: ["canonical_operations.yaml", "diagrams/c4-context.mermaid"]
+
+    checkpoint_2:
+      phase: 3
+      name: "ADVERSARY Findings Review"
+      description: "Review threats, failures, bottlenecks, complexity"
+      artifacts: ["adversary_findings.yaml", "premortem_scenarios.yaml"]
+
+    checkpoint_3:
+      phase: 5
+      name: "Validation Results Review"
+      description: "Review top 10 issues and validation tests"
+      artifacts: ["validation_report.yaml"]
+
+    checkpoint_4:
+      phase: 6
+      name: "Final Verification Approval"
+      description: "Final completeness audit and process integrity"
+      artifacts: ["verification_report.yaml", "process_log.yaml"]
+
+# ==============================================================================
+# ADVERSARY CONFIGURATION (NON-NEGOTIABLE)
+# ==============================================================================
+
+adversary:
+  mandatory: true
+  non_negotiable: true
+  user_requirement: "ADVERSARY jest potrzebne"
+  operations_required: 8
+
+  stride_categories:
+    - id: "S"
+      name: "Spoofing"
+      description: "Impersonating something or someone else"
+      examples: ["Credential theft", "Identity spoofing", "Session hijacking"]
+
+    - id: "T"
+      name: "Tampering"
+      description: "Modifying data or code"
+      examples: ["Man-in-the-middle", "SQL injection", "Configuration tampering"]
+
+    - id: "R"
+      name: "Repudiation"
+      description: "Claiming to have not performed an action"
+      examples: ["Insufficient logging", "Non-repudiation failures"]
+
+    - id: "I"
+      name: "Information Disclosure"
+      description: "Exposing information to unauthorized parties"
+      examples: ["Data leaks", "Insufficient encryption", "Verbose errors"]
+
+    - id: "D"
+      name: "Denial of Service"
+      description: "Denying service to valid users"
+      examples: ["Resource exhaustion", "Algorithmic complexity", "Network flooding"]
+
+    - id: "E"
+      name: "Elevation of Privilege"
+      description: "Gaining capabilities without authorization"
+      examples: ["Privilege escalation", "Authorization bypass", "Injection attacks"]
+
+  fmea_configuration:
+    severity_scale: "1-10 (1=negligible, 10=catastrophic)"
+    occurrence_scale: "1-10 (1=rare, 10=certain)"
+    detection_scale: "1-10 (1=certain detection, 10=no detection)"
+    rpn_threshold: 100
+    rpn_formula: "severity × occurrence × detection"
+
+  complexity_metrics:
+    cyclomatic_complexity:
+      threshold: 10
+      description: "Number of independent paths"
+      severity_if_exceeded: "ERROR"
+
+    cognitive_complexity:
+      threshold: 15
+      description: "Difficulty of understanding"
+      severity_if_exceeded: "ERROR"
+
+    coupling:
+      threshold: 5
+      description: "Dependencies per component"
+      severity_if_exceeded: "WARNING"
+
+    cohesion:
+      threshold: 0.7
+      description: "Internal relatedness (0-1)"
+      severity_if_below: "WARNING"
+
+# ==============================================================================
+# COUNTER-CHECK CONFIGURATION
+# ==============================================================================
+
+counter_checks:
+  minimum_per_phase:
+    quick: 1
+    standard: 2
+    deep: 3
+
+  total_minimum:
+    quick: 6
+    standard: 12
+    deep: 18
+
+  method_references:
+    grounding_check:
+      id: 85
+      name: "Grounding Check"
+      procedure:
+        - "Sample 3 random items from artifact"
+        - "Verify each exists in source (file/line)"
+        - "Calculate verification_rate"
+        - "Fail if rate < 0.70"
+
+    phantom_hunt:
+      id: 168
+      name: "Phantom Hunt"
+      procedure:
+        - "Re-scan artifact for hallucinated items"
+        - "Check 3 borderline items"
+        - "Verify against source"
+        - "Flag if >30% phantom"
+
+    coherence_check:
+      id: 84
+      name: "Coherence Check"
+      procedure:
+        - "Verify artifact internal consistency"
+        - "Check cross-references valid"
+        - "Validate dependency graph"
+        - "Flag if circular or broken"
+
+    premortem:
+      id: 61
+      name: "Pre-mortem"
+      procedure:
+        - "Assume architecture failed"
+        - "Work backward to causes"
+        - "Identify ≥5 failure scenarios"
+        - "Assess probability and impact"
+
+# ==============================================================================
+# ARTIFACT CONFIGURATION
+# ==============================================================================
+
+artifacts:
+  output_directory: "{output_directory}/architecture-artifacts/"
+
+  schemas_location: "data/schemas/"
+  schemas_count: 7
+
+  required_artifacts:
+    phase_0:
+      - "context-assessment.yaml"
+
+    phase_1:
+      - "canonical-operations.yaml"
+
+    phase_2:
+      - "architecture-model.yaml"
+      - "diagrams/c4-context.mermaid"
+      - "diagrams/c4-container.mermaid"
+      - "diagrams/c4-component.mermaid"
+      - "diagrams/data-model.mermaid"
+      - "diagrams/deployment.mermaid"
+      - "adrs/"
+
+    phase_3:
+      - "adversary-findings.yaml"
+
+    phase_4:
+      - "tradeoff-analysis.yaml"
+
+    phase_5:
+      - "validation-report.yaml"
+
+    phase_6:
+      - "verification-report.yaml"
+      - "process-log.yaml"
+
+# ==============================================================================
+# QUALITY ATTRIBUTE PRIORITIES (ISO 25010)
+# ==============================================================================
+
+quality_attributes:
+  iso_25010_categories:
+    functional_suitability:
+      description: "Degree to which product provides functions that meet stated needs"
+      subcategories: ["Completeness", "Correctness", "Appropriateness"]
+
+    performance_efficiency:
+      description: "Performance relative to resources used"
+      subcategories: ["Time behavior", "Resource utilization", "Capacity"]
+
+    compatibility:
+      description: "Degree to which product can exchange information"
+      subcategories: ["Co-existence", "Interoperability"]
+
+    usability:
+      description: "Degree to which product can be used effectively"
+      subcategories: ["Appropriateness recognizability", "Learnability", "Operability"]
+
+    reliability:
+      description: "Degree to which system performs specified functions"
+      subcategories: ["Maturity", "Availability", "Fault tolerance", "Recoverability"]
+
+    security:
+      description: "Degree to which product protects information"
+      subcategories: ["Confidentiality", "Integrity", "Non-repudiation", "Accountability", "Authenticity"]
+
+    maintainability:
+      description: "Degree of effectiveness and efficiency with which product can be modified"
+      subcategories: ["Modularity", "Reusability", "Analyzability", "Modifiability", "Testability"]
+
+    portability:
+      description: "Degree of effectiveness with which system can be transferred"
+      subcategories: ["Adaptability", "Installability", "Replaceability"]
+
+  prioritization:
+    minimum_required: 3
+    rationale: "Trade-off analysis impossible without priorities (GATE_1 G1-05)"
+    typical_priorities:
+      web_application: ["Performance", "Security", "Usability"]
+      embedded_system: ["Reliability", "Performance", "Maintainability"]
+      data_platform: ["Compatibility", "Performance", "Reliability"]
+      cloud_service: ["Reliability", "Security", "Portability"]
+
+# ==============================================================================
+# SCOPE REDUCTION PROTOCOL
+# ==============================================================================
+
+scope_reduction:
+  allowed_for_severity:
+    BLOCKER: false
+    CRITICAL: true
+    ERROR: true
+    REQUIRED: true
+
+  user_approval_required:
+    CRITICAL: true
+    ERROR: false
+    REQUIRED: false
+
+  declaration_required: true
+  silent_omission_forbidden: true
+
+  declaration_fields:
+    - "gate"
+    - "item_skipped"
+    - "reason"
+    - "impact_assessment"
+    - "completeness_cost"
+    - "requires_user_approval"
+
+# ==============================================================================
+# TIMEOUTS AND LIMITS
+# ==============================================================================
+
+timeouts:
+  phase_timeout_minutes:
+    phase_0: 30
+    phase_1: 120
+    phase_2: 90
+    phase_3: 180
+    phase_4: 90
+    phase_5: 60
+    phase_6: 40
+
+  total_process_timeout_hours:
+    quick: 8
+    standard: 16
+    deep: 24
+
+limits:
+  max_components: 100
+  max_entities: 200
+  max_adrs: 50
+  max_diagrams: 20
+  max_iterations: 10
+
+# ==============================================================================
+# VERSION HISTORY
+# ==============================================================================
+
+history:
+  - version: "1.0.0"
+    date: "2026-02-11"
+    changes:
+      - "Initial configuration"
+      - "3 depth levels: quick/standard/deep"
+      - "3 execution modes: iterative/waterfall/hybrid"
+      - "Bounded validation: 10 issues"
+      - "Max 4 checkpoints"
+      - "ADVERSARY configuration with STRIDE, FMEA, complexity"
+      - "Counter-check minimums per depth"
+      - "+25% timeline buffer"

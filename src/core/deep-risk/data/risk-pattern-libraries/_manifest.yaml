@@ -1,0 +1,104 @@
+# Risk Pattern Libraries Manifest
+# These libraries contain domain-specific failure patterns for Historical Pattern Matching (#106)
+
+version: "1.0.0"
+description: |
+  Risk pattern libraries provide survivorship-corrected historical failure patterns.
+  Each pattern includes: signature, anti-patterns, and indicators.
+
+  Usage:
+  - Match current system characteristics against pattern signatures
+  - Check for presence of known anti-patterns
+  - Monitor for pattern-specific early warning indicators
+
+libraries:
+  core:
+    file: "core.yaml"
+    description: "Universal risk patterns that apply across all domains"
+    pattern_count: 15
+    categories:
+      - complexity
+      - communication
+      - estimation
+      - process
+      - human-factors
+
+  distributed-systems:
+    file: "distributed-systems.yaml"
+    description: "Patterns specific to distributed and networked systems"
+    pattern_count: 12
+    categories:
+      - consensus
+      - networking
+      - state-management
+      - scaling
+      - resilience
+
+  data-engineering:
+    file: "data-engineering.yaml"
+    description: "Patterns specific to data pipelines, warehouses, and analytics"
+    pattern_count: 14
+    categories:
+      - data-quality
+      - pipeline-reliability
+      - schema-management
+      - performance
+      - governance
+
+  enterprise:
+    file: "enterprise.yaml"
+    description: "Patterns specific to enterprise IT and organizational systems"
+    pattern_count: 10
+    categories:
+      - integration
+      - vendor-management
+      - security
+      - compliance
+      - legacy
+
+  project-management:
+    file: "project-management.yaml"
+    description: "Patterns specific to project delivery and team dynamics"
+    pattern_count: 12
+    categories:
+      - estimation
+      - scope
+      - resources
+      - stakeholder
+      - delivery
+
+usage_guidance:
+  selection: |
+    1. Start with 'core' library - applies to all projects
+    2. Add domain libraries based on system characteristics
+    3. Prioritize patterns where >2 signature elements match
+
+  matching_threshold:
+    high_match: ">= 3 signature elements present"
+    moderate_match: "2 signature elements present"
+    low_match: "1 signature element present"
+
+  survivorship_note: |
+    These patterns are collected from FAILED projects and incidents.
+    Successful projects that had these patterns but succeeded are NOT included.
+    This is intentional - we want to flag risk, not guarantee failure.
+
+    The presence of a pattern means "this has caused failure before"
+    not "this will definitely cause failure."
+
+pattern_schema:
+  required_fields:
+    - id: "Unique pattern identifier (DOMAIN-NNN)"
+    - name: "Human-readable pattern name"
+    - description: "What this pattern represents"
+    - signature: "List of observable characteristics"
+    - anti_patterns: "Specific practices that trigger this pattern"
+    - indicators: "Early warning signs"
+    - historical_examples: "Real incidents (anonymized)"
+    - mitigation_hints: "Starting points for response"
+
+  optional_fields:
+    - aliases: "Other names for this pattern"
+    - related_patterns: "Connected patterns"
+    - severity_range: "Typical impact range"
+    - detection_difficulty: "How hard to spot early"

@@ -1,0 +1,232 @@
+# Documentation Plan Schema (V7)
+# Validation structure for planning output
+# Used by: GATE_P conditions GP-01 through GP-17
+
+version: "7.0.0"
+required_fields:
+  - metadata
+  - planned_documents
+  - section_plan
+  - diagram_plan
+  - quality_requirements
+  - document_checklists
+  - template_coverage_verification
+  - scope_estimate
+
+metadata:
+  type: object
+  required:
+    - version
+    - planning_timestamp
+    - total_documents
+    - construction_mode
+    - batches_planned
+  optional:
+    - semantic_matching_version
+
+  version:
+    type: string
+    validation: "Must match process version"
+
+  construction_mode:
+    type: enum
+    values:
+      - INCREMENTAL
+      - MONOLITHIC
+    validation: "INCREMENTAL required if >=20 files OR >=5 planned docs (GP-10)"
+
+  batches_planned:
+    type: integer
+    minimum: 0
+    validation: "Must be >= ceil(total_documents / 5.0) per GP-10b anti-gaming"
+
+planned_documents:
+  type: array
+  min_items: 1
+  item_schema:
+    required:
+      - document_id
+      - document_name
+      - template_section_id
+      - priority
+      - estimated_lines
+      - target_file
+    optional:
+      - entities
+      - clusters
+      - goal_alignment
+
+  document_id:
+    type: string
+    pattern: "DOC_\\d{3}"
+    validation: "Sequential: DOC_001, DOC_002, ..."
+
+  priority:
+    type: enum
+    values:
+      - CRITICAL
+      - HIGH
+      - MEDIUM
+      - LOW
+    validation: "Based on entity centrality and template section priority"
+
+  entities:
+    type: array
+    description: "Entity IDs from domain-ontology.yaml relevant to this document"
+    validation: "Entity IDs must exist in domain-ontology.yaml"
+
+  clusters:
+    type: array
+    description: "Entity cluster IDs for semantic grouping"
+    validation: "Cluster IDs must exist in domain-ontology.yaml"
+
+  goal_alignment:
+    type: object
+    optional: true
+    required:
+      - user_goal
+      - organization_strategy
+    validation: "Present if GP-17 user-goal alignment applied"
+
+section_plan:
+  type: object
+  description: "Mapping of document sections to entities/clusters"
+  structure: "document_id -> section_id -> entities[]"
+  validation:
+    - "All document_ids must reference planned_documents[]"
+    - "All entity_ids must exist in domain-ontology.yaml"
+
+diagram_plan:
+  type: object
+  required:
+    - triggers
+    - diagrams
+  optional:
+    - topology_based_count
+
+  triggers:
+    type: array
+    description: "Diagram triggers from active domains + topology"
+    item_schema:
+      required:
+        - trigger_id
+        - trigger_type
+        - trigger_source
+      validation:
+        - "trigger_type: PATTERN | TOPOLOGY"
+        - "trigger_source must be active domain OR topology_summary"
+
+  diagrams:
+    type: array
+    min_items: 1
+    item_schema:
+      required:
+        - diagram_id
+        - diagram_type
+        - title
+        - entities
+      optional:
+        - trigger_id
+        - centrality_based
+
+quality_requirements:
+  type: array
+  min_items: 14
+  description: "R1-R10 prose rules + GG-10..14 quality gates"
+  item_schema:
+    required:
+      - requirement_id
+      - requirement_text
+      - gate
+      - severity
+    validation:
+      - "requirement_id pattern: QR-\\d{2}"
+      - "gate references gates.yaml"
+      - "severity: CRITICAL | ERROR | WARNING"
+
+document_checklists:
+  type: object
+  description: "Per-document quality checklists"
+  structure: "document_id -> checklist[]"
+  validation:
+    - "All document_ids must reference planned_documents[]"
+    - "Each checklist must have >=5 items"
+
+template_coverage_verification:
+  type: object
+  required:
+    - total_template_sections
+    - sections_with_content
+    - sections_unknown
+    - coverage_ratio
+    - coverage_threshold
+    - coverage_pass
+  optional:
+    - scope_reductions
+    - custom_template_path
+
+  coverage_ratio:
+    type: number
+    range: [0.0, 1.0]
+    formula: "(sections_with_content + sections_unknown) / total_template_sections"
+    validation: "Must be >= 0.90 per INV-25 and GP-09"
+
+  coverage_pass:
+    type: boolean
+    validation: "true if coverage_ratio >= 0.90"
+
+  scope_reductions:
+    type: array
+    optional: true
+    description: "Template sections omitted with justification"
+    item_schema:
+      required:
+        - section_id
+        - reason
+        - decision_timestamp
+      validation:
+        - "Reason must be non-empty"
+        - "Logged in decisions[] array of process-state.yaml"
+
+scope_estimate:
+  type: object
+  required:
+    - total_documents
+    - total_estimated_lines
+    - total_diagrams
+    - estimated_duration_hours
+  optional:
+    - token_budget_estimate
+
+# GATE_P enforcement points
+gate_p_validations:
+  gp_01: "planned_documents[] exists and non-empty"
+  gp_02: "All document_ids unique"
+  gp_03: "All entities exist in domain-ontology.yaml"
+  gp_04: "All clusters exist in domain-ontology.yaml"
+  gp_05: "section_plan{} complete for all documents"
+  gp_06: "diagram_plan{} non-empty"
+  gp_07: "quality_requirements[] has 14 items (R1-R10, GG-10..14)"
+  gp_08: "document_checklists{} complete for all documents"
+  gp_09: "template_coverage_verification.coverage_ratio >= 0.90 (if custom template)"
+  gp_10: "metadata.construction_mode = INCREMENTAL if >=20 files OR >=5 docs"
+  gp_10b: "metadata.batches_planned >= ceil(total_documents / 5.0)"
+  gp_11: "All entities in plan have sources in repo_inventory"
+  gp_12: "Priority assigned to all documents"
+  gp_13: "Target files unique (no overwrites)"
+  gp_14: "scope_estimate reasonable (duration <100 hours)"
+  gp_15: "Zero missing dependencies (transitive closure complete, CRITICAL)"
+  gp_16: "Centrality prioritization applied (high-centrality entities in early sections, ERROR)"
+  gp_17: "User-goal alignment applied if applicable (goal_alignment{} present, WARNING)"
+
+# Incremental mode (R-01)
+incremental_mode:
+  description: "Supplement existing plan instead of creating new"
+  delta_artifact: "incremental-delta.yaml"
+  operations:
+    - ADD: "New documents for new template sections"
+    - MODIFY: "Updated documents for changed sections"
+    - REMOVE: "Deleted documents for removed sections"
+  validation:
+    - "Base preservation >= 80% (GPI-01..09)"
+    - "Delta math coherent: base + ADD - REMOVE = final"

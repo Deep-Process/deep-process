@@ -1,0 +1,574 @@
+# Deep-Risk V2.0 — Binding Gates
+# Version: 1.0.0
+# Date: 2026-02-12
+
+metadata:
+  version: 1.0.0
+  process: deep-risk
+  gate_count: 8
+  enforcement: binding
+  description: |
+    Binding gates prevent agent from proceeding to next phase without satisfying conditions.
+    BLOCKER severity = absolute requirement (process HALTS if fails).
+    CRITICAL severity = must satisfy or declare SCOPE_REDUCTION.
+    ERROR severity = flag but allow proceed if depth permits.
+
+gates:
+  GATE_0:
+    name: GROUND_COMPLETE
+    phase: GROUND
+    description: "Theoretical framing established BEFORE risk search begins"
+    conditions:
+      - id: G0-01
+        condition: "Scope framed (subject, boundaries, timeframe, stakes assessed)"
+        severity: BLOCKER
+        verification: "Check SCOPE_FRAME section exists with all 4 fields filled"
+        failure_action: "HALT → complete scope framing"
+
+      - id: G0-02
+        condition: "Genesis sources scanned (6 sources: complexity, coupling, uncertainty, agency, temporality, boundaries)"
+        severity: CRITICAL
+        verification: "Check RISK_GENESIS_SCAN section has ≥1 risk per source (6 total)"
+        failure_action: "IF depth=quick AND <3 sources → SCOPE_REDUCTION_DECLARED. ELSE → return to genesis scan"
+
+      - id: G0-03
+        condition: "System characterized (Perrow matrix: complexity + coupling assessed)"
+        severity: CRITICAL
+        verification: "Check SYSTEM_PROFILE section exists with complexity_level + coupling_level"
+        failure_action: "IF depth=quick → skip, proceed. ELSE → complete system characterization"
+
+      - id: G0-04
+        condition: "Uncertainty classified (Knight's distinction: risk vs uncertainty vs ambiguity)"
+        severity: ERROR
+        verification: "Check UNCERTAINTY_MAP exists with ≥1 item per type"
+        failure_action: "FLAG → proceed but note incomplete uncertainty analysis"
+
+      - id: G0-05
+        condition: "ASSUMPTIONS_DECLARED (explicit assumptions about scope, stakes, system)"
+        severity: BLOCKER
+        verification: "Check ASSUMPTIONS_DECLARED section exists with ≥3 assumptions in YAML format"
+        failure_action: "HALT → declare assumptions before proceeding"
+
+    counter_checks:
+      - id: CC0-01
+        method: "#85 Grounding Check"
+        action: "Sample 3 genesis risks → verify each has source traceability"
+        pass_criteria: "All 3 risks map to genesis source"
+        fail_action: "BLOCKER → remove phantom risks"
+
+      - id: CC0-02
+        method: "#168 Phantom Hunt"
+        action: "Re-scan scope boundaries → verify no out-of-scope elements included"
+        pass_criteria: "0 out-of-scope elements found"
+        fail_action: "ERROR → flag scope drift"
+
+      - id: CC0-03
+        method: "#84 Coherence Check"
+        action: "Verify stakes assessment coherent with timeframe + boundaries"
+        pass_criteria: "No contradictions found"
+        fail_action: "WARNING → resolve contradiction"
+
+  GATE_1:
+    name: IDENTIFY_VERTICAL_COMPLETE
+    phase: IDENTIFY_VERTICAL
+    description: "Component-level risks extracted through vertical drilling"
+    conditions:
+      - id: G1-01
+        condition: "Taxonomy scan complete (10 categories: architecture, data, security, operations, dependency, people, regulatory, financial, timeline, strategic)"
+        severity: CRITICAL
+        verification: "Check TAXONOMY_SCAN has ≥1 risk per category (10 total)"
+        failure_action: "IF empty category → investigate harder OR declare SCOPE_REDUCTION"
+
+      - id: G1-02
+        condition: "Failure modes enumerated (systematic FMEA-style for critical components)"
+        severity: CRITICAL
+        verification: "Check FAILURE_MODE_ENUMERATION has ≥5 failure modes total"
+        failure_action: "IF depth=quick AND <3 modes → proceed. ELSE → enumerate more"
+
+      - id: G1-03
+        condition: "Threat modeling complete (STRIDE for adversarial scenarios)"
+        severity: ERROR
+        verification: "Check THREAT_MODEL exists with ≥1 threat"
+        failure_action: "IF depth=quick → skip. ELSE → flag incomplete threat analysis"
+
+      - id: G1-04
+        condition: "Dependencies mapped (all external dependencies identified)"
+        severity: CRITICAL
+        verification: "Check DEPENDENCY_RISKS section has ≥3 dependencies OR SCOPE_REDUCTION declared"
+        failure_action: "IF 0 dependencies → verify not missed OR declare no-dependency system"
+
+      - id: G1-05
+        condition: "ASSUMPTIONS_DECLARED (interpretation decisions about component boundaries, failure modes)"
+        severity: BLOCKER
+        verification: "Check ASSUMPTIONS_DECLARED section exists with ≥3 assumptions"
+        failure_action: "HALT → declare assumptions"
+
+      - id: G1-06
+        condition: "POST_PHASE_CHECKLIST complete (8 items: extraction, verification, tagging, coverage, phantoms, scope, coherence, counter-checks)"
+        severity: CRITICAL
+        verification: "Check POST_PHASE_CHECKLIST has 8/8 items marked [PASS] or [SCOPE_REDUCED]"
+        failure_action: "Return to incomplete checklist items"
+
+    counter_checks:
+      - id: CC1-01
+        method: "#85 Grounding Check"
+        action: "Sample 3 risks → verify each has concrete source (component, dependency, threat)"
+        pass_criteria: "All 3 grounded"
+        fail_action: "BLOCKER → remove phantom risks"
+
+      - id: CC1-02
+        method: "#168 Phantom Hunt"
+        action: "Re-scan taxonomy → verify no hallucinated categories"
+        pass_criteria: "All categories valid for project type"
+        fail_action: "ERROR → remove invalid categories"
+
+      - id: CC1-03
+        method: "#84 Coherence Check"
+        action: "Verify failure modes coherent with system characterization (Perrow)"
+        pass_criteria: "High complexity → emergent failures present, High coupling → cascade failures present"
+        fail_action: "WARNING → investigate missing failure patterns"
+
+  GATE_2:
+    name: IDENTIFY_HORIZONTAL_COMPLETE
+    phase: IDENTIFY_HORIZONTAL
+    description: "Boundary and systemic risks extracted through horizontal scanning"
+    conditions:
+      - id: G2-01
+        condition: "Boundary risks identified (interfaces, handoffs, trust boundaries)"
+        severity: CRITICAL
+        verification: "Check BOUNDARY_SCAN has ≥3 boundary risks OR SCOPE_REDUCTION declared"
+        failure_action: "IF depth=quick → skip gate. ELSE → scan boundaries"
+
+      - id: G2-02
+        condition: "Blind spots interrogated (Known Unknowns, Unknown Knowns)"
+        severity: ERROR
+        verification: "Check BLIND_SPOT_INTERROGATION section exists"
+        failure_action: "IF depth=quick → skip. ELSE → flag incomplete"
+
+      - id: G2-03
+        condition: "Temporal risks identified (drift, accumulation, decay, erosion)"
+        severity: CRITICAL
+        verification: "Check TEMPORAL_RISKS section has ≥1 temporal risk"
+        failure_action: "IF 0 temporal → verify project lifecycle short (<1 month) OR flag missing"
+
+      - id: G2-04
+        condition: "Scenario planning complete (2×2 matrix from key uncertainties)"
+        severity: ERROR
+        verification: "Check SCENARIO_MATRIX exists with 4 scenarios"
+        failure_action: "IF depth=quick → skip. ELSE → flag"
+
+      - id: G2-05
+        condition: "ASSUMPTIONS_DECLARED (boundary definitions, temporal scope)"
+        severity: BLOCKER
+        verification: "Check ASSUMPTIONS_DECLARED section exists with ≥2 assumptions"
+        failure_action: "HALT → declare assumptions"
+
+      - id: G2-06
+        condition: "POST_PHASE_CHECKLIST complete"
+        severity: CRITICAL
+        verification: "Check 8/8 items [PASS] or [SCOPE_REDUCED]"
+        failure_action: "Return to checklist"
+
+    counter_checks:
+      - id: CC2-01
+        method: "#85 Grounding Check"
+        action: "Sample 3 boundary risks → verify each has concrete interface/handoff/boundary"
+        pass_criteria: "All 3 grounded"
+        fail_action: "BLOCKER → remove phantoms"
+
+      - id: CC2-02
+        method: "#168 Phantom Hunt"
+        action: "Re-scan boundaries → verify not hallucinated"
+        pass_criteria: "All boundaries exist in architecture"
+        fail_action: "ERROR → remove phantom boundaries"
+
+      - id: CC2-03
+        method: "#84 Coherence Check"
+        action: "Verify horizontal + vertical risk sets coherent (no contradictions)"
+        pass_criteria: "No conflicts"
+        fail_action: "WARNING → resolve"
+
+  GATE_3:
+    name: QUANTIFY_COMPLETE
+    phase: QUANTIFY
+    description: "All risks scored with 5D framework (P/I/V/D/R)"
+    conditions:
+      - id: G3-01
+        condition: "5D scoring complete for ALL risks (Probability, Impact, Velocity, Detectability, Reversibility)"
+        severity: BLOCKER
+        verification: "Check RISK_SCORES table has 5D scores for every risk from GATE_1 + GATE_2"
+        failure_action: "HALT → score all risks"
+
+      - id: G3-02
+        condition: "Exposure windows defined (WHEN vulnerable, for HOW LONG)"
+        severity: CRITICAL
+        verification: "Check EXPOSURE_WINDOWS section exists for top 10 risks"
+        failure_action: "IF depth=quick → skip. ELSE → define windows"
+
+      - id: G3-03
+        condition: "Cost estimation complete (concrete $ or time impact if materialized)"
+        severity: CRITICAL
+        verification: "Check COST_ESTIMATES section exists for top 10 risks"
+        failure_action: "IF vague estimates (High/Medium/Low) → demand numbers OR accept vague"
+
+      - id: G3-04
+        condition: "Probability calibration (base rates from precedent, not gut feel)"
+        severity: ERROR
+        verification: "Check PROBABILITY_CALIBRATION section cites reference class or data"
+        failure_action: "FLAG → note probabilities may be optimistic"
+
+      - id: G3-05
+        condition: "Worst-case scenarios constructed (for top 5 risks)"
+        severity: CRITICAL
+        verification: "Check WORST_CASE_SCENARIOS section has narratives for top 5"
+        failure_action: "IF depth=quick → skip. ELSE → construct scenarios"
+
+      - id: G3-06
+        condition: "Ergodicity tested (for high-impact risks: can we survive multiple trials?)"
+        severity: CRITICAL
+        verification: "Check ERGODICITY_TEST identifies non-ergodic risks (game over if hit)"
+        failure_action: "IF depth=quick/standard → skip. ELSE → test ergodicity"
+
+      - id: G3-07
+        condition: "ASSUMPTIONS_DECLARED (scoring methodology, cost estimates, probability sources)"
+        severity: BLOCKER
+        verification: "Check ASSUMPTIONS_DECLARED section exists with ≥3 assumptions"
+        failure_action: "HALT → declare assumptions"
+
+      - id: G3-08
+        condition: "POST_PHASE_CHECKLIST complete"
+        severity: CRITICAL
+        verification: "Check 8/8 items [PASS]"
+        failure_action: "Return to checklist"
+
+    counter_checks:
+      - id: CC3-01
+        method: "#85 Grounding Check"
+        action: "Sample 3 scored risks → verify scores have evidence/rationale"
+        pass_criteria: "All 3 scores justified"
+        fail_action: "BLOCKER → re-score with evidence"
+
+      - id: CC3-02
+        method: "#168 Phantom Hunt"
+        action: "Re-scan risk list → verify no risks added during scoring phase (phantoms)"
+        pass_criteria: "Risk count unchanged from GATE_2"
+        fail_action: "ERROR → flag phantom risks"
+
+      - id: CC3-03
+        method: "#84 Coherence Check"
+        action: "Verify 5D scores coherent (e.g., High Impact + Low Reversibility = CRITICAL, not ERROR)"
+        pass_criteria: "No contradictory scores"
+        fail_action: "WARNING → resolve contradictions"
+
+  GATE_4:
+    name: INTERACT_COMPLETE
+    phase: INTERACT
+    description: "Risk interactions analyzed (cascades, correlations, common-mode failures)"
+    conditions:
+      - id: G4-01
+        condition: "Cascade mapping complete (which risks trigger others?)"
+        severity: CRITICAL
+        verification: "Check RISK_CASCADES section has cascade graph with ≥3 cascade chains"
+        failure_action: "IF depth=quick → skip gate. ELSE → map cascades"
+
+      - id: G4-02
+        condition: "Correlation matrix complete (which risks materialize simultaneously?)"
+        severity: CRITICAL
+        verification: "Check RISK_CORRELATION_MATRIX exists with NxN matrix"
+        failure_action: "IF depth=quick → skip. ELSE → build matrix"
+
+      - id: G4-03
+        condition: "Common-mode failures identified (single point failures affecting multiple systems)"
+        severity: BLOCKER
+        verification: "Check COMMON_MODE_FAILURES section has ≥1 common-mode OR none exist declaration"
+        failure_action: "HALT → identify common-modes (critical finding)"
+
+      - id: G4-04
+        condition: "Concentration risks detected (excessive dependency on single entity)"
+        severity: CRITICAL
+        verification: "Check CONCENTRATION_RISKS section exists"
+        failure_action: "IF 0 concentrations → verify distributed architecture OR flag"
+
+      - id: G4-05
+        condition: "Compound scenarios constructed (realistic multi-risk combinations)"
+        severity: ERROR
+        verification: "Check COMPOUND_SCENARIOS section has ≥2 scenarios"
+        failure_action: "IF depth=quick/standard → skip. ELSE → construct scenarios"
+
+      - id: G4-06
+        condition: "ASSUMPTIONS_DECLARED (independence assumptions, cascade thresholds)"
+        severity: BLOCKER
+        verification: "Check ASSUMPTIONS_DECLARED section exists with ≥2 assumptions"
+        failure_action: "HALT → declare assumptions"
+
+      - id: G4-07
+        condition: "POST_PHASE_CHECKLIST complete"
+        severity: CRITICAL
+        verification: "Check 8/8 items [PASS]"
+        failure_action: "Return to checklist"
+
+    counter_checks:
+      - id: CC4-01
+        method: "#85 Grounding Check"
+        action: "Sample 3 cascade chains → verify each link has causal mechanism"
+        pass_criteria: "All links justified"
+        fail_action: "BLOCKER → remove speculative cascades"
+
+      - id: CC4-02
+        method: "#168 Phantom Hunt"
+        action: "Re-scan interactions → verify not hallucinated"
+        pass_criteria: "All interactions grounded in architecture"
+        fail_action: "ERROR → remove phantom interactions"
+
+      - id: CC4-03
+        method: "#84 Coherence Check"
+        action: "Verify cascade graph coherent (no circular dependencies without justification)"
+        pass_criteria: "Directed acyclic graph OR cycles documented"
+        fail_action: "WARNING → resolve cycles"
+
+  GATE_5:
+    name: MITIGATE_COMPLETE
+    phase: MITIGATE
+    description: "Mitigation portfolio designed with Cobra Effect checks"
+    conditions:
+      - id: G5-01
+        condition: "4T classification complete (Tolerate, Treat, Transfer, Terminate for ALL risks)"
+        severity: BLOCKER
+        verification: "Check MITIGATION_PORTFOLIO has 4T strategy for every risk"
+        failure_action: "HALT → classify all risks"
+
+      - id: G5-02
+        condition: "Cost-benefit analysis (for all TREAT mitigations)"
+        severity: CRITICAL
+        verification: "Check MITIGATION_COST_BENEFIT section compares mitigation_cost vs expected_loss"
+        failure_action: "IF depth=quick → skip. ELSE → calculate cost-benefit"
+
+      - id: G5-03
+        condition: "Defense-in-depth designed (for critical risks: layered defenses, no single point)"
+        severity: CRITICAL
+        verification: "Check DEFENSE_IN_DEPTH section for top 5 risks has ≥2 layers each"
+        failure_action: "IF depth=quick → skip. ELSE → design layers"
+
+      - id: G5-04
+        condition: "Graceful degradation planned (how system behaves under partial failure)"
+        severity: ERROR
+        verification: "Check GRACEFUL_DEGRADATION section exists"
+        failure_action: "IF depth=quick/standard → skip. ELSE → plan degradation"
+
+      - id: G5-05
+        condition: "Residual risk assessed (post-mitigation risk scores)"
+        severity: CRITICAL
+        verification: "Check RESIDUAL_RISK_ASSESSMENT has re-scored risks after mitigations"
+        failure_action: "Return to assessment"
+
+      - id: G5-06
+        condition: "Cobra Effect check PASSED (every mitigation checked for perverse effects)"
+        severity: BLOCKER
+        verification: "Check COBRA_EFFECT_CHECK section exists with check for EVERY TREAT mitigation"
+        failure_action: "HALT → check all mitigations (critical safety mechanism)"
+
+      - id: G5-07
+        condition: "ASSUMPTIONS_DECLARED (mitigation effectiveness, cost estimates, implementation feasibility)"
+        severity: BLOCKER
+        verification: "Check ASSUMPTIONS_DECLARED section exists with ≥3 assumptions"
+        failure_action: "HALT → declare assumptions"
+
+      - id: G5-08
+        condition: "POST_PHASE_CHECKLIST complete"
+        severity: CRITICAL
+        verification: "Check 8/8 items [PASS]"
+        failure_action: "Return to checklist"
+
+    counter_checks:
+      - id: CC5-01
+        method: "#85 Grounding Check"
+        action: "Sample 3 mitigations → verify each has concrete implementation path"
+        pass_criteria: "All 3 actionable"
+        fail_action: "BLOCKER → replace vague mitigations"
+
+      - id: CC5-02
+        method: "#168 Phantom Hunt"
+        action: "Re-scan mitigation list → verify no phantom mitigations (unimplementable)"
+        pass_criteria: "All mitigations feasible"
+        fail_action: "ERROR → remove phantoms"
+
+      - id: CC5-03
+        method: "#84 Coherence Check"
+        action: "Verify Cobra checks coherent with mitigation strategies (e.g., monitoring doesn't create alert fatigue)"
+        pass_criteria: "No contradictions"
+        fail_action: "WARNING → resolve"
+
+  GATE_6:
+    name: MONITOR_COMPLETE
+    phase: MONITOR
+    description: "Monitoring system designed with leading indicators and escalation protocol"
+    conditions:
+      - id: G6-01
+        condition: "Leading indicators identified (for top 10 risks: signals that PRECEDE materialization)"
+        severity: CRITICAL
+        verification: "Check LEADING_INDICATORS section has ≥1 indicator per top 10 risk"
+        failure_action: "Return to indicator identification"
+
+      - id: G6-02
+        condition: "Review cadence designed (different risks need different review frequencies)"
+        severity: CRITICAL
+        verification: "Check REVIEW_CADENCE section assigns frequency to risk categories"
+        failure_action: "Return to cadence design"
+
+      - id: G6-03
+        condition: "Escalation protocol defined (who decides what, when, with what authority)"
+        severity: BLOCKER
+        verification: "Check ESCALATION_PROTOCOL section has decision matrix"
+        failure_action: "HALT → define escalation (critical for crisis response)"
+
+      - id: G6-04
+        condition: "Post-incident feedback loop designed (how incidents improve risk assessment)"
+        severity: ERROR
+        verification: "Check POST_INCIDENT_FEEDBACK section exists"
+        failure_action: "IF depth=quick → skip. ELSE → design feedback"
+
+      - id: G6-05
+        condition: "Sorites watch configured (gradual accumulation monitoring for temporal risks)"
+        severity: ERROR
+        verification: "Check SORITES_WATCH section exists for temporal risks from GATE_2"
+        failure_action: "IF depth=quick/standard → skip. ELSE → configure watch"
+
+      - id: G6-06
+        condition: "ASSUMPTIONS_DECLARED (indicator sensitivity, review capacity, escalation authority)"
+        severity: BLOCKER
+        verification: "Check ASSUMPTIONS_DECLARED section exists with ≥2 assumptions"
+        failure_action: "HALT → declare assumptions"
+
+      - id: G6-07
+        condition: "POST_PHASE_CHECKLIST complete"
+        severity: CRITICAL
+        verification: "Check 8/8 items [PASS]"
+        failure_action: "Return to checklist"
+
+    counter_checks:
+      - id: CC6-01
+        method: "#85 Grounding Check"
+        action: "Sample 3 leading indicators → verify each is observable and precedes risk"
+        pass_criteria: "All 3 valid indicators"
+        fail_action: "BLOCKER → replace lagging with leading"
+
+      - id: CC6-02
+        method: "#168 Phantom Hunt"
+        action: "Re-scan indicators → verify not hallucinated (can actually measure)"
+        pass_criteria: "All indicators measurable"
+        fail_action: "ERROR → remove phantom indicators"
+
+      - id: CC6-03
+        method: "#84 Coherence Check"
+        action: "Verify review cadence coherent with risk velocity (fast risks → frequent review)"
+        pass_criteria: "Cadence matches velocity"
+        fail_action: "WARNING → adjust cadence"
+
+  GATE_7:
+    name: OUTPUT_COMPLETE
+    phase: OUTPUT
+    description: "Risk assessment outputs complete and validated"
+    conditions:
+      - id: G7-01
+        condition: "META audit complete (bias, appetite, Goodhart, Simpson checks)"
+        severity: CRITICAL
+        verification: "Check META_AUDIT section has checks for: cognitive bias, risk appetite gap, Goodhart gaming, Simpson's paradox"
+        failure_action: "IF depth=quick/standard → skip. ELSE → run META audit"
+
+      - id: G7-02
+        condition: "Risk register generated (structured YAML with all risks, scores, mitigations, indicators)"
+        severity: BLOCKER
+        verification: "Check risk-register.yaml file exists with all risks from GATE_1-6"
+        failure_action: "HALT → generate register"
+
+      - id: G7-03
+        condition: "Risk interaction map generated (cascade graph + correlation matrix)"
+        severity: CRITICAL
+        verification: "Check risk-interaction-map.yaml exists with cascades + correlations"
+        failure_action: "Return to generation"
+
+      - id: G7-04
+        condition: "Mitigation portfolio generated (4T classification + Cobra checks)"
+        severity: BLOCKER
+        verification: "Check mitigation-portfolio.yaml exists with all mitigations"
+        failure_action: "HALT → generate portfolio"
+
+      - id: G7-05
+        condition: "Monitoring system generated (indicators + cadence + escalation)"
+        severity: BLOCKER
+        verification: "Check monitoring-system.yaml exists"
+        failure_action: "HALT → generate monitoring"
+
+      - id: G7-06
+        condition: "Risk report generated (executive summary + portfolio view + recommendations)"
+        severity: CRITICAL
+        verification: "Check risk-report.md exists with all sections"
+        failure_action: "Return to report generation"
+
+      - id: G7-07
+        condition: "Coverage target met (C ≥ target for selected depth)"
+        severity: CRITICAL
+        verification: "Check COVERAGE_SCORE ≥ target (quick: 15, standard: 35, comprehensive: 50, critical: 65)"
+        failure_action: "IF <target AND depth allows → iterate (return to GATE_1). ELSE → declare SCOPE_REDUCTION"
+
+      - id: G7-08
+        condition: "ASSUMPTIONS_DECLARED (report scope, portfolio view, recommendations)"
+        severity: BLOCKER
+        verification: "Check ASSUMPTIONS_DECLARED section exists with ≥2 assumptions"
+        failure_action: "HALT → declare assumptions"
+
+      - id: G7-09
+        condition: "POST_PHASE_CHECKLIST complete"
+        severity: CRITICAL
+        verification: "Check 8/8 items [PASS]"
+        failure_action: "Return to checklist"
+
+    counter_checks:
+      - id: CC7-01
+        method: "#85 Grounding Check"
+        action: "Sample 3 report recommendations → verify each grounded in analysis (not generic advice)"
+        pass_criteria: "All 3 specific to project"
+        fail_action: "BLOCKER → replace generic with specific"
+
+      - id: CC7-02
+        method: "#168 Phantom Hunt"
+        action: "Re-scan all artifacts → verify no phantom risks/mitigations/indicators added during output phase"
+        pass_criteria: "Artifact counts match phase outputs"
+        fail_action: "ERROR → remove phantoms"
+
+      - id: CC7-03
+        method: "#84 Coherence Check"
+        action: "Verify risk register coherent with interaction map (cascade links match risk IDs)"
+        pass_criteria: "All links valid"
+        fail_action: "WARNING → fix broken links"
+
+enforcement_rules:
+  - rule: "Agent CANNOT proceed from phase N to N+1 without passing GATE_N"
+  - rule: "BLOCKER severity conditions MUST pass (no exceptions, no SCOPE_REDUCTION)"
+  - rule: "CRITICAL severity conditions MUST pass OR SCOPE_REDUCTION_DECLARED with justification"
+  - rule: "ERROR severity conditions failure → FLAG but allow proceed if depth permits"
+  - rule: "SCOPE_REDUCTION requires: (a) explicit declaration, (b) justification (why reduced), (c) impact assessment (what's lost)"
+  - rule: "Counter-checks MUST execute for BLOCKER/CRITICAL gates (quick depth may skip ERROR gates)"
+  - rule: "POST_PHASE_CHECKLIST MUST complete with 8/8 items [PASS] or [SCOPE_REDUCED] before gate evaluation"
+  - rule: "ASSUMPTIONS_DECLARED section MANDATORY before EXTRACT phase of each step (cannot skip)"
+
+crisis_mode:
+  enabled: true
+  detection: automatic
+  triggers:
+    - "urgent"
+    - "emergency"
+    - "crisis"
+    - "incident"
+    - "already failed"
+    - "happening now"
+    - "in production"
+    - "deadline tomorrow"
+    - "no time"
+    - "everything is down"
+    - "critical outage"
+  modifications:
+    - skip: GATE_0
+    - focus: [GATE_1, GATE_5, GATE_6]
+    - priority: "MITIGATE + MONITOR over QUANTIFY + INTERACT"
+    - report_addition: "Crisis Response section"

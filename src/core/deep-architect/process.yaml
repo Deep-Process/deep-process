@@ -1,0 +1,284 @@
+# Deep-Architect V1.0 — Framework Registration
+# Architecture design process from concept to executable plan
+# Based on: Deep-Explore V3.2.0 findings (256.1 points COMPREHENSIVE)
+
+metadata:
+  name: "deep-architect"
+  version: "1.0.0"
+  status: "development"
+  created: "2026-02-11"
+  pattern: "deep-verify-v2"
+  compliance:
+    zasady: 13/13  # All ZASAD compliance
+    r1_r12: 12/12  # R1-R12 requirements
+
+description: |
+  Software architecture design process from user brief to verified architecture.
+  Executes 16 operations (8 canonical + 8 adversarial) across 7 phases.
+
+  Key features:
+  - Context-aware execution (domain/team/stability assessment)
+  - 8 canonical operations: Decomposition, Boundary, Relationship, Responsibility, Dependency, Pattern, Quality, Interface
+  - 8 adversarial operations: STRIDE, FMEA, Bottleneck, Anti-patterns, Complexity, Compliance, Pre-mortem, Trade-offs
+  - ADVERSARY phase mandatory (Phase 3, non-negotiable per MA-005)
+  - Bounded validation (top 10 critical issues per MA-004)
+  - Iterative with max 4 checkpoints (MA-003)
+  - Embedded methods for R1 self-containment (MA-006)
+  - +25% timeline buffer for planning fallacy (MA-008)
+
+phases:
+  - id: 0
+    name: "Context Assessment"
+    step_file: "steps/step-00-context.md"
+    gate: "GATE_0"
+    time_estimate: "15-30 minutes"
+    operations:
+      - "Domain analysis (web/embedded/data/cloud)"
+      - "Team assessment (size/expertise/maturity)"
+      - "Org constraints (budget/timeline/culture)"
+      - "Requirements stability measurement"
+      - "Execution mode selection (iterative/waterfall)"
+
+  - id: 1
+    name: "Canonical Operations"
+    step_file: "steps/step-01-canonical.md"
+    gate: "GATE_1"
+    time_estimate: "60-120 minutes"
+    operations:
+      - "Decomposition (components/modules/services)"
+      - "Boundary Definition (context boundaries)"
+      - "Relationship Mapping (dependencies/flows)"
+      - "Responsibility Allocation (SRP)"
+      - "Dependency Management (coupling analysis)"
+      - "Pattern Application (architectural patterns)"
+      - "Quality Attribute Analysis (ISO 25010)"
+      - "Interface Design (contracts)"
+    mandatory: true
+    operation_count: 8
+
+  - id: 2
+    name: "Artifact Generation"
+    step_file: "steps/step-02-artifacts.md"
+    gate: "GATE_2"
+    time_estimate: "45-90 minutes"
+    operations:
+      - "C4 Context diagram"
+      - "C4 Container diagram"
+      - "C4 Component diagram"
+      - "Data model (entities/relationships)"
+      - "Deployment diagram"
+      - "Architecture Decision Records (ADRs)"
+
+  - id: 3
+    name: "ADVERSARY"
+    step_file: "steps/step-03-adversary.md"
+    gate: "GATE_3"
+    time_estimate: "90-180 minutes"
+    operations:
+      - "Threat Modeling (STRIDE)"
+      - "FMEA (Failure Mode and Effects Analysis)"
+      - "Bottleneck Detection (performance)"
+      - "Anti-Pattern Detection"
+      - "Complexity Analysis (metrics)"
+      - "Compliance Analysis (regulations)"
+      - "Pre-mortem (failure scenarios)"
+      - "Trade-off Identification"
+    mandatory: true
+    non_negotiable: true
+    operation_count: 8
+    rationale: "User requirement + MA-005 from exploration"
+
+  - id: 4
+    name: "Trade-off Analysis"
+    step_file: "steps/step-04-tradeoffs.md"
+    gate: "GATE_4"
+    time_estimate: "45-90 minutes"
+    operations:
+      - "ATAM scenario analysis"
+      - "CBAM cost-benefit analysis"
+      - "Sensitivity points identification"
+      - "Trade-off points documentation"
+      - "Decision justification"
+
+  - id: 5
+    name: "Validation"
+    step_file: "steps/step-05-validation.md"
+    gate: "GATE_5"
+    time_estimate: "30-60 minutes"
+    operations:
+      - "Bounded validation (top 10 critical)"
+      - "Validation test design"
+      - "Mitigation adequacy assessment"
+      - "Unknown-unknown detection"
+    mandatory: true
+    bounded_count: 10
+    rationale: "MA-004: prevent infinite scope, acknowledge blind spots"
+
+  - id: 6
+    name: "Verification"
+    step_file: "steps/step-06-verification.md"
+    gate: "GATE_6"
+    time_estimate: "20-40 minutes"
+    operations:
+      - "Completeness audit (16 operations)"
+      - "Traceability matrix"
+      - "Gate summary"
+      - "Assumptions summary"
+      - "Final verdict"
+
+gates:
+  total: 7
+  conditions: 41
+  breakdown:
+    GATE_0: 5
+    GATE_1: 6
+    GATE_2: 5
+    GATE_3: 7
+    GATE_4: 5
+    GATE_5: 6
+    GATE_6: 7
+  severity_distribution:
+    BLOCKER: 3
+    CRITICAL: 14
+    ERROR: 9
+    REQUIRED: 6
+
+invariants:
+  total: 12
+  enforcement_level:
+    BLOCKER: 5  # INV-01, INV-02, INV-07, INV-08, INV-09
+    CRITICAL: 4  # INV-03, INV-04, INV-05, INV-11
+    ERROR: 2     # INV-10, INV-12
+    REQUIRED: 1  # INV-06
+
+artifacts:
+  output_directory: "{output_directory}/architecture-artifacts/"
+  files:
+    - "context-assessment.yaml"
+    - "canonical-operations.yaml"
+    - "architecture-model.yaml"
+    - "diagrams/"
+    - "adrs/"
+    - "adversary-findings.yaml"
+    - "tradeoff-analysis.yaml"
+    - "validation-report.yaml"
+    - "verification-report.yaml"
+    - "process-log.yaml"
+
+schemas:
+  location: "data/schemas/"
+  count: 7
+  files:
+    - "context-assessment.schema.yaml"
+    - "canonical-operations.schema.yaml"
+    - "architecture-model.schema.yaml"
+    - "adversary-findings.schema.yaml"
+    - "tradeoff-analysis.schema.yaml"
+    - "validation-report.schema.yaml"
+    - "verification-report.schema.yaml"
+
+timeline:
+  simple_architecture: "2.5-5 hours"
+  medium_architecture: "5-10 hours"
+  complex_architecture: "10-15 hours"
+  buffer: "+25%"
+  rationale: "MA-008: planning fallacy mitigation"
+
+configuration:
+  checkpoint_max: 4
+  checkpoint_rationale: "MA-003: prevent approval fatigue"
+  validation_bound: 10
+  validation_rationale: "MA-004: prevent infinite scope, bounded issue-driven"
+  depth_levels:
+    quick:
+      counter_checks_min: 1
+      iterations_max: 1
+    standard:
+      counter_checks_min: 2
+      iterations_max: 3
+    deep:
+      counter_checks_min: 3
+      iterations_max: 10
+
+compliance_matrix:
+  zasad_0: "No decorative content, executable only"
+  zasad_0b: "Max 400 lines per step, split if larger"
+  zasad_1: "Self-contained via JIT loading"
+  zasad_2: "Completeness > tokens (all 16 operations)"
+  zasad_3: "Mechanisms not intentions (IF FAIL → action)"
+  zasad_4: "Binding gates (7 gates, 41 conditions)"
+  zasad_5: "Assumptions before action (ASSUMPTIONS_DECLARED)"
+  zasad_6: "Enforced sequence (Extract→Verify→Render)"
+  zasad_7: "Checklist after phase (every step)"
+  zasad_8: "Counter-checks (min 1/2/3 per depth)"
+  zasad_9: "Executable language (imperative, numbered)"
+  zasad_10: "Visible reasoning (log decisions)"
+  zasad_11: "Instructions + data (steps self-contained)"
+  zasad_12: "JIT information (data for phase N in step-N)"
+  zasad_13: "Zero decorations (no Purpose/Background)"
+
+exploration_source:
+  report: "exploration-report.md"
+  score: 256.1
+  level: "COMPREHENSIVE"
+  date: "2026-02-11"
+  selected_cluster: "Quality-Focused Systematic (CL-001)"
+  key_findings:
+    - "MA-001: 16 operations required (8+8)"
+    - "MA-002: Iterative domain-dependent"
+    - "MA-003: Max 4 checkpoints"
+    - "MA-004: Bounded validation (top 10)"
+    - "MA-005: ADVERSARY non-negotiable"
+    - "MA-006: Embedded methods (R1)"
+    - "MA-007: Context massively affects outcomes"
+    - "MA-008: +25% planning fallacy buffer"
+
+success_metrics:
+  process:
+    zasady_compliance: "13/13 (100%)"
+    r1_r12_compliance: "12/12 (100%)"
+    gates_passed: "7/7"
+    scope_reductions: "0 (ideal)"
+  quality:
+    operations_executed: "16/16"
+    verification_ratio: "≥50%"
+    validation_bounded: "10/10"
+    checkpoints_max: "≤4"
+    counter_checks: "≥18 (deep)"
+  timeline:
+    estimate_accuracy: "±25%"
+    adversary_percentage: "≤30%"
+    rework_rate: "≤15%"
+  user:
+    completeness: "≥90%"
+    findings_actionable: "≥80%"
+    decisions_justified: "100%"
+    confidence: "≥8/10"
+
+risks:
+  - id: "R-001"
+    description: "Step 3 file size >400 lines"
+    probability: "HIGH"
+    impact: "MEDIUM"
+    mitigation: "Split to step-03a/03b if needed"
+  - id: "R-002"
+    description: "ADVERSARY rework explosion"
+    probability: "MEDIUM"
+    impact: "HIGH"
+    mitigation: "Pilot validation, incremental hardening"
+  - id: "R-003"
+    description: "Context assessment inaccuracy"
+    probability: "MEDIUM"
+    impact: "HIGH"
+    mitigation: "Counter-checks, user confirmation"
+
+history:
+  - version: "1.0.0"
+    date: "2026-02-11"
+    changes:
+      - "Initial release"
+      - "Based on Deep-Explore V3.2.0 findings"
+      - "13 ZASAD compliance implemented"
+      - "7 phases, 16 operations, 7 gates"
+      - "Foundation phase complete (workflow, process, gates, invariants, config)"
+    status: "development"

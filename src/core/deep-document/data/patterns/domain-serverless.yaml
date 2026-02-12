@@ -1,0 +1,114 @@
+# Serverless Framework Domain Pattern
+# Version: 1.0.0
+# Created: 2026-02-11 (V7.1.1 - REC-004)
+# Purpose: Detect and document Serverless Framework projects
+
+metadata:
+  domain_id: serverless-framework
+  name: "Serverless Framework"
+  version: "1.0.0"
+  type: SPECIFIC
+  layer: PARADIGM
+  auto_apply: false
+  confidence_threshold: 0.75
+
+dependencies:
+  requires:
+    - event-driven-serverless  # Transitive dependency (base patterns)
+
+provides:
+  patterns:
+    - QP-SERVERLESS-STAGES      # DTAP via stages (dev, test, prod)
+    - QP-SERVERLESS-PLUGINS     # Plugin ecosystem
+    - QP-SERVERLESS-PROVIDER    # Multi-cloud (AWS, Azure, GCP)
+    - QP-SERVERLESS-RESOURCES   # CloudFormation resources
+    - QP-SERVERLESS-CUSTOM      # Custom variables
+
+  templates: []  # Uses event-driven-serverless templates
+
+detection:
+  method: "multi-condition"
+
+  evidence_requirements:
+    - "serverless.yml or serverless.yaml exists"
+    - "≥2 Lambda functions defined in functions: section"
+    - "provider: block with AWS/Azure/GCP"
+
+  conditions:
+    # Condition 1: Config file exists (40% weight)
+    C1_serverless_config:
+      description: "serverless.yml exists"
+      type: file_existence
+      patterns:
+        - "serverless.yml"
+        - "serverless.yaml"
+      weight: 0.40
+      match_score_function: binary  # 1.0 if exists, 0.0 otherwise
+
+    # Condition 2: Lambda functions defined (35% weight)
+    C2_lambda_functions:
+      description: "≥2 Lambda functions defined in serverless.yml"
+      type: content_search
+      file_pattern: "serverless.yml"
+      search_patterns:
+        - "functions:"
+        - "handler:"
+        - "events:"
+      threshold: 2
+      weight: 0.35
+      match_score_function: threshold_linear
+
+    # Condition 3: Provider block (25% weight)
+    C3_provider_block:
+      description: "Provider block (AWS/Azure/GCP)"
+      type: content_search
+      file_pattern: "serverless.yml"
+      search_patterns:
+        - "provider:"
+        - "name: aws"
+        - "name: azure"
+        - "name: google"
+      threshold: 1
+      weight: 0.25
+      match_score_function: binary
+
+  anti_gaming:
+    single_file_resistance: 0.40  # serverless.yml alone = 0.40 confidence (BELOW 0.75)
+    fake_config_resistance: 0.75  # C2+C3 needed (functions + provider)
+    low_quality_resistance: 0.85  # ≥2 functions required
+
+documentation:
+  quality_patterns:
+    - QP-SERVERLESS-STAGES
+    - QP-SERVERLESS-PLUGINS
+    - QP-SERVERLESS-PROVIDER
+    - QP-SERVERLESS-RESOURCES
+    - QP-SERVERLESS-CUSTOM
+
+  recommended_sections:
+    - "Serverless Framework Configuration"
+    - "Lambda Functions Inventory"
+    - "Stage Configuration (dev/test/prod)"
+    - "Plugin Ecosystem"
+    - "Deployment Guide"
+
+validation:
+  test_projects:
+    positive:
+      - "Serverless REST API (AWS Lambda)"
+      - "Serverless Event Processing (SNS/SQS)"
+      - "Serverless CRON Jobs"
+    negative:
+      - "SAM Framework (uses template.yaml)"
+      - "CDK (uses cdk.json)"
+      - "Plain Lambda (no framework)"
+
+  expected_confidence:
+    typical: 0.85-0.95
+    minimal: 0.75-0.85  # Just serverless.yml + 2 functions
+    edge_cases: 0.60-0.75  # Incomplete config
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-02-11"
+    changes: "Initial Serverless Framework domain pattern (REC-004)"

@@ -1,0 +1,508 @@
+# Deep-Architect V1.0 — Gate Definitions
+# Binding enforcement mechanisms for 7 phases
+# Total: 41 conditions across 7 gates
+
+metadata:
+  version: "1.0.0"
+  total_gates: 7
+  total_conditions: 41
+  severity_distribution:
+    BLOCKER: 3
+    CRITICAL: 14
+    ERROR: 9
+    REQUIRED: 15
+
+# ==============================================================================
+# GATE_0: CONTEXT ASSESSMENT (5 conditions)
+# ==============================================================================
+
+GATE_0:
+  name: "Context Assessment Gate"
+  phase: 0
+  description: "Validates context analysis completeness before canonical design"
+  conditions:
+
+    G0-01:
+      description: "Domain classification completed"
+      severity: CRITICAL
+      check: "context_assessment.domain exists AND domain in [web, embedded, data, cloud, hybrid]"
+      failure_action: "HALT — Cannot proceed without domain context"
+      rationale: "Domain massively affects patterns (MA-007), must classify upfront"
+
+    G0-02:
+      description: "Team assessment documented"
+      severity: CRITICAL
+      check: "context_assessment.team exists with size/expertise/maturity fields"
+      failure_action: "HALT — Team context required for execution mode"
+      rationale: "Team maturity determines process rigor (MA-002)"
+
+    G0-03:
+      description: "Organizational constraints captured"
+      severity: ERROR
+      check: "context_assessment.constraints exists with budget/timeline/culture"
+      failure_action: "LOG warning — Proceed with unconstrained defaults"
+      rationale: "Constraints shape feasibility, but can infer if missing"
+
+    G0-04:
+      description: "Requirements stability measured"
+      severity: CRITICAL
+      check: "context_assessment.stability_score exists AND 0.0 <= stability_score <= 1.0"
+      failure_action: "HALT — Stability drives iterative vs waterfall choice"
+      rationale: "Low stability requires iterative, high allows waterfall (MA-002)"
+
+    G0-05:
+      description: "Execution mode selected"
+      severity: BLOCKER
+      check: "context_assessment.execution_mode in [iterative, waterfall, hybrid]"
+      failure_action: "ABORT — Execution mode undefined"
+      rationale: "Mode determines Phase 1-6 iteration strategy"
+
+  pass_criteria: "ALL CRITICAL + BLOCKER conditions met"
+  state_on_pass: "OPEN"
+  state_on_fail: "LOCKED"
+
+# ==============================================================================
+# GATE_1: CANONICAL OPERATIONS (6 conditions)
+# ==============================================================================
+
+GATE_1:
+  name: "Canonical Operations Gate"
+  phase: 1
+  description: "Enforces all 8 canonical operations executed completely"
+  conditions:
+
+    G1-01:
+      description: "All 8 canonical operations executed"
+      severity: BLOCKER
+      check: "canonical_operations.executed_count == 8"
+      failure_action: "ABORT — Missing operations violate MA-001 (16 required)"
+      rationale: "Incomplete canonical = gaps in architecture (INV-07)"
+      operations_required:
+        - "Decomposition"
+        - "Boundary Definition"
+        - "Relationship Mapping"
+        - "Responsibility Allocation"
+        - "Dependency Management"
+        - "Pattern Application"
+        - "Quality Attribute Analysis"
+        - "Interface Design"
+
+    G1-02:
+      description: "Decomposition depth adequate"
+      severity: CRITICAL
+      check: "canonical_operations.decomposition.levels >= 2"
+      failure_action: "HALT — Single-level decomposition too shallow"
+      rationale: "Monolithic structures hide complexity"
+
+    G1-03:
+      description: "Boundaries explicitly defined"
+      severity: CRITICAL
+      check: "canonical_operations.boundaries exists with context_map"
+      failure_action: "HALT — Undefined boundaries = integration failures"
+      rationale: "Implicit boundaries cause coupling"
+
+    G1-04:
+      description: "Dependencies mapped"
+      severity: ERROR
+      check: "canonical_operations.dependencies.count > 0"
+      failure_action: "LOG warning — No dependencies unusual"
+      rationale: "Zero dependencies suspicious unless trivial system"
+
+    G1-05:
+      description: "Quality attributes prioritized"
+      severity: CRITICAL
+      check: "canonical_operations.quality_attributes.prioritized.length >= 3"
+      failure_action: "HALT — Must prioritize ≥3 ISO 25010 attributes"
+      rationale: "Trade-offs impossible without priorities"
+
+    G1-06:
+      description: "ASSUMPTIONS_DECLARED present"
+      severity: CRITICAL
+      check: "canonical_operations.assumptions.length >= 3"
+      failure_action: "HALT — Violates ZASADA 5 (assumptions before action)"
+      rationale: "Undeclared assumptions = hidden brittleness"
+
+  pass_criteria: "G1-01 (BLOCKER) + ALL CRITICAL conditions met"
+  state_on_pass: "OPEN"
+  state_on_fail: "LOCKED"
+
+# ==============================================================================
+# GATE_2: ARTIFACT GENERATION (5 conditions)
+# ==============================================================================
+
+GATE_2:
+  name: "Artifact Generation Gate"
+  phase: 2
+  description: "Validates architecture artifacts completeness"
+  conditions:
+
+    G2-01:
+      description: "C4 Context diagram generated"
+      severity: CRITICAL
+      check: "artifacts.diagrams contains 'c4-context.mermaid'"
+      failure_action: "HALT — Context diagram mandatory"
+      rationale: "System boundary visualization required"
+
+    G2-02:
+      description: "C4 Container diagram generated"
+      severity: CRITICAL
+      check: "artifacts.diagrams contains 'c4-container.mermaid'"
+      failure_action: "HALT — Container diagram mandatory"
+      rationale: "High-level decomposition visualization required"
+
+    G2-03:
+      description: "Data model documented"
+      severity: CRITICAL
+      check: "artifacts.data_model exists with entities/relationships"
+      failure_action: "HALT — Data model missing"
+      rationale: "State structure foundational"
+
+    G2-04:
+      description: "ADRs created for key decisions"
+      severity: ERROR
+      check: "artifacts.adrs.count >= 3"
+      failure_action: "LOG warning — Few ADRs, decisions undocumented"
+      rationale: "Decision rationale enables future changes"
+
+    G2-05:
+      description: "Deployment model defined"
+      severity: REQUIRED
+      check: "artifacts.deployment exists"
+      failure_action: "LOG info — Deployment deferred"
+      rationale: "Can defer if infrastructure undefined"
+
+  pass_criteria: "ALL CRITICAL conditions met"
+  state_on_pass: "OPEN"
+  state_on_fail: "LOCKED"
+
+# ==============================================================================
+# GATE_3: ADVERSARY (7 conditions) — NON-NEGOTIABLE
+# ==============================================================================
+
+GATE_3:
+  name: "ADVERSARY Gate"
+  phase: 3
+  description: "Enforces all 8 adversarial operations executed (NON-NEGOTIABLE)"
+  non_negotiable: true
+  rationale: "User requirement + MA-005 from exploration"
+  conditions:
+
+    G3-01:
+      description: "All 8 adversarial operations executed"
+      severity: BLOCKER
+      check: "adversary.executed_count == 8"
+      failure_action: "ABORT — Missing adversarial ops violate user requirement"
+      rationale: "ADVERSARY non-negotiable (INV-08)"
+      operations_required:
+        - "Threat Modeling (STRIDE)"
+        - "FMEA (Failure Mode and Effects Analysis)"
+        - "Bottleneck Detection"
+        - "Anti-Pattern Detection"
+        - "Complexity Analysis"
+        - "Compliance Analysis"
+        - "Pre-mortem"
+        - "Trade-off Identification"
+
+    G3-02:
+      description: "STRIDE threat model complete"
+      severity: CRITICAL
+      check: "adversary.stride.threats.length >= 6"
+      failure_action: "HALT — Must analyze all STRIDE categories"
+      rationale: "Partial threat model misses attack vectors"
+      stride_categories:
+        - "Spoofing"
+        - "Tampering"
+        - "Repudiation"
+        - "Information Disclosure"
+        - "Denial of Service"
+        - "Elevation of Privilege"
+
+    G3-03:
+      description: "FMEA identifies failure modes"
+      severity: CRITICAL
+      check: "adversary.fmea.failure_modes.length >= 5"
+      failure_action: "HALT — Insufficient failure analysis"
+      rationale: "Few failure modes = incomplete analysis"
+
+    G3-04:
+      description: "Bottlenecks identified"
+      severity: ERROR
+      check: "adversary.bottlenecks.length >= 2"
+      failure_action: "LOG warning — No bottlenecks unusual"
+      rationale: "Most systems have performance choke points"
+
+    G3-05:
+      description: "Anti-patterns detected"
+      severity: REQUIRED
+      check: "adversary.anti_patterns scanned"
+      failure_action: "LOG info — Anti-pattern scan skipped"
+      rationale: "Mature designs may have zero anti-patterns"
+
+    G3-06:
+      description: "Complexity metrics calculated"
+      severity: CRITICAL
+      check: "adversary.complexity exists with cyclomatic/cognitive/coupling"
+      failure_action: "HALT — Complexity unmeasured = unmanageable"
+      rationale: "Quantified complexity enables control"
+
+    G3-07:
+      description: "Pre-mortem executed"
+      severity: CRITICAL
+      check: "adversary.premortem.failure_scenarios.length >= 5"
+      failure_action: "HALT — Pre-mortem required (Method #61)"
+      rationale: "Pre-mortem uncovers unknown-unknowns"
+
+  pass_criteria: "G3-01 (BLOCKER) + ALL CRITICAL conditions met"
+  state_on_pass: "OPEN"
+  state_on_fail: "LOCKED"
+
+# ==============================================================================
+# GATE_4: TRADE-OFF ANALYSIS (5 conditions)
+# ==============================================================================
+
+GATE_4:
+  name: "Trade-off Analysis Gate"
+  phase: 4
+  description: "Validates trade-off documentation using ATAM/CBAM"
+  conditions:
+
+    G4-01:
+      description: "ATAM scenarios defined"
+      severity: CRITICAL
+      check: "tradeoffs.atam.scenarios.length >= 3"
+      failure_action: "HALT — Insufficient scenario analysis"
+      rationale: "Trade-offs meaningless without scenarios"
+
+    G4-02:
+      description: "Sensitivity points identified"
+      severity: CRITICAL
+      check: "tradeoffs.sensitivity_points.length >= 2"
+      failure_action: "HALT — Missing sensitivity analysis"
+      rationale: "Sensitivity points guide refinement"
+
+    G4-03:
+      description: "Trade-off points documented"
+      severity: CRITICAL
+      check: "tradeoffs.tradeoff_points.length >= 2"
+      failure_action: "HALT — Trade-offs unresolved"
+      rationale: "Conflicting attributes must be reconciled"
+
+    G4-04:
+      description: "CBAM cost-benefit calculated"
+      severity: ERROR
+      check: "tradeoffs.cbam exists with costs/benefits"
+      failure_action: "LOG warning — Economic analysis missing"
+      rationale: "Cost-benefit informs priorities"
+
+    G4-05:
+      description: "Decisions justified"
+      severity: REQUIRED
+      check: "tradeoffs.decisions.all(d => d.rationale exists)"
+      failure_action: "LOG info — Some decisions lack rationale"
+      rationale: "Justification enables review"
+
+  pass_criteria: "ALL CRITICAL conditions met"
+  state_on_pass: "OPEN"
+  state_on_fail: "LOCKED"
+
+# ==============================================================================
+# GATE_5: VALIDATION (6 conditions) — BOUNDED TOP 10
+# ==============================================================================
+
+GATE_5:
+  name: "Validation Gate"
+  phase: 5
+  description: "Validates bounded validation (exactly 10 critical issues)"
+  conditions:
+
+    G5-01:
+      description: "Exactly 10 issues validated"
+      severity: BLOCKER
+      check: "validation.issues_validated.length == 10"
+      failure_action: "ABORT — Must validate exactly 10 (bounded per MA-004)"
+      rationale: "Prevents infinite scope, acknowledges blind spots (INV-09)"
+
+    G5-02:
+      description: "Top 10 by severity/impact ranking"
+      severity: CRITICAL
+      check: "validation.issues_validated.all(i => i.rank <= 10)"
+      failure_action: "HALT — Must validate TOP 10, not random 10"
+      rationale: "Bounded validation targets highest risk"
+
+    G5-03:
+      description: "Validation tests designed"
+      severity: CRITICAL
+      check: "validation.tests.length >= 10"
+      failure_action: "HALT — Each issue needs validation test"
+      rationale: "Validation without tests = assertions"
+
+    G5-04:
+      description: "Mitigation adequacy assessed"
+      severity: CRITICAL
+      check: "validation.issues_validated.all(i => i.mitigation_adequate !== null)"
+      failure_action: "HALT — Mitigation assessment missing"
+      rationale: "Identifies residual risk"
+
+    G5-05:
+      description: "Unknown-unknown detection executed"
+      severity: ERROR
+      check: "validation.unknown_unknowns_scan executed"
+      failure_action: "LOG warning — Blind spot analysis skipped"
+      rationale: "Bounded validation acknowledges gaps"
+
+    G5-06:
+      description: "ASSUMPTIONS_DECLARED for validation"
+      severity: REQUIRED
+      check: "validation.assumptions.length >= 2"
+      failure_action: "LOG info — Validation assumptions not declared"
+      rationale: "Validation scope has assumptions"
+
+  pass_criteria: "G5-01 (BLOCKER) + ALL CRITICAL conditions met"
+  state_on_pass: "OPEN"
+  state_on_fail: "LOCKED"
+
+# ==============================================================================
+# GATE_6: VERIFICATION (7 conditions)
+# ==============================================================================
+
+GATE_6:
+  name: "Verification Gate"
+  phase: 6
+  description: "Final completeness audit and process integrity check"
+  conditions:
+
+    G6-01:
+      description: "All 16 operations documented"
+      severity: BLOCKER
+      check: "verification.operations_completed == 16"
+      failure_action: "ABORT — Incomplete process (8 canonical + 8 adversarial)"
+      rationale: "MA-001 requires all 16 operations"
+
+    G6-02:
+      description: "Traceability matrix complete"
+      severity: CRITICAL
+      check: "verification.traceability exists mapping requirements→design"
+      failure_action: "HALT — Cannot verify without traceability"
+      rationale: "Traceability enables verification"
+
+    G6-03:
+      description: "All gates passed summary"
+      severity: CRITICAL
+      check: "verification.gates_passed.all(g => g.status == 'OPEN')"
+      failure_action: "HALT — Previous gates failed"
+      rationale: "Cannot complete with failed gates"
+
+    G6-04:
+      description: "Assumptions summary documented"
+      severity: CRITICAL
+      check: "verification.assumptions_summary.length >= 10"
+      failure_action: "HALT — Cumulative assumptions missing"
+      rationale: "Architecture built on assumptions"
+
+    G6-05:
+      description: "Scope reductions logged"
+      severity: ERROR
+      check: "verification.scope_reductions documented"
+      failure_action: "LOG warning — Scope changes untracked"
+      rationale: "Transparency about what was cut"
+
+    G6-06:
+      description: "Counter-checks executed"
+      severity: CRITICAL
+      check: "verification.counter_checks >= 18"
+      failure_action: "HALT — Insufficient counter-checks (min 3/phase for 6 phases)"
+      rationale: "Counter-checks validate quality (ZASADA 8)"
+
+    G6-07:
+      description: "Final verdict rendered"
+      severity: REQUIRED
+      check: "verification.verdict in [PASS, CONDITIONAL_PASS, FAIL]"
+      failure_action: "LOG info — No verdict"
+      rationale: "Explicit verdict required"
+
+  pass_criteria: "G6-01 (BLOCKER) + ALL CRITICAL conditions met"
+  state_on_pass: "OPEN"
+  state_on_fail: "LOCKED"
+
+# ==============================================================================
+# GATE ENFORCEMENT PROTOCOL
+# ==============================================================================
+
+enforcement:
+  gate_blocking: true
+  description: "Agent CANNOT proceed if gate LOCKED (ZASADA 4)"
+
+  severity_actions:
+    BLOCKER:
+      action: "ABORT execution immediately"
+      recovery: "Fix violation, restart from Phase 0"
+
+    CRITICAL:
+      action: "HALT at current phase"
+      recovery: "Fix violation, re-execute phase, re-evaluate gate"
+
+    ERROR:
+      action: "LOG warning, proceed with degraded quality"
+      recovery: "Fix in next iteration or accept risk"
+
+    REQUIRED:
+      action: "LOG info, proceed normally"
+      recovery: "Optional improvement"
+
+  scope_reduction_protocol:
+    trigger: "Gate condition fails (CRITICAL or ERROR)"
+    required_declaration:
+      gate: "GATE_N"
+      item_skipped: "Specific condition ID"
+      reason: "Honest reason (NOT 'for brevity')"
+      impact_assessment: "What is lost"
+      completeness_cost: "Quality degradation"
+      requires_user_approval: "YES (CRITICAL) | NO (ERROR)"
+
+    user_approval_required: "CRITICAL failures MUST get user approval"
+    silent_omission_forbidden: "Skipping without declaration = VIOLATION"
+
+# ==============================================================================
+# COUNTER-CHECKS (18 minimum for deep depth)
+# ==============================================================================
+
+counter_checks:
+  minimum_per_phase: 3
+  total_minimum: 18
+  description: "Each phase requires ≥3 counter-checks (ZASADA 8)"
+
+  examples:
+    - phase: 0
+      checks:
+        - "Method #85 Grounding: Sample 3 context claims, verify against evidence"
+        - "Method #84 Coherence: Verify domain→patterns mapping consistent"
+        - "Method #61 Pre-mortem: What if context assessment wrong?"
+
+    - phase: 1
+      checks:
+        - "Method #85 Grounding: Sample 3 components, verify exist in design"
+        - "Method #168 Phantom Hunt: Re-scan for hallucinated components"
+        - "Method #84 Coherence: Verify dependency graph acyclic"
+
+    - phase: 3
+      checks:
+        - "Method #85 Grounding: Verify STRIDE threats map to attack surface"
+        - "Method #61 Pre-mortem: What failure modes did we miss?"
+        - "Method #84 Coherence: Verify FMEA severity scores consistent"
+
+  enforcement: "GATE_6 condition G6-06 requires ≥18 counter-checks logged"
+
+# ==============================================================================
+# VERSION HISTORY
+# ==============================================================================
+
+history:
+  - version: "1.0.0"
+    date: "2026-02-11"
+    changes:
+      - "Initial gate definitions"
+      - "41 conditions across 7 gates"
+      - "Severity distribution: 3 BLOCKER, 14 CRITICAL, 9 ERROR, 15 REQUIRED"
+      - "GATE_3 marked NON-NEGOTIABLE per user requirement"
+      - "GATE_5 enforces bounded validation (exactly 10 issues)"
+      - "Counter-check examples documented"

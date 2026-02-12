@@ -1,0 +1,526 @@
+# Deep-Architect V1.0 — Invariants
+# Binding process rules that MUST hold throughout execution
+# Total: 12 invariants
+
+metadata:
+  version: "1.0.0"
+  total_invariants: 12
+  enforcement_level:
+    BLOCKER: 5   # INV-01, INV-02, INV-07, INV-08, INV-09
+    CRITICAL: 4  # INV-03, INV-04, INV-05, INV-11
+    ERROR: 2     # INV-10, INV-12
+    REQUIRED: 1  # INV-06
+
+# ==============================================================================
+# INV-01: SEQUENTIAL EXECUTION (BLOCKER)
+# ==============================================================================
+
+INV-01:
+  name: "Sequential Execution"
+  severity: BLOCKER
+  description: "Phases MUST execute in order 0→1→2→3→4→5→6, no skipping"
+
+  rule: "current_phase == previous_phase + 1"
+
+  rationale: "Each phase depends on previous outputs — skip = broken dependency"
+
+  violation_scenarios:
+    - "Agent jumps from Phase 0 to Phase 2 (skips canonical operations)"
+    - "Agent executes Phase 3 before Phase 2 complete"
+    - "Agent returns to Phase 1 after Phase 3 (backward jump)"
+
+  detection: "workflow.md precondition checks at each phase entry"
+
+  enforcement:
+    when_violated: "ABORT execution immediately"
+    message: "CRITICAL PROCESS VIOLATION: Phase sequence broken"
+    recovery: "Restart from Phase 0"
+
+  related_zasady:
+    - "ZASADA 6: Enforced sequence (Extract→Verify→Render)"
+    - "ZASADA 9: Executable language (imperative, numbered)"
+
+# ==============================================================================
+# INV-02: GATE BLOCKING (BLOCKER)
+# ==============================================================================
+
+INV-02:
+  name: "Gate Blocking"
+  severity: BLOCKER
+  description: "Agent CANNOT proceed if current gate = LOCKED"
+
+  rule: "IF gate_status == LOCKED THEN next_phase_forbidden"
+
+  rationale: "Gates enforce quality — bypassing = unverified architecture"
+
+  violation_scenarios:
+    - "GATE_0 LOCKED but agent reads step-01-canonical.md"
+    - "GATE_3 LOCKED but agent proceeds to Phase 4"
+    - "Gate condition fails (CRITICAL) but agent continues"
+
+  detection: "Precondition checks in workflow.md EXECUTION SEQUENCE"
+
+  enforcement:
+    when_violated: "ABORT execution, log violation"
+    message: "GATE BYPASS DETECTED: Cannot proceed with LOCKED gate"
+    recovery: "Fix gate condition, re-evaluate gate, proceed only if OPEN"
+
+  related_zasady:
+    - "ZASADA 4: Binding gates"
+    - "ZASADA 3: Mechanisms not intentions"
+
+# ==============================================================================
+# INV-03: ASSUMPTIONS_DECLARED (CRITICAL)
+# ==============================================================================
+
+INV-03:
+  name: "Assumptions Declared"
+  severity: CRITICAL
+  description: "Every phase MUST declare ≥1 assumption BEFORE extraction/analysis"
+
+  rule: "FOR ALL phases: assumptions.length >= 1 AND assumptions_declared_before_extraction == true"
+
+  rationale: "Undeclared assumptions = hidden brittleness (ZASADA 5)"
+
+  violation_scenarios:
+    - "Phase 1 executes decomposition without declaring assumptions"
+    - "Phase 3 STRIDE analysis without threat model assumptions"
+    - "Assumptions declared AFTER analysis (should be BEFORE)"
+
+  detection: "ASSUMPTIONS_DECLARED section exists before EXTRACT in step files"
+
+  enforcement:
+    when_violated: "HALT phase execution"
+    message: "ZASADA 5 VIOLATION: Assumptions not declared before action"
+    recovery: "Declare assumptions, restart phase"
+
+  related_zasady:
+    - "ZASADA 5: ASSUMPTIONS_DECLARED"
+    - "ZASADA 10: Visible reasoning (log decisions)"
+
+# ==============================================================================
+# INV-04: EXTRACT→VERIFY→RENDER SEQUENCE (CRITICAL)
+# ==============================================================================
+
+INV-04:
+  name: "EVR Sequence"
+  severity: CRITICAL
+  description: "Every phase MUST follow Extract→Verify→Render sequence"
+
+  rule: "FOR ALL phases: extraction_complete BEFORE verification_start AND verification_complete BEFORE rendering_start"
+
+  rationale: "Verifying before extracting = nothing to verify. Rendering before verifying = unvalidated output (ZASADA 6)"
+
+  violation_scenarios:
+    - "Agent renders C4 diagram before verifying components exist"
+    - "Agent starts verification before extraction complete"
+    - "Agent skips verification step entirely"
+
+  detection: "Step files have EXTRACT, VERIFY, RENDER sections in order with precondition checks"
+
+  enforcement:
+    when_violated: "HALT at current step"
+    message: "EVR SEQUENCE VIOLATION: Must extract, then verify, then render"
+    recovery: "Execute steps in correct order"
+
+  related_zasady:
+    - "ZASADA 6: Enforced sequence"
+    - "ZASADA 9: Executable language (step-by-step)"
+
+# ==============================================================================
+# INV-05: POST-PHASE CHECKLIST (CRITICAL)
+# ==============================================================================
+
+INV-05:
+  name: "Post-Phase Checklist"
+  severity: CRITICAL
+  description: "Every phase MUST complete checklist documenting work"
+
+  rule: "FOR ALL phases: checklist_completed == true AND checklist.items.all(i => i.status in [PASS, FAIL])"
+
+  rationale: "Checklists provide audit trail and catch omissions (ZASADA 7)"
+
+  checklist_contents:
+    - "What was extracted (data gathered)"
+    - "What was verified (quality checks)"
+    - "What decisions were made"
+    - "What assumptions were declared"
+    - "What counter-checks executed"
+
+  violation_scenarios:
+    - "Phase 1 completes without checklist"
+    - "Checklist has PASS/FAIL status but not documented"
+    - "Checklist created but not reviewed at gate"
+
+  detection: "Gate conditions check checklist.completed == true"
+
+  enforcement:
+    when_violated: "HALT at gate evaluation"
+    message: "CHECKLIST MISSING: Cannot evaluate gate without checklist"
+    recovery: "Complete checklist, re-evaluate gate"
+
+  related_zasady:
+    - "ZASADA 7: Checklist after phase"
+
+# ==============================================================================
+# INV-06: COUNTER-CHECKS MINIMUM (REQUIRED)
+# ==============================================================================
+
+INV-06:
+  name: "Counter-Checks Minimum"
+  severity: REQUIRED
+  description: "Each phase MUST execute minimum counter-checks per depth level"
+
+  rule: |
+    depth_level == quick: counter_checks >= 1/phase
+    depth_level == standard: counter_checks >= 2/phase
+    depth_level == deep: counter_checks >= 3/phase
+
+  rationale: "Counter-checks validate quality and catch gaming (ZASADA 8)"
+
+  counter_check_types:
+    - "Method #85 Grounding Check (sample 3 items, verify existence)"
+    - "Method #168 Phantom Hunt (re-scan for hallucinations)"
+    - "Method #84 Coherence Check (verify consistency)"
+    - "Method #61 Pre-mortem (what could go wrong)"
+
+  violation_scenarios:
+    - "Deep depth but only 1 counter-check per phase"
+    - "Counter-checks logged but not executed"
+    - "Zero counter-checks (always violation)"
+
+  detection: "GATE_6 condition G6-06 requires ≥18 total for deep (3×6 phases)"
+
+  enforcement:
+    when_violated: "LOG warning, proceed with degraded confidence"
+    message: "INSUFFICIENT COUNTER-CHECKS: Quality validation weak"
+    recovery: "Execute missing counter-checks"
+
+  related_zasady:
+    - "ZASADA 8: Counter-checks"
+
+# ==============================================================================
+# INV-07: EIGHT CANONICAL OPERATIONS (BLOCKER)
+# ==============================================================================
+
+INV-07:
+  name: "Eight Canonical Operations"
+  severity: BLOCKER
+  description: "Phase 1 MUST execute ALL 8 canonical operations, no exceptions"
+
+  rule: "canonical_operations.executed == [Decomposition, Boundary, Relationship, Responsibility, Dependency, Pattern, Quality, Interface]"
+
+  rationale: "Partial canonical = gaps in architecture (MA-001 requires 16 total)"
+
+  operations_mandatory:
+    - id: 1
+      name: "Decomposition"
+      description: "Break system into components/modules/services"
+    - id: 2
+      name: "Boundary Definition"
+      description: "Define context boundaries and interfaces"
+    - id: 3
+      name: "Relationship Mapping"
+      description: "Map dependencies and data flows"
+    - id: 4
+      name: "Responsibility Allocation"
+      description: "Assign responsibilities per SRP"
+    - id: 5
+      name: "Dependency Management"
+      description: "Analyze coupling and cohesion"
+    - id: 6
+      name: "Pattern Application"
+      description: "Apply architectural patterns"
+    - id: 7
+      name: "Quality Attribute Analysis"
+      description: "Prioritize ISO 25010 attributes"
+    - id: 8
+      name: "Interface Design"
+      description: "Define contracts and protocols"
+
+  violation_scenarios:
+    - "Agent skips Dependency Management (only 7 operations)"
+    - "Agent combines Decomposition + Boundary into one (only 7 distinct)"
+    - "Agent declares operation but doesn't execute"
+
+  detection: "GATE_1 condition G1-01 checks executed_count == 8"
+
+  enforcement:
+    when_violated: "ABORT at GATE_1"
+    message: "BLOCKER: Incomplete canonical operations (MA-001 violation)"
+    recovery: "Execute missing operations, re-evaluate GATE_1"
+
+  related_zasady:
+    - "ZASADA 2: COMPLETENESS > TOKEN_ECONOMY"
+
+# ==============================================================================
+# INV-08: EIGHT ADVERSARIAL OPERATIONS (BLOCKER, NON-NEGOTIABLE)
+# ==============================================================================
+
+INV-08:
+  name: "Eight Adversarial Operations"
+  severity: BLOCKER
+  description: "Phase 3 MUST execute ALL 8 adversarial operations (NON-NEGOTIABLE)"
+
+  rule: "adversary.executed == [STRIDE, FMEA, Bottleneck, Anti-patterns, Complexity, Compliance, Pre-mortem, Trade-offs]"
+
+  rationale: "User requirement + MA-005 from exploration"
+
+  non_negotiable: true
+  user_requirement: "ADVERSARY jest potrzebne (ADVERSARY is needed)"
+
+  operations_mandatory:
+    - id: 1
+      name: "Threat Modeling (STRIDE)"
+      description: "Analyze security threats across 6 categories"
+    - id: 2
+      name: "FMEA"
+      description: "Failure Mode and Effects Analysis"
+    - id: 3
+      name: "Bottleneck Detection"
+      description: "Identify performance choke points"
+    - id: 4
+      name: "Anti-Pattern Detection"
+      description: "Scan for known anti-patterns"
+    - id: 5
+      name: "Complexity Analysis"
+      description: "Calculate cyclomatic/cognitive/coupling metrics"
+    - id: 6
+      name: "Compliance Analysis"
+      description: "Verify regulatory/policy requirements"
+    - id: 7
+      name: "Pre-mortem"
+      description: "Assume failure, work backward to causes"
+    - id: 8
+      name: "Trade-off Identification"
+      description: "Identify conflicting quality attributes"
+
+  violation_scenarios:
+    - "Agent skips STRIDE (security not analyzed)"
+    - "Agent skips Pre-mortem (unknown-unknowns missed)"
+    - "Agent executes <8 operations citing 'time constraints'"
+
+  detection: "GATE_3 condition G3-01 checks executed_count == 8"
+
+  enforcement:
+    when_violated: "ABORT at GATE_3, NO SCOPE_REDUCTION allowed"
+    message: "BLOCKER: Incomplete ADVERSARY (user requirement violation)"
+    recovery: "Execute ALL 8 adversarial operations, no exceptions"
+
+  scope_reduction_forbidden: true
+  user_approval_cannot_override: true
+
+  related_zasady:
+    - "ZASADA 2: COMPLETENESS > TOKEN_ECONOMY"
+
+# ==============================================================================
+# INV-09: BOUNDED VALIDATION (BLOCKER)
+# ==============================================================================
+
+INV-09:
+  name: "Bounded Validation"
+  severity: BLOCKER
+  description: "Phase 5 MUST validate exactly 10 issues, not more/less"
+
+  rule: "validation.issues_validated.length == 10"
+
+  rationale: "Prevents infinite scope, acknowledges blind spots (MA-004)"
+
+  bounded_count: 10
+  selection_criteria: "Top 10 by severity × impact ranking"
+
+  violation_scenarios:
+    - "Agent validates 15 issues (exceeds bound)"
+    - "Agent validates 7 issues (below bound)"
+    - "Agent validates random 10, not top 10 by ranking"
+
+  detection: "GATE_5 condition G5-01 checks length == 10"
+
+  enforcement:
+    when_violated: "ABORT at GATE_5"
+    message: "BLOCKER: Validation not bounded (must be exactly 10)"
+    recovery: "Rank all issues, select top 10 by severity×impact, validate those"
+
+  scope_reduction_forbidden: true
+
+  related_zasady:
+    - "ZASADA 2: COMPLETENESS > TOKEN_ECONOMY"
+    - "MA-004: Bounded validation prevents infinite scope"
+
+# ==============================================================================
+# INV-10: CHECKPOINT MAXIMUM (ERROR)
+# ==============================================================================
+
+INV-10:
+  name: "Checkpoint Maximum"
+  severity: ERROR
+  description: "Process MUST NOT exceed 4 user approval checkpoints"
+
+  rule: "checkpoints_requested <= 4"
+
+  rationale: "Prevents approval fatigue (MA-003)"
+
+  max_checkpoints: 4
+
+  typical_checkpoints:
+    - "After Phase 1 (canonical operations review)"
+    - "After Phase 3 (ADVERSARY findings review)"
+    - "After Phase 5 (validation results review)"
+    - "Final approval (Phase 6 verification)"
+
+  violation_scenarios:
+    - "Agent requests approval after every operation (16 checkpoints)"
+    - "Agent requests approval mid-phase"
+    - ">4 checkpoints = user exhaustion"
+
+  detection: "Count approval requests in process_log.yaml"
+
+  enforcement:
+    when_violated: "LOG warning, proceed without additional approvals"
+    message: "CHECKPOINT LIMIT: Max 4 approvals to prevent fatigue"
+    recovery: "Consolidate approvals, proceed autonomously"
+
+  related_zasady:
+    - "MA-003: Max 4 checkpoints from exploration"
+
+# ==============================================================================
+# INV-11: EMBEDDED METHODS (CRITICAL)
+# ==============================================================================
+
+INV-11:
+  name: "Embedded Methods"
+  severity: CRITICAL
+  description: "All methods MUST be inline in step files, NO external files"
+
+  rule: "FOR ALL step_files: methods referenced → methods defined inline"
+
+  rationale: "Self-containment (ZASADA 1) — no external dependencies"
+
+  violation_scenarios:
+    - "Step file references 'Method #85' but definition in separate file"
+    - "Step file imports methods from data/method-procedures/"
+    - "Methods referenced but not defined anywhere"
+
+  detection: "Grep for method references, verify inline definitions exist"
+
+  enforcement:
+    when_violated: "HALT at step execution"
+    message: "EXTERNAL DEPENDENCY: Method not embedded (violates R1)"
+    recovery: "Embed method inline (3-5 bullet points), remove external reference"
+
+  embedding_format:
+    - "Method name + brief description"
+    - "3-5 executable steps (numbered)"
+    - "NO theory/explanation, ONLY procedure"
+
+  example: |
+    **Method #85 Grounding Check:**
+    1. Sample 3 random items from artifact
+    2. For each: verify existence in source (file/line number)
+    3. Calculate verification_rate = verified / sampled
+    4. IF rate < 0.70 → BLOCKER
+    5. Log results in counter_check_results
+
+  related_zasady:
+    - "ZASADA 1: Self-contained (R1)"
+    - "ZASADA 11: Instructions + data"
+    - "MA-006: Embedded methods for R1 compliance"
+
+# ==============================================================================
+# INV-12: JUST-IN-TIME LOADING (ERROR)
+# ==============================================================================
+
+INV-12:
+  name: "Just-in-Time Loading"
+  severity: ERROR
+  description: "Agent MUST load ONLY current step file, not all upfront"
+
+  rule: "AT phase N: loaded_files == [workflow.md, step-0N-*.md] (no others)"
+
+  rationale: "Prevents context overload and cognitive waste (ZASADA 12)"
+
+  violation_scenarios:
+    - "Agent at Phase 0 reads all 7 step files upfront"
+    - "Agent loads data/schemas/ before needed"
+    - "Agent loads Phase 3 instructions during Phase 0"
+
+  detection: "workflow.md EXECUTION SEQUENCE has violation checks"
+
+  enforcement:
+    when_violated: "LOG warning, context bloated"
+    message: "JIT VIOLATION: Loading files not needed for current phase"
+    recovery: "Unload unnecessary files, focus on current step"
+
+  loading_pattern:
+    phase_0: ["workflow.md", "step-00-context.md"]
+    phase_1: ["workflow.md", "step-01-canonical.md"]
+    phase_2: ["workflow.md", "step-02-artifacts.md"]
+    phase_3: ["workflow.md", "step-03-adversary.md"]
+    phase_4: ["workflow.md", "step-04-tradeoffs.md"]
+    phase_5: ["workflow.md", "step-05-validation.md"]
+    phase_6: ["workflow.md", "step-06-verification.md"]
+
+  related_zasady:
+    - "ZASADA 12: Just-in-time information delivery (R12)"
+    - "ZASADA 1: Self-contained (each step file complete)"
+
+# ==============================================================================
+# INVARIANT ENFORCEMENT SUMMARY
+# ==============================================================================
+
+enforcement_summary:
+  description: "How invariants are checked and enforced"
+
+  detection_mechanisms:
+    - "Gate conditions (gates.yaml) check invariants at phase boundaries"
+    - "Precondition checks in workflow.md EXECUTION SEQUENCE"
+    - "Post-phase checklists verify invariant compliance"
+    - "Counter-checks validate critical invariants"
+
+  severity_handling:
+    BLOCKER:
+      action: "ABORT execution immediately, log violation"
+      recovery: "Fix violation, restart from Phase 0"
+      examples: ["INV-01", "INV-02", "INV-07", "INV-08", "INV-09"]
+
+    CRITICAL:
+      action: "HALT at current phase, fix before proceeding"
+      recovery: "Fix violation, re-execute phase, re-evaluate gate"
+      examples: ["INV-03", "INV-04", "INV-05", "INV-11"]
+
+    ERROR:
+      action: "LOG warning, proceed with degraded quality"
+      recovery: "Fix in next iteration or accept risk"
+      examples: ["INV-10", "INV-12"]
+
+    REQUIRED:
+      action: "LOG info, proceed normally"
+      recovery: "Optional improvement"
+      examples: ["INV-06"]
+
+  violation_logging:
+    location: "process_log.yaml"
+    fields:
+      - "invariant_id"
+      - "phase"
+      - "timestamp"
+      - "violation_description"
+      - "severity"
+      - "action_taken"
+      - "recovery_plan"
+
+# ==============================================================================
+# VERSION HISTORY
+# ==============================================================================
+
+history:
+  - version: "1.0.0"
+    date: "2026-02-11"
+    changes:
+      - "Initial invariant definitions"
+      - "12 invariants: 5 BLOCKER, 4 CRITICAL, 2 ERROR, 1 REQUIRED"
+      - "INV-08 marked non-negotiable (user requirement)"
+      - "INV-09 enforces bounded validation (exactly 10 issues)"
+      - "INV-11 enforces embedded methods (R1 compliance)"
+      - "INV-12 enforces JIT loading (R12 compliance)"
+      - "All invariants linked to ZASADY/R1-R12"

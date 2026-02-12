@@ -1,0 +1,142 @@
+# Template Decomposition Schema (V7)
+# Validation structure for template analysis output
+# Used by: GATE_TA conditions GTA-01 through GTA-10
+
+version: "7.0.0"
+required_fields:
+  - metadata
+  - template_sections
+  - semantic_embeddings
+  - dependency_map
+  - coverage_requirements
+  - quality_metrics
+
+metadata:
+  type: object
+  required:
+    - analysis_timestamp
+    - template_source
+    - total_sections
+    - total_embeddings
+    - analysis_duration_ms
+  optional:
+    - custom_template_path
+
+template_sections:
+  type: array
+  min_items: 1
+  item_schema:
+    required:
+      - section_id
+      - section_title
+      - section_level
+      - parent_section_id
+      - content_type
+      - priority
+    optional:
+      - description
+      - examples
+      - validation_rules
+  validation:
+    - "Section IDs must be unique"
+    - "Parent section IDs must reference existing sections"
+    - "Content type must be: prose|table|list|code|diagram|mixed"
+    - "Priority must be: CRITICAL|HIGH|MEDIUM|LOW"
+
+semantic_embeddings:
+  type: array
+  min_items: 1
+  item_schema:
+    required:
+      - section_id
+      - embedding_vector
+      - embedding_model
+      - dimension
+    optional:
+      - metadata
+  validation:
+    - "Section IDs must reference template_sections[] array"
+    - "Embedding dimension must match model specification"
+    - "Embedding vector must be normalized (L2 norm = 1.0)"
+
+dependency_map:
+  type: object
+  required:
+    - section_dependencies
+    - transitive_closure
+  validation:
+    - "No circular dependencies allowed"
+    - "Transitive closure must be complete"
+
+  section_dependencies:
+    type: array
+    item_schema:
+      required:
+        - section_id
+        - depends_on
+        - dependency_type
+      optional:
+        - strength
+    validation:
+      - "Section IDs must reference template_sections[] array"
+      - "Dependency type must be: hard|soft|optional"
+
+  transitive_closure:
+    type: array
+    item_schema:
+      required:
+        - section_id
+        - all_dependencies
+    validation:
+      - "All dependencies must be transitively resolved"
+      - "Method #159 O(N³) complexity verified"
+
+coverage_requirements:
+  type: object
+  required:
+    - min_coverage_ratio
+    - critical_sections
+    - optional_sections
+  validation:
+    - "min_coverage_ratio must be >= 0.90"
+
+  critical_sections:
+    type: array
+    min_items: 1
+    item_schema:
+      - section_id: string
+    validation:
+      - "Section IDs must reference template_sections[] array"
+
+  optional_sections:
+    type: array
+    item_schema:
+      - section_id: string
+    validation:
+      - "Section IDs must reference template_sections[] array"
+
+quality_metrics:
+  type: object
+  required:
+    - total_sections
+    - critical_sections_count
+    - avg_section_depth
+    - max_section_depth
+    - embedding_quality
+  validation:
+    - "avg_section_depth must be >= 2.0"
+    - "max_section_depth must be <= 6"
+    - "embedding_quality must be >= 0.95"
+
+# GATE_TA enforcement points
+gate_ta_validations:
+  gta_01: "File exists: template-decomposition.yaml"
+  gta_02: "All required fields present"
+  gta_03: "Sections count >= 1"
+  gta_04: "Embeddings count >= 1"
+  gta_05: "Min coverage ratio >= 0.90"
+  gta_06: "Avg section depth >= 2.0"
+  gta_07: "No circular dependencies"
+  gta_08: "Transitive closure complete"
+  gta_09: "All critical sections identified"
+  gta_10: "Embedding quality >= 0.95"

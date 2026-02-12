@@ -1,0 +1,529 @@
+# Domain Dependencies Configuration V1.0.0
+# Type: Dependency Graph with Auto-Inclusion Logic
+# Purpose: Define domain hierarchy, dependencies, and application rules
+# Compliance: V6 (self-contained, COMPLETENESS>TOKEN_ECONOMY, mechanisms not intentions)
+
+metadata:
+  version: "1.0.1"
+  created: "2026-02-11"
+  updated: "2026-02-11"
+  status: "active"
+  description: "Domain dependency graph with 11 domains (3 base, 6 specific, 2 integration) defining auto-apply rules and transitive dependencies"
+  method_basis: "#167 Baseline Census (87% multi-domain), #159 Transitive Dependency (auto-inclusion)"
+
+# DOMAIN HIERARCHY LAYERS
+# Layer 1 (Language):    typescript-library, python-library
+# Layer 2 (Paradigm):    iac-agnostic, testing-patterns, api-patterns
+# Layer 3 (Framework):   aws-cdk, event-driven-serverless, serverless-framework, terraform, react, api-gateway
+# Layer 4 (Integration): external-integrations, multi-region, multi-tenant
+
+# APPLICATION RULES
+# - Base domains (auto_apply: true) → ALWAYS included
+# - Specific domains → Detected via domain-detection-rules.yaml
+# - Dependencies (requires[]) → Transitive auto-inclusion
+# - Pattern selection → Union of all active domains
+
+# ENFORCEMENT
+# - INV-20 (Pattern Detection Completeness) verifies base domains applied
+# - GATE_D (Detection Gate) verifies domain detection executed
+# - Domain selection logged in detection-report.yaml for reversibility
+
+domains:
+  # ============================================================================
+  # BASE DOMAINS (Always Applied)
+  # ============================================================================
+
+  iac-agnostic:
+    id: "iac-agnostic"
+    name: "Infrastructure as Code (Agnostic)"
+    type: "base"
+    layer: "paradigm"
+    auto_apply: true
+    description: "Universal IaC patterns applicable to any infrastructure codebase"
+    rationale: "98% of infrastructure projects need deployment, configuration, environment patterns regardless of framework"
+
+    requires: []
+
+    provides:
+      patterns:
+        quality:
+          - "QP-DTAP-CONFIGURATION"
+          - "QP-PARAMETER-STORE-SECRETS"
+          - "QP-FEATURE-BRANCH-ISOLATION"
+        diagram_triggers:
+          - "DT-DEPLOYMENT-PIPELINE"
+          - "DT-ENVIRONMENT-CONFIG"
+
+      templates:
+        - "deployment-guide"
+        - "configuration"
+
+    evidence_requirements:
+      auto_apply: true
+      verification: "INV-20 checks domain included in detection-report.yaml"
+
+  typescript-library:
+    id: "typescript-library"
+    name: "TypeScript Library"
+    type: "base"
+    layer: "language"
+    auto_apply: true
+    description: "TypeScript language patterns for any TS-based project"
+    rationale: "If tsconfig.json exists, TypeScript patterns are universally applicable"
+
+    requires: []
+
+    provides:
+      patterns:
+        quality:
+          - "QP-TYPE-SAFETY"
+          - "QP-DEPENDENCY-MANAGEMENT"
+        diagram_triggers:
+          - "DT-MODULE-STRUCTURE"
+
+      templates:
+        - "api-reference"
+        - "source-tree"
+
+    detection_override:
+      condition: "tsconfig.json exists"
+      if_not_found: "skip this base domain"
+      rationale: "TypeScript patterns only relevant for TS projects"
+
+    evidence_requirements:
+      auto_apply: true
+      verification: "GATE_D checks tsconfig.json existence logged"
+
+  testing-patterns:
+    id: "testing-patterns"
+    name: "Testing Patterns"
+    type: "base"
+    layer: "paradigm"
+    auto_apply: true
+    description: "Universal testing, quality assurance, and CI patterns"
+    rationale: "92% of projects have test infrastructure (Jest, pytest, Go test, etc.)"
+
+    requires: []
+
+    provides:
+      patterns:
+        quality:
+          - "QP-TEST-COVERAGE"
+          - "QP-CI-PIPELINE"
+        diagram_triggers:
+          - "DT-TEST-STRUCTURE"
+
+      templates:
+        - "testing-guide"
+
+    evidence_requirements:
+      auto_apply: true
+      verification: "INV-20 checks domain included unless explicitly no tests"
+
+  # ============================================================================
+  # SPECIFIC DOMAINS (Detection Required)
+  # ============================================================================
+
+  aws-cdk:
+    id: "aws-cdk"
+    name: "AWS CDK Infrastructure"
+    type: "specific"
+    layer: "framework"
+    auto_apply: false
+    description: "AWS Cloud Development Kit patterns, constructs, stacks"
+    rationale: "CDK has unique patterns (L1/L2/L3 constructs, stack composition, custom constructs)"
+
+    requires:
+      - "iac-agnostic"        # Auto-includes paradigm layer
+      - "typescript-library"  # Auto-includes language layer (if TS-based)
+
+    provides:
+      patterns:
+        project_type:
+          - "aws-cdk-infrastructure"
+        quality:
+          - "QP-CDK-CUSTOM-CONSTRUCTS"
+          - "QP-CONDITIONAL-CFN"
+        diagram_triggers:
+          - "DT-CDK-STACK"
+          - "DT-MULTI-REGION"
+
+      templates:
+        - "architecture"
+        - "deployment-guide"
+
+    detection_method: "domain-detection-rules.yaml:aws-cdk"
+
+    evidence_requirements:
+      detection_logged: true
+      confidence_threshold: 0.80
+      verification: "GATE_D requires detection confidence ≥ 80% with evidence"
+
+  event-driven-serverless:
+    id: "event-driven-serverless"
+    name: "Event-Driven Serverless"
+    type: "specific"
+    layer: "framework"
+    auto_apply: false
+    description: "Lambda, EventBridge, SNS, SQS, DynamoDB event patterns"
+    rationale: "Event-driven architectures have unique patterns (event flow, saga, CQRS, eventual consistency)"
+
+    requires:
+      - "iac-agnostic"
+
+    provides:
+      patterns:
+        project_type:
+          - "event-driven-serverless"
+        quality:
+          - "QP-EVENT-LOGGING"
+          - "QP-DLQ-ERROR-HANDLING"
+          - "QP-LAMBDA-LAYER"
+        diagram_triggers:
+          - "DT-EVENT-FLOW"
+          - "DT-LAMBDA-INVENTORY"
+          - "DT-SNS-TAXONOMY"
+          - "DT-DYNAMODB-SCHEMA"
+
+      templates:
+        - "architecture"
+        - "data-models"
+        - "event-catalog"
+
+    detection_method: "domain-detection-rules.yaml:event-driven-serverless"
+
+    evidence_requirements:
+      detection_logged: true
+      confidence_threshold: 0.75
+      verification: "GATE_D requires detection confidence ≥ 75% with evidence"
+
+  serverless-framework:
+    id: "serverless-framework"
+    name: "Serverless Framework"
+    type: "specific"
+    layer: "framework"
+    auto_apply: false
+    description: "Serverless Framework patterns (stages, plugins, multi-cloud provider abstraction)"
+    rationale: "Serverless Framework has unique patterns (DTAP via stages, plugin ecosystem, multi-cloud provider config)"
+
+    requires:
+      - "event-driven-serverless"  # Transitive dependency (inherits base event patterns)
+
+    provides:
+      patterns:
+        quality:
+          - "QP-SERVERLESS-STAGES"     # DTAP via stages (dev, test, prod)
+          - "QP-SERVERLESS-PLUGINS"    # Plugin ecosystem
+          - "QP-SERVERLESS-PROVIDER"   # Multi-cloud (AWS, Azure, GCP)
+          - "QP-SERVERLESS-RESOURCES"  # CloudFormation resources
+          - "QP-SERVERLESS-CUSTOM"     # Custom variables
+
+      templates: []  # Uses event-driven-serverless templates
+
+    detection_method: "domain-detection-rules.yaml:serverless-framework"
+
+    evidence_requirements:
+      detection_logged: true
+      confidence_threshold: 0.75
+      verification: "GATE_D requires detection confidence ≥ 75% with evidence"
+
+  terraform:
+    id: "terraform"
+    name: "Terraform"
+    type: "specific"
+    layer: "framework"
+    auto_apply: false
+    description: "Terraform infrastructure as code patterns (modules, state, workspaces)"
+    rationale: "Terraform has unique patterns (module composition, state backends, workspace environments)"
+
+    requires:
+      - "iac-agnostic"  # Transitive dependency (inherits base IaC patterns)
+
+    provides:
+      patterns:
+        quality:
+          - "QP-TERRAFORM-MODULES"    # Module structure and composition
+          - "QP-TERRAFORM-STATE"      # State management and backends
+          - "QP-TERRAFORM-WORKSPACE"  # Workspace configuration for environments
+
+      templates: []  # Uses iac-agnostic templates
+
+    detection_method: "domain-detection-rules.yaml:terraform"
+
+    evidence_requirements:
+      detection_logged: true
+      confidence_threshold: 0.75
+      verification: "GATE_D requires detection confidence ≥ 75% with evidence"
+
+  api-gateway:
+    id: "api-gateway"
+    name: "API Gateway"
+    type: "specific"
+    layer: "framework"
+    auto_apply: false
+    description: "REST/GraphQL API patterns, OpenAPI, middleware, authentication"
+    rationale: "API-centric projects have unique patterns (contract-first, middleware chains, auth flows)"
+
+    requires:
+      - "iac-agnostic"
+
+    provides:
+      patterns:
+        project_type:
+          - "api-gateway"
+        quality:
+          - "QP-OPENAPI-CODEGEN"
+          - "QP-MIDDY-MIDDLEWARE"
+          - "QP-RXP-CONTEXT"
+        diagram_triggers:
+          - "DT-OPENAPI-CONTRACT"
+          - "DT-MIDDLEWARE-CHAIN"
+
+      templates:
+        - "api-reference"
+        - "authentication-guide"
+
+    detection_method: "domain-detection-rules.yaml:api-gateway"
+
+    evidence_requirements:
+      detection_logged: true
+      confidence_threshold: 0.70
+      verification: "GATE_D requires detection confidence ≥ 70% with evidence"
+
+  react:
+    id: "react"
+    name: "React Application"
+    type: "specific"
+    layer: "framework"
+    auto_apply: false
+    description: "React component patterns, state management, hooks, routing"
+    rationale: "React has unique patterns (component hierarchy, context, custom hooks, routing)"
+
+    requires:
+      - "typescript-library"
+
+    provides:
+      patterns:
+        project_type:
+          - "react-application"
+        quality:
+          - "QP-COMPONENT-COMPOSITION"
+          - "QP-STATE-MANAGEMENT"
+        diagram_triggers:
+          - "DT-COMPONENT-TREE"
+          - "DT-STATE-FLOW"
+
+      templates:
+        - "architecture"
+        - "component-guide"
+
+    detection_method: "domain-detection-rules.yaml:react"
+
+    evidence_requirements:
+      detection_logged: true
+      confidence_threshold: 0.80
+      verification: "GATE_D requires detection confidence ≥ 80% with evidence"
+
+  # ============================================================================
+  # INTEGRATION DOMAINS (Detection Required)
+  # ============================================================================
+
+  external-integrations:
+    id: "external-integrations"
+    name: "External Integrations"
+    type: "integration"
+    layer: "integration"
+    auto_apply: false
+    description: "Third-party service integrations, webhooks, API clients"
+    rationale: "Projects with ≥3 external services need integration architecture documentation"
+
+    requires: []
+
+    provides:
+      patterns:
+        quality:
+          - "QP-EXTERNAL-API-RESILIENCE"
+          - "QP-WEBHOOK-HANDLING"
+        diagram_triggers:
+          - "DT-EXTERNAL-INTEGRATION"
+
+      templates:
+        - "integration-guide"
+
+    detection_method: "domain-detection-rules.yaml:external-integrations"
+
+    evidence_requirements:
+      detection_logged: true
+      confidence_threshold: 0.65
+      verification: "GATE_D requires detection confidence ≥ 65% with evidence"
+
+  multi-tenant:
+    id: "multi-tenant"
+    name: "Multi-Tenant"
+    type: "integration"
+    layer: "integration"
+    auto_apply: false
+    description: "Multi-tenant patterns, tenant isolation, OpCo patterns"
+    rationale: "Multi-tenant architectures need tenant isolation, data partitioning docs"
+
+    requires: []
+
+    provides:
+      patterns:
+        quality:
+          - "QP-MULTI-TENANT-OPCO"
+          - "QP-TENANT-ISOLATION"
+        diagram_triggers:
+          - "DT-MULTI-TENANT"
+
+      templates:
+        - "tenant-architecture"
+
+    detection_method: "domain-detection-rules.yaml:multi-tenant"
+
+    evidence_requirements:
+      detection_logged: true
+      confidence_threshold: 0.75
+      verification: "GATE_D requires detection confidence ≥ 75% with evidence"
+
+# ============================================================================
+# AUTO-INCLUSION ALGORITHM (Transitive Dependencies)
+# ============================================================================
+
+auto_inclusion:
+  description: "Mechanism for transitive dependency resolution"
+  method: "#159 Transitive Dependency (closure algorithm)"
+
+  algorithm:
+    - step: 1
+      action: "Load base domains (auto_apply: true)"
+      output: "active_domains = [iac-agnostic, typescript-library, testing-patterns]"
+      enforcement: "INV-20 Pattern Detection Completeness"
+
+    - step: 2
+      action: "Execute domain detection (domain-detection-rules.yaml)"
+      output: "detected_domains = [domains with confidence ≥ threshold]"
+      enforcement: "GATE_D Detection Gate (all files scanned, all rules evaluated)"
+
+    - step: 3
+      action: "For each detected domain, collect requires[] dependencies"
+      output: "dependencies = union(detected.requires[])"
+      mechanism: "Recursive traversal until no new dependencies"
+
+    - step: 4
+      action: "Compute transitive closure"
+      output: "final_domains = active_domains ∪ detected_domains ∪ dependencies"
+      verification: "No circular dependencies (checked via topological sort)"
+
+    - step: 5
+      action: "Log final domain set in detection-report.yaml"
+      output: "domains_applied: [list], domains_detected: [list], domains_auto_included: [list]"
+      enforcement: "INV-20 requires ALL domains logged with evidence"
+
+    - step: 6
+      action: "Collect union of all provides.patterns from final_domains"
+      output: "active_patterns = {quality: [], diagram_triggers: [], templates: []}"
+      mechanism: "Pattern merging without duplicates"
+
+    - step: 7
+      action: "Pass active_patterns to planner-agent for documentation planning"
+      output: "Planner uses active patterns to determine diagram requirements, quality checks"
+      enforcement: "GATE_P verifies plan uses patterns from active domains only"
+
+  error_handling:
+    circular_dependency:
+      detection: "Topological sort fails"
+      action: "BLOCKER — log error, halt STATE_DETECTION"
+      recovery: "Fix domain-dependencies.yaml to remove cycle"
+
+    missing_dependency:
+      detection: "Domain requires[] references unknown domain"
+      action: "ERROR — log warning, skip that dependency"
+      recovery: "Add missing domain to this file or remove invalid reference"
+
+    confidence_below_threshold:
+      detection: "Detected domain confidence < threshold"
+      action: "Skip domain (not included in final set)"
+      logging: "Log in detection-report.yaml as 'below_threshold'"
+
+# ============================================================================
+# VALIDATION RULES (Enforced by GATE_D)
+# ============================================================================
+
+validation:
+  domain_completeness:
+    rule: "All base domains with auto_apply=true MUST be in active_domains"
+    gate: "GATE_D"
+    severity: "CRITICAL"
+    verification: "INV-20 Pattern Detection Completeness"
+
+  dependency_closure:
+    rule: "All requires[] dependencies MUST be included in final_domains"
+    gate: "GATE_D"
+    severity: "CRITICAL"
+    verification: "Method #159 Transitive Dependency (closure verification)"
+
+  evidence_logging:
+    rule: "All detected domains MUST have detection evidence logged"
+    gate: "GATE_D"
+    severity: "CRITICAL"
+    verification: "Method #114 Reversibility (audit trail)"
+
+  confidence_threshold:
+    rule: "All detected domains MUST meet confidence_threshold"
+    gate: "GATE_D"
+    severity: "ERROR"
+    verification: "Detection confidence score in detection-report.yaml"
+
+  pattern_coherence:
+    rule: "All active_patterns MUST come from active_domains only"
+    gate: "GATE_P"
+    severity: "ERROR"
+    verification: "Method #84 Coherence Check (pattern-domain binding)"
+
+# ============================================================================
+# COUNTER-CHECKS (Anti-Bypass Mechanisms)
+# ============================================================================
+
+counter_checks:
+  CC1_base_domain_verification:
+    method: "#85 Grounding Check"
+    mechanism: "Verify base domains exist in detection-report.yaml:domains_applied"
+    trigger: "GATE_D"
+    failure: "BLOCKER if any base domain missing"
+
+  CC2_dependency_closure_verification:
+    method: "#159 Transitive Dependency"
+    mechanism: "Re-compute transitive closure, compare with detection-report.yaml:final_domains"
+    trigger: "GATE_D"
+    failure: "CRITICAL if mismatch (incomplete closure)"
+
+  CC3_pattern_domain_binding:
+    method: "#84 Coherence Check"
+    mechanism: "Verify every pattern in documentation-plan.yaml comes from active domain"
+    trigger: "GATE_P"
+    failure: "ERROR if pattern from inactive domain (phantom pattern)"
+
+# ============================================================================
+# CHANGELOG
+# ============================================================================
+
+changelog:
+  - version: "1.0.1"
+    date: "2026-02-11"
+    changes:
+      - "Added terraform domain (REC-005)"
+      - "Total domains: 11 (3 base, 6 specific, 2 integration)"
+    terraform_rationale: "Terraform has unique patterns (module composition, state backends, workspace environments) requiring documentation beyond generic IaC patterns"
+
+  - version: "1.0.0"
+    date: "2026-02-11"
+    changes:
+      - "Initial V7 implementation with 10 domains (3 base, 5 specific, 2 integration)"
+      - "Added serverless-framework domain (REC-004)"
+      - "Transitive dependency auto-inclusion algorithm (7 steps)"
+      - "Evidence logging and confidence thresholds"
+      - "V6 compliance: mechanisms, gates, counter-checks"
+    method_basis: "#167, #159, #84, #85, #114, #61 (Pre-mortem), #99 (Coherence)"
+    rationale: "87% of projects are multi-domain (baseline census), strict triggers needed for 95% accuracy"
+    serverless_framework_rationale: "Serverless Framework has unique patterns (stages for DTAP, plugin ecosystem, multi-cloud provider abstraction) that require documentation beyond generic event-driven patterns"

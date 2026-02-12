@@ -1,0 +1,203 @@
+name: deep-risk
+version: 2.0.0
+type: risk-assessment
+status: operational
+
+description: |
+  Deep-Risk V2.0 — Systematic risk assessment with binding enforcement.
+
+  VALUE PROPOSITION: Discovers risks through theory-grounded extraction (GROUND → IDENTIFY),
+  quantifies with 5D scoring (P/I/V/D/R), analyzes interactions (cascades, correlations),
+  designs mitigations with Cobra Effect checks, and establishes monitoring with leading indicators.
+
+  V2.0 IMPROVEMENTS:
+  - Pure Deep-Verify Pattern (self-contained steps, 0 reference.md, methods embedded inline)
+  - Binding gates (8 GATE_X with BLOCKER/CRITICAL conditions)
+  - ASSUMPTIONS_DECLARED mandatory before each phase
+  - EVR sequence enforced (Extract → Verify → Render with PRECONDITION checks)
+  - Counter-checks on critical claims (3 per phase)
+  - R0-R13 compliant (13/13 requirements met)
+  - 75% token reduction (workflow 277L→150L, deleted 331L reference.md)
+
+architecture:
+  pattern: deep-verify
+  components:
+    - workflow.md (routing + enforcement rules only)
+    - gates.yaml (8 binding gates)
+    - steps/ (8 self-contained step files with YAML frontmatter + ENFORCED SEQUENCE + embedded methods)
+    - data/ (configs: scoring, theoretical foundations, pattern libraries)
+
+requirements:
+  r0_no_decoration: true          # Zero non-execution content (no "Purpose", "When", "Why")
+  r1_self_contained: true         # Methods embedded inline (no external method-procedures/)
+  r2_completeness_priority: true  # "All", "Every", "Exhaustive" (not "main", "typical")
+  r3_mechanisms: true             # IF-THEN triggers (not "should", "recommended")
+  r4_binding_gates: true          # 8 gates with BLOCKER/CRITICAL severity
+  r5_assumptions_declared: true   # Mandatory ASSUMPTIONS_DECLARED section per phase
+  r6_evr_sequence: true           # Extract→Verify→Render enforced with PRECONDITION
+  r7_post_phase_checklists: true  # YAML checklists after each phase
+  r8_counter_checks: true         # 3 counter-checks per critical phase (24 total)
+  r9_executable: true             # Imperative procedures (not descriptive states)
+  r11_unified: true               # Instructions + data in step files (no split brain)
+  r12_just_in_time: true          # Progressive loading (workflow routes → steps)
+  r13_zero_decorations: true      # Only executable mechanisms
+
+gates:
+  count: 8
+  ids: [GATE_0, GATE_1, GATE_2, GATE_3, GATE_4, GATE_5, GATE_6, GATE_7]
+  enforcement: binding            # Agent CANNOT proceed past gate if conditions fail
+  definition_file: gates.yaml
+
+phases:
+  - id: 0
+    name: GROUND
+    gate: GATE_0
+    step_file: steps/step-00-ground.md
+    methods: [001, 002, 003]
+    time_estimate: "30-60 min"
+
+  - id: 1
+    name: IDENTIFY_VERTICAL
+    gate: GATE_1
+    step_file: steps/step-01-identify-vertical.md
+    methods: [101, 102, 103, 104, 105, 106, 107]
+    time_estimate: "45-90 min"
+
+  - id: 2
+    name: IDENTIFY_HORIZONTAL
+    gate: GATE_2
+    step_file: steps/step-02-identify-horizontal.md
+    methods: [108, 109, 110, 111, 112]
+    time_estimate: "30-60 min"
+
+  - id: 3
+    name: QUANTIFY
+    gate: GATE_3
+    step_file: steps/step-03-quantify.md
+    methods: [201, 202, 203, 204, 205, 206, 207]
+    time_estimate: "45-75 min"
+
+  - id: 4
+    name: INTERACT
+    gate: GATE_4
+    step_file: steps/step-04-interact.md
+    methods: [301, 302, 303, 304, 305, 306, 307]
+    time_estimate: "30-60 min"
+
+  - id: 5
+    name: MITIGATE
+    gate: GATE_5
+    step_file: steps/step-05-mitigate.md
+    methods: [401, 402, 403, 404, 405, 406, 407, 408]
+    time_estimate: "60-90 min"
+
+  - id: 6
+    name: MONITOR
+    gate: GATE_6
+    step_file: steps/step-06-monitor.md
+    methods: [501, 502, 503, 504, 505]
+    time_estimate: "30-45 min"
+
+  - id: 7
+    name: OUTPUT
+    gate: GATE_7
+    step_file: steps/step-07-output.md
+    methods: [601, 602, 603, 604, 605, 606]
+    time_estimate: "45-60 min"
+
+depth_levels:
+  quick:
+    phases: [0, 1, 3, 5, 6]
+    methods_subset: [001, 002, 003, 101, 102, 103, 104, 201, 401, 406, 501]
+    max_iterations: 1
+    coverage_target: 15
+
+  standard:
+    phases: [0, 1, 2, 3, 4, 5, 6]
+    methods_subset: all_except_chaos  # All except method 110 (chaos probes)
+    max_iterations: 3
+    coverage_target: 35
+
+  comprehensive:
+    phases: [0, 1, 2, 3, 4, 5, 6, 7]
+    methods_subset: all_except_chaos
+    max_iterations: 5
+    coverage_target: 50
+
+  critical:
+    phases: [0, 1, 2, 3, 4, 5, 6, 7]
+    methods_subset: all_48_methods
+    max_iterations: unlimited
+    coverage_target: 65
+
+integration:
+  consumes:
+    - deep-explore (exploration reports: assumptions, dependencies, consequences)
+    - deep-verify (verification reports: impossibility findings, ungrounded claims)
+  produces:
+    - risk-register.yaml (all identified risks with 5D scores)
+    - risk-interaction-map.yaml (cascades, correlations, common-mode failures)
+    - mitigation-portfolio.yaml (4T classification, cost-benefit, Cobra checks)
+    - monitoring-system.yaml (leading indicators, review cadence, escalation protocol)
+    - risk-report.md (executive summary, portfolio view, recommendations)
+
+theoretical_foundations:
+  file: data/theoretical-foundations.yaml
+  theorems: 9
+  coverage:
+    - Normal Accidents (Perrow)
+    - Non-Ergodicity (Peters)
+    - Fat Tails (Taleb)
+    - Swiss Cheese (Reason)
+    - Cobra Effect
+    - Goodhart's Law
+    - Knight's Distinction
+    - Survivorship Bias
+    - Lindy Effect
+
+changelog:
+  - version: 2.0.0
+    date: 2026-02-12
+    changes:
+      - "SYSTEMATIC REFACTOR: V1.1 → V2.0 for R0-R13 compliance"
+      - "ARCHITECTURE: Pure Deep-Verify Pattern (workflow routing + self-contained steps)"
+      - "DELETED: reference.md (331 lines, violated R0/R11/R13)"
+      - "DELETED: data/method-procedures/*.md (48 files, violated R1 self-containment)"
+      - "CREATED: process.yaml (process metadata + compliance matrix)"
+      - "CREATED: gates.yaml (8 binding gates with BLOCKER/CRITICAL conditions)"
+      - "REFACTORED: workflow.md (277L → 150L, routing + enforcement rules only)"
+      - "REFACTORED: 8 step files (added YAML frontmatter, embedded 48 methods inline, ASSUMPTIONS_DECLARED, EVR sequence, counter-checks)"
+      - "COMPLIANCE: R0-R13 13/13 PASS (was 1/13 in V1.1)"
+      - "MECHANISMS: 8 binding gates (was 0), 24 counter-checks (was 0), 8 ASSUMPTIONS_DECLARED sections (was 0)"
+      - "TOKEN ECONOMY: 75% reduction in upfront loading (workflow 277L→150L, deleted reference.md 331L)"
+      - "METHODS USED: #167 Baseline Census, #81 Scope Integrity, #17 Abstraction Laddering, #42 Reverse Engineering, #59 CUI BONO, #61 Pre-mortem, #84 Coherence Check, #99 Multi-Artifact Coherence, #114 Reversibility, #78 Assumption Excavation"
+
+  - version: 1.1.0
+    date: 2024-02-07
+    changes:
+      - "Self-contained execution: lean workflow.md + reference.md"
+      - "48 method procedures in data/method-procedures/"
+      - "8 step files with procedures"
+      - "4 depth levels (quick, standard, comprehensive, critical)"
+      - "Crisis mode detection"
+      - "Integration with Deep-Explore and Deep-Verify"
+
+  - version: 1.0.0
+    date: 2024-02-04
+    changes:
+      - "Initial release based on DEEP-RISK.md methodology"
+      - "6 phases (GROUND, IDENTIFY, QUANTIFY, INTERACT, MITIGATE, MONITOR)"
+      - "48 methods across 6 method families"
+      - "5D risk scoring (P/I/V/D/R)"
+      - "Theoretical foundations (9 theorems)"
+
+verification:
+  target: deep-verify-v2
+  target_score: ">= 7.0/10"
+  baseline_audit: BASELINE-AUDIT-V2.md
+  status: pending_verification
+
+maintainers:
+  - deep-process-compliance-system
+
+license: MIT

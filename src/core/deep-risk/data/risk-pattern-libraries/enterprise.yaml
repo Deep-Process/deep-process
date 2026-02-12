@@ -1,0 +1,349 @@
+# Enterprise Risk Pattern Library
+# Patterns specific to enterprise IT and organizational systems
+
+library:
+  id: "enterprise"
+  name: "Enterprise Risk Patterns"
+  version: "1.0.0"
+  description: "Failure patterns observed in enterprise IT, integrations, and organizational systems"
+
+patterns:
+  # ============================================================================
+  # INTEGRATION PATTERNS
+  # ============================================================================
+
+  - id: "ENT-001"
+    name: "Integration Point Explosion"
+    description: |
+      Point-to-point integrations multiply until the architecture becomes
+      unmaintainable spaghetti with N*(N-1) potential connections.
+
+    signature:
+      - "Many systems need to exchange data"
+      - "No integration layer or middleware"
+      - "Each system connects directly to others"
+      - "Adding new system requires many new integrations"
+
+    anti_patterns:
+      - "Point-to-point connections for each need"
+      - "No integration standards"
+      - "Each integration custom-built"
+      - "No central integration visibility"
+
+    indicators:
+      - "Integration cost growing non-linearly"
+      - "Integration failures hard to diagnose"
+      - "Long lead time for new integrations"
+
+    historical_examples:
+      - "Common enterprise anti-pattern"
+      - "Healthcare: HL7 interface sprawl"
+
+    mitigation_hints:
+      - "API gateway / integration platform"
+      - "Event-driven architecture"
+      - "Canonical data models"
+
+  - id: "ENT-002"
+    name: "ERP Customization Death Spiral"
+    description: |
+      Enterprise system is heavily customized until upgrades become impossible
+      and the organization is locked into a deprecated version.
+
+    signature:
+      - "Core enterprise system (ERP, CRM)"
+      - "Heavy customization to fit processes"
+      - "Upgrade path requires re-implementing customizations"
+      - "Years behind current version"
+
+    anti_patterns:
+      - "Customizing instead of configuring"
+      - "Modifying core code"
+      - "No documentation of customizations"
+      - "Process conformance to system not considered"
+
+    indicators:
+      - "Upgrade cost estimates very high"
+      - "Vendor support warnings about old version"
+      - "Security patches cannot be applied"
+
+    historical_examples:
+      - "SAP implementations stuck on old versions"
+      - "Oracle EBS customization debt"
+
+    mitigation_hints:
+      - "Prefer configuration over customization"
+      - "Extension points, not core modifications"
+      - "Document and test all customizations"
+
+  - id: "ENT-003"
+    name: "API Contract Violation"
+    description: |
+      API contracts change without warning or versioning, breaking consumers
+      who depended on the previous behavior.
+
+    signature:
+      - "Internal or external APIs"
+      - "No formal versioning strategy"
+      - "Consumer impact not considered in changes"
+      - "Breaking changes in 'minor' releases"
+
+    anti_patterns:
+      - "No API versioning"
+      - "Changing response format without notice"
+      - "No deprecation warnings"
+      - "No consumer communication"
+
+    indicators:
+      - "Consumer failures after API releases"
+      - "Complaints about API stability"
+      - "Pinning to specific API versions"
+
+    historical_examples:
+      - "Twitter API changes breaking third-party apps"
+      - "Internal API changes cascading failures"
+
+    mitigation_hints:
+      - "Semantic versioning for APIs"
+      - "Deprecation policy and communication"
+      - "Contract testing"
+
+  # ============================================================================
+  # VENDOR MANAGEMENT PATTERNS
+  # ============================================================================
+
+  - id: "ENT-004"
+    name: "Vendor Lock-In Trap"
+    description: |
+      Deep dependency on a single vendor makes switching impossible,
+      giving the vendor pricing power and creating risk of discontinuation.
+
+    signature:
+      - "Single vendor for critical capability"
+      - "Proprietary formats or protocols"
+      - "No exit strategy documented"
+      - "Switching cost prohibitive"
+
+    anti_patterns:
+      - "Using vendor-specific features without abstraction"
+      - "No competitive evaluation"
+      - "Vendor as single point of failure"
+      - "No data portability"
+
+    indicators:
+      - "Vendor price increases accepted without negotiation"
+      - "Cannot evaluate alternatives"
+      - "Vendor roadmap doesn't align with needs"
+
+    historical_examples:
+      - "Oracle database dependencies"
+      - "Mainframe platform lock-in"
+
+    mitigation_hints:
+      - "Abstraction layers"
+      - "Standard formats and protocols"
+      - "Exit strategy and data portability"
+
+  - id: "ENT-005"
+    name: "Shadow IT Proliferation"
+    description: |
+      Business units deploy their own IT solutions outside official channels,
+      creating security, integration, and governance risks.
+
+    signature:
+      - "IT perceived as slow or inflexible"
+      - "SaaS easily procurable via credit card"
+      - "Business data in unapproved systems"
+      - "IT discovers systems during incidents"
+
+    anti_patterns:
+      - "No self-service IT options"
+      - "Long approval processes for tools"
+      - "Punitive response to shadow IT"
+      - "No visibility into SaaS spend"
+
+    indicators:
+      - "Unknown SaaS in expense reports"
+      - "Data in unapproved locations"
+      - "Integration requests for unknown systems"
+
+    historical_examples:
+      - "Dropbox proliferation in enterprises"
+      - "Unauthorized CRM deployments"
+
+    mitigation_hints:
+      - "Self-service IT with guardrails"
+      - "SaaS management platform"
+      - "Collaborative not punitive approach"
+
+  # ============================================================================
+  # SECURITY PATTERNS
+  # ============================================================================
+
+  - id: "ENT-006"
+    name: "Privilege Creep Accumulation"
+    description: |
+      Access permissions accumulate over time as people move roles but
+      old permissions are never revoked.
+
+    signature:
+      - "Long-tenured employees"
+      - "Role changes over career"
+      - "Access granted but rarely revoked"
+      - "No periodic access review"
+
+    anti_patterns:
+      - "No access certification process"
+      - "Role changes add but don't remove access"
+      - "Shared service accounts"
+      - "No least-privilege enforcement"
+
+    indicators:
+      - "Employees with more access than role requires"
+      - "Dormant accounts with active privileges"
+      - "Access audit findings"
+
+    historical_examples:
+      - "Common finding in security audits"
+      - "Insider threat enabled by over-provisioning"
+
+    mitigation_hints:
+      - "Regular access certification"
+      - "Role-based access control"
+      - "Automatic deprovisioning"
+
+  - id: "ENT-007"
+    name: "Security Debt Accumulation"
+    description: |
+      Security issues are deferred in favor of features until the
+      accumulated debt creates unacceptable risk exposure.
+
+    signature:
+      - "Known vulnerabilities not patched"
+      - "Security findings in backlog for months"
+      - "Penetration test findings not remediated"
+      - "Security always deprioritized vs features"
+
+    anti_patterns:
+      - "Security as afterthought"
+      - "No security in sprint planning"
+      - "Vulnerability tracking disconnected from work"
+      - "No SLA for security fixes"
+
+    indicators:
+      - "Growing list of known vulnerabilities"
+      - "Audit findings recurring"
+      - "Security scans disabled 'temporarily'"
+
+    historical_examples:
+      - "Equifax: Known vulnerability unpatched"
+      - "Many breaches from old vulnerabilities"
+
+    mitigation_hints:
+      - "Security SLAs based on severity"
+      - "Security in Definition of Done"
+      - "Automated vulnerability tracking"
+
+  # ============================================================================
+  # COMPLIANCE PATTERNS
+  # ============================================================================
+
+  - id: "ENT-008"
+    name: "Compliance Theater"
+    description: |
+      Compliance activities focus on passing audits rather than actual
+      risk reduction. Controls exist on paper but not in practice.
+
+    signature:
+      - "Compliance-driven security program"
+      - "Controls checked annually, not continuously"
+      - "Evidence gathered for audits, not operations"
+      - "'Passing audit' is the goal"
+
+    anti_patterns:
+      - "Compliance as checkbox exercise"
+      - "Different practices during vs outside audits"
+      - "Controls not monitored between audits"
+      - "Minimum viable compliance"
+
+    indicators:
+      - "Clean audits but security incidents"
+      - "Evidence gathering is scramble before audit"
+      - "Controls not understood by operators"
+
+    historical_examples:
+      - "Companies compliant but breached"
+      - "SOX controls that don't prevent fraud"
+
+    mitigation_hints:
+      - "Continuous compliance monitoring"
+      - "Risk-based not checklist approach"
+      - "Controls integrated into operations"
+
+  # ============================================================================
+  # LEGACY PATTERNS
+  # ============================================================================
+
+  - id: "ENT-009"
+    name: "Legacy Knowledge Evaporation"
+    description: |
+      Knowledge about legacy systems disappears as original developers
+      leave, making maintenance and changes increasingly risky.
+
+    signature:
+      - "Old systems still in production"
+      - "Original developers have left"
+      - "Documentation missing or outdated"
+      - "Changes require archaeology"
+
+    anti_patterns:
+      - "No documentation requirements"
+      - "No knowledge transfer on departure"
+      - "Tribal knowledge culture"
+      - "No code comments or design docs"
+
+    indicators:
+      - "Fear of touching certain systems"
+      - "Changes take much longer than expected"
+      - "Incidents during 'minor' changes"
+
+    historical_examples:
+      - "COBOL systems with no COBOL programmers"
+      - "Critical systems no one understands"
+
+    mitigation_hints:
+      - "Knowledge documentation requirements"
+      - "System understanding before departures"
+      - "Reverse engineering investment"
+
+  - id: "ENT-010"
+    name: "Migration Death March"
+    description: |
+      Legacy system migration becomes endless project that never completes,
+      running old and new systems in parallel indefinitely.
+
+    signature:
+      - "Migration project started years ago"
+      - "Both old and new systems running"
+      - "Scope keeps expanding"
+      - "End date keeps moving"
+
+    anti_patterns:
+      - "Big bang migration attempted"
+      - "Feature parity as requirement"
+      - "No clear cutover criteria"
+      - "Continuing to enhance old system"
+
+    indicators:
+      - "Dual maintenance cost mounting"
+      - "Migration timeline extended repeatedly"
+      - "Team fatigue on 'almost done' project"
+
+    historical_examples:
+      - "Many failed ERP migrations"
+      - "Banking core system replacements"
+
+    mitigation_hints:
+      - "Strangler fig pattern"
+      - "Business capability migration not system"
+      - "Clear cutover criteria and timeline"

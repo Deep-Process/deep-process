@@ -1,0 +1,9 @@
+# Test fixtures with intentionally broken/malformed files
+test/fixtures/**
+
+# BMAD runtime folders (user-specific, not in repo)
+_bmad/
+_bmad*/
+
+# Reference module
+bmad-builder/

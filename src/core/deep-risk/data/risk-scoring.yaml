@@ -1,0 +1,173 @@
+# Risk Scoring System — 5-Dimension Risk Assessment
+# LOAD: step-03-quantify.md
+# PURPOSE: Consistent scoring across all risks
+
+---
+# LOADING INSTRUCTIONS:
+# 1. Load this file at the START of QUANTIFY phase
+# 2. Apply dimension_scores for each risk
+# 3. Calculate composite using formula
+# 4. Apply flags based on criteria
+# 5. Assign tier based on composite
+
+---
+dimensions:
+  probability:
+    symbol: P
+    scale: 1-5
+    question: "How likely is this to occur?"
+    anchors:
+      1: "<5% in project lifetime"
+      2: "5-20%"
+      3: "20-50%"
+      4: "50-80%"
+      5: ">80%, near-certain"
+
+  impact:
+    symbol: I
+    scale: 1-5
+    question: "How severe are the consequences?"
+    anchors:
+      1: "Minor inconvenience, workaround exists"
+      2: "Noticeable delay or cost, contained"
+      3: "Significant — requires plan revision"
+      4: "Major — threatens project objectives"
+      5: "Catastrophic — project failure, legal, safety"
+
+  velocity:
+    symbol: V
+    scale: 1-5
+    question: "How fast does it materialize once triggered?"
+    anchors:
+      1: "Months — slow development, time to respond"
+      2: "Weeks — noticeable progression"
+      3: "Days — rapid escalation"
+      4: "Hours — very fast"
+      5: "Instant — no warning once triggered"
+
+  detectability:
+    symbol: D
+    scale: 1-5
+    question: "How hard to detect BEFORE impact?"
+    anchors:
+      1: "Obvious — clear early warning signs"
+      2: "Noticeable — requires attention but visible"
+      3: "Moderate — requires monitoring to catch"
+      4: "Difficult — subtle signs, easy to miss"
+      5: "Invisible — no warning until impact"
+
+  reversibility:
+    symbol: R
+    scale: 1-5
+    question: "How hard to recover after materialization?"
+    anchors:
+      1: "Trivially undone — simple rollback"
+      2: "Easy recovery — known procedure exists"
+      3: "Moderate — requires effort and time"
+      4: "Difficult — major effort, uncertain outcome"
+      5: "Permanent — cannot be undone"
+
+---
+composite_formula:
+  formula: "P × I × max(V, D, R)"
+  rationale: |
+    The max() captures the worst amplifier among velocity, detectability,
+    and reversibility. A risk that is invisible (D=5) OR irreversible (R=5)
+    OR instant (V=5) fundamentally changes character regardless of
+    the other amplifiers.
+
+  example:
+    risk: "Data corruption from schema drift"
+    P: 3
+    I: 4
+    V: 2
+    D: 5  # Silent corruption - no error signal
+    R: 4
+    composite: "3 × 4 × max(2,5,4) = 3 × 4 × 5 = 60"
+
+---
+flags:
+  fat_tail:
+    symbol: FAT_TAIL
+    criteria: "Impact may be 100× worse than score suggests"
+    detection_questions:
+      - "Is impact power-law distributed?"
+      - "Could 'Impact: 5' actually be catastrophically worse?"
+      - "Are historical extremes much worse than averages?"
+    implication: |
+      Composite score is UNDERESTIMATE.
+      Use P90/P99 impact estimates instead of expected value.
+      Do not rely on standard cost-benefit analysis.
+
+  non_ergodic:
+    symbol: NON_ERGODIC
+    criteria: "Survival uncertain if this materializes"
+    detection_questions:
+      - "If this hits, can we continue operating?"
+      - "Is this potentially 'game over'?"
+      - "Does ensemble average (across 100 projects) differ from time-series (our ONE project)?"
+    implication: |
+      Expected value optimization is WRONG.
+      Survival first, optimization second.
+      TERMINATE or TRANSFER strongly preferred.
+      TOLERATE requires extraordinary justification.
+
+  low_confidence:
+    symbol: LOW_CONFIDENCE
+    criteria: "Probability estimate unreliable"
+    detection_questions:
+      - "Is this Knight-Uncertainty (unknown distribution)?"
+      - "Are we guessing the probability?"
+      - "Would different team members give very different P scores?"
+    implication: |
+      Do not treat low-confidence P=2 same as high-confidence P=2.
+      Consider scenario planning instead of expected value.
+      Mark as requiring investigation to reduce uncertainty.
+
+---
+tiers:
+  critical:
+    range: "≥60"
+    color: "RED"
+    response: "Immediate attention required"
+
+  high:
+    range: "30-59"
+    color: "ORANGE"
+    response: "Active mitigation required"
+
+  medium:
+    range: "10-29"
+    color: "YELLOW"
+    response: "Monitor and mitigate if practical"
+
+  low:
+    range: "<10"
+    color: "GREEN"
+    response: "Accept or treat opportunistically"
+
+---
+calibration_guidance:
+  prevent_inflation:
+    - "Use anchors, not intuition"
+    - "Compare to reference risks"
+    - "Ask: Is this REALLY a 5? What would an actual 5 look like?"
+
+  prevent_deflation:
+    - "Consider worst realistic case, not best case"
+    - "Apply survivorship correction (historical data underestimates)"
+    - "Check for normalcy bias (it's always been fine...)"
+
+  cross_check:
+    - "Would independent scorer give similar result?"
+    - "Does score match gut feeling? If not, investigate"
+    - "Are similar risks scored consistently?"
+
+---
+# USAGE SUMMARY:
+#
+# 1. Score each dimension (P, I, V, D, R) using anchors
+# 2. Calculate composite: P × I × max(V, D, R)
+# 3. Check flag criteria, apply flags
+# 4. Assign tier based on composite
+# 5. For flagged risks: note implications in mitigation strategy

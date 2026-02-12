@@ -1,0 +1,91 @@
+# Evidence Map Schema (V7)
+# Enhanced from V6 - unchanged structure
+# Used by: GATE_2 conditions
+
+version: "7.0.0"
+required_fields:
+  - metadata
+  - claims
+  - statistics
+
+metadata:
+  type: object
+  required:
+    - extraction_timestamp
+    - total_segments_analyzed
+    - total_claims
+    - extraction_duration_ms
+
+claims:
+  type: array
+  min_items: 1
+  item_schema:
+    required:
+      - claim_id
+      - claim_text
+      - claim_type
+      - segment_id
+      - file_path
+      - line_range
+      - evidence_strength
+      - citations
+    optional:
+      - related_claims
+  validation:
+    - "Claim IDs must be unique"
+    - "Segment IDs must exist in coverage_map"
+    - "File paths must exist in repo_inventory"
+    - "Claim type must be: fact|behavior|relationship|property|constraint|other"
+    - "Evidence strength must be: verified|inferred|hypothetical"
+    - "Citations array must be non-empty"
+
+  citations:
+    type: array
+    min_items: 1
+    item_schema:
+      required:
+        - file_path
+        - line_number
+        - snippet
+      validation:
+        - "File path must exist in repo_inventory"
+
+statistics:
+  type: object
+  required:
+    - total_claims
+    - claims_by_type
+    - claims_by_strength
+    - avg_citations_per_claim
+    - evidence_completeness
+  validation:
+    - "Total claims must match claims[] array length"
+    - "Evidence completeness must be >= 0.90"
+
+  claims_by_type:
+    type: object
+    validation:
+      - "All counts must be >= 0"
+
+  claims_by_strength:
+    type: object
+    required:
+      - verified
+      - inferred
+      - hypothetical
+    validation:
+      - "verified count must be >= 70% of total"
+      - "hypothetical count must be <= 10% of total"
+
+# GATE_2 enforcement points
+gate_2_validations:
+  g2_01: "File exists: evidence_map.yaml"
+  g2_02: "All claims extracted"
+  g2_03: "Claim metadata complete"
+  g2_04: "Evidence strength assigned"
+  g2_05: "Citations non-empty for all claims"
+  g2_06: "Statistics match claim count"
+  g2_07: "Evidence completeness >= 0.90"
+  g2_08: "No phantom claims"
+  g2_09: "Verified claims >= 70%"
+  g2_10: "Hypothetical claims <= 10%"
