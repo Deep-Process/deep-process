@@ -1,0 +1,16 @@
+id: deep-synthesis
+name: "Deep Synthesis"
+version: "1.1.0"
+description: "Synthesize multiple sources into genuine understanding"
+shortDescription: "Synthesize knowledge from multiple sources"
+workflowFile: "workflow.md"
+firstStepFile: "steps/step-00-scope.md"
+firstStepLabel: "Phase 0"
+agentName: "Deep Synthesis Agent"
+agentInstruction: "Do not pre-judge the execution mode. Follow the logic in step-00-scope.md to interactively scope the synthesis if it is not explicitly provided."
+githubAgentTools:
+  - read
+  - search
+slashCommand: "deep-synthesis"
+excludeFromInstall:
+  - "docs/**"

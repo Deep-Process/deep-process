@@ -1,0 +1,16 @@
+id: deep-feasibility
+name: "Deep Feasibility"
+version: "1.1.0"
+description: "Multi-dimensional feasibility assessment with GO/CONDITIONAL/NO-GO verdict"
+shortDescription: "Assess if something is feasible"
+workflowFile: "workflow.md"
+firstStepFile: "steps/step-00-frame.md"
+firstStepLabel: "Phase 0"
+agentName: "Deep Feasibility Agent"
+agentInstruction: "Do not pre-judge the execution mode. Follow the logic in step-00-frame.md to interactively frame the feasibility question if it is not explicitly provided."
+githubAgentTools:
+  - read
+  - search
+slashCommand: "deep-feasibility"
+excludeFromInstall:
+  - "docs/**"

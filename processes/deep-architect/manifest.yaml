@@ -1,0 +1,16 @@
+id: deep-architect
+name: "Deep Architect"
+version: "1.0.0"
+description: "Architecture design from concept to executable plan"
+shortDescription: "Design software architecture"
+workflowFile: "workflow.md"
+firstStepFile: "steps/step-00-context.md"
+firstStepLabel: "Phase 0"
+agentName: "Deep Architect Agent"
+agentInstruction: "Do not pre-judge the execution mode. Follow the logic in step-00-context.md to interactively determine context if it is not explicitly provided."
+githubAgentTools:
+  - read
+  - search
+slashCommand: "deep-architect"
+excludeFromInstall:
+  - "docs/**"

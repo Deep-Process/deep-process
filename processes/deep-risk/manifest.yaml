@@ -1,0 +1,16 @@
+id: deep-risk
+name: "Deep Risk"
+version: "2.2.0"
+description: "Systematic risk assessment with interaction mapping and 5D scoring"
+shortDescription: "Discover and quantify risks"
+workflowFile: "workflow.md"
+firstStepFile: "steps/step-00-ground.md"
+firstStepLabel: "Phase 0"
+agentName: "Deep Risk Agent"
+agentInstruction: "Do not pre-judge the execution mode. Follow the logic in step-00-ground.md to interactively ground the risk context if it is not explicitly provided."
+githubAgentTools:
+  - read
+  - search
+slashCommand: "deep-risk"
+excludeFromInstall:
+  - "docs/**"
