@@ -1,0 +1,24 @@
+# Source (compiled to dist/)
+src/
+tsconfig.json
+
+# Development
+.github/
+.claude/
+.gemini/
+.cursor/
+.continue/
+_deep-process/
+node_modules/
+
+# Large images not needed at runtime
+processes/*/docs/img/logo.png
+processes/*/docs/img/logo_small.png
+processes/*/img/logo.png
+processes/*/img/logo_small.png
+
+# Misc
+CHANGELOG.md
+CONTRIBUTING.md
+CONTRIBUTORS.md
+img/

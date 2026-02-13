@@ -55,9 +55,24 @@ export const aiderAdapter: ToolAdapter = {
   },
 
   async uninstall(files, root) {
+    // Remove convention files
     for (const f of files) {
-      if (f.path === '.aider.conf.yml') continue; // Don't delete user's config
+      if (f.path === '.aider.conf.yml') continue;
       safeRemoveFile(path.join(root, f.path));
+    }
+
+    // Clean up .aider.conf.yml — remove the deep-process read section
+    const confPath = path.join(root, '.aider.conf.yml');
+    if (fileExists(confPath)) {
+      let content = fs.readFileSync(confPath, 'utf-8');
+      // Remove the "# Deep Process conventions" block and its read entries
+      content = content.replace(/\n?# Deep Process conventions\nread:\n(  - \.aider\/conventions\/.*\n)*/g, '');
+      const trimmed = content.trim();
+      if (trimmed.length === 0) {
+        fs.unlinkSync(confPath);
+      } else {
+        fs.writeFileSync(confPath, trimmed + '\n', 'utf-8');
+      }
     }
   },
 

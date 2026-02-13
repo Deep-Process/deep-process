@@ -40,14 +40,32 @@ export function hashFile(filePath: string): string {
 }
 
 /**
- * Remove a file if it exists.
+ * Remove a file if it exists, then clean up empty parent directories.
  */
 export function safeRemoveFile(filePath: string): boolean {
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
+    cleanEmptyParents(path.dirname(filePath));
     return true;
   }
   return false;
+}
+
+/**
+ * Remove empty parent directories up to (but not including) the project root.
+ * Stops as soon as a non-empty directory is found.
+ */
+function cleanEmptyParents(dirPath: string): void {
+  try {
+    while (dirPath && dirPath !== path.dirname(dirPath)) {
+      const entries = fs.readdirSync(dirPath);
+      if (entries.length > 0) break;
+      fs.rmdirSync(dirPath);
+      dirPath = path.dirname(dirPath);
+    }
+  } catch {
+    // Ignore — dir may be in use or protected
+  }
 }
 
 /**
@@ -124,8 +142,14 @@ export function markerRemove(filePath: string, startMarker: string, endMarker: s
   // Remove the block including surrounding blank lines
   let before = content.slice(0, startIdx).replace(/\n+$/, '\n');
   const after = content.slice(endIdx + endMarker.length).replace(/^\n+/, '\n');
-  const result = before + after;
+  const result = (before + after).trim();
 
-  fs.writeFileSync(filePath, result.trim() + '\n', 'utf-8');
+  if (result.length === 0) {
+    // File is empty after removing markers — delete it
+    fs.unlinkSync(filePath);
+    cleanEmptyParents(path.dirname(filePath));
+  } else {
+    fs.writeFileSync(filePath, result + '\n', 'utf-8');
+  }
   return true;
 }
