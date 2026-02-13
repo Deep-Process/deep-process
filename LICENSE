@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2025 Lukasz Krysik
+Copyright (c) 2026 Łukasz Krysik
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -12,10 +12,36 @@ furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
+DISCLAIMER OF WARRANTY
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR PERFORMANCE.
+THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH THE USER.
+
+LIMITATION OF LIABILITY
+
+IN NO EVENT SHALL THE AUTHOR OR COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM,
+DAMAGES, OR OTHER LIABILITY, WHETHER DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, LOSS OF USE, DATA, OR PROFITS,
+BUSINESS INTERRUPTION, OR SECURITY BREACH), HOWEVER CAUSED AND ON ANY THEORY
+OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE), ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+TRADEMARK NOTICE
+
+Deep-Process™, Deep-Verify™, Deep-Architect™, Deep-Diagram™, Deep Explore™, Deep Feasibility™, Deep Synthesis™, and Deep-Risk™ are
+trademarks of Łukasz Krysik.
+
+The license granted under this Software does NOT grant any rights
+to use the above trademarks, product names, logos, or branding
+for derivative works, commercial services, or marketing purposes
+without prior written permission.
+
+NON-ENDORSEMENT
+
+Use of this Software does not imply endorsement by Łukasz Krysik.
+Derivative works may not use the project names or branding in a way
+that suggests affiliation or official status.
