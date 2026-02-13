@@ -1,13 +1,13 @@
-# Deep-Architect V1.0 — Invariants
+# Deep-Architect V1.2 — Invariants
 # Binding process rules that MUST hold throughout execution
-# Total: 12 invariants
+# Total: 14 invariants
 
 metadata:
-  version: "1.0.0"
-  total_invariants: 12
+  version: "1.4.0"
+  total_invariants: 16
   enforcement_level:
     BLOCKER: 5   # INV-01, INV-02, INV-07, INV-08, INV-09
-    CRITICAL: 4  # INV-03, INV-04, INV-05, INV-11
+    CRITICAL: 8  # INV-03, INV-04, INV-05, INV-11, INV-13, INV-14, INV-15, INV-16
     ERROR: 2     # INV-10, INV-12
     REQUIRED: 1  # INV-06
 
@@ -27,7 +27,9 @@ INV-01:
   violation_scenarios:
     - "Agent jumps from Phase 0 to Phase 2 (skips canonical operations)"
     - "Agent executes Phase 3 before Phase 2 complete"
-    - "Agent returns to Phase 1 after Phase 3 (backward jump)"
+    - "Agent returns to Phase 1 after Phase 3 WITHOUT REDESIGN_LOOP trigger (unauthorized backward jump)"
+
+  exception: "REDESIGN_LOOP (INV-13) allows controlled backward jump from Phase 3 to Phase 1 or Phase 2 with user approval"
 
   detection: "workflow.md precondition checks at each phase entry"
 
@@ -189,7 +191,7 @@ INV-06:
     - "Counter-checks logged but not executed"
     - "Zero counter-checks (always violation)"
 
-  detection: "GATE_6 condition G6-06 requires ≥18 total for deep (3×6 phases)"
+  detection: "GATE_6 condition G6-06 requires ≥21 total for deep (3×7 phases 0-6)"
 
   enforcement:
     when_violated: "LOG warning, proceed with degraded confidence"
@@ -465,6 +467,172 @@ INV-12:
     - "ZASADA 1: Self-contained (each step file complete)"
 
 # ==============================================================================
+# INV-13: REDESIGN_LOOP EVALUATION (CRITICAL)
+# ==============================================================================
+
+INV-13:
+  name: "REDESIGN_LOOP Evaluation"
+  severity: CRITICAL
+  description: "After GATE_3 OPEN, REDESIGN_LOOP evaluation MUST be executed — cannot skip"
+
+  rule: "IF GATE_3 == OPEN THEN redesign_loop.evaluated == true"
+
+  rationale: "ADVERSARY findings may reveal fundamental design flaws requiring redesign, not just mitigation"
+
+  violation_scenarios:
+    - "Agent skips REDESIGN_LOOP after GATE_3, proceeds directly to Phase 4"
+    - "REDESIGN_LOOP not evaluated despite critical STRIDE/FMEA findings"
+    - "Agent evaluates but ignores redesign_required=true"
+
+  detection: "step-03-adversary.md section 3.13 mandatory execution"
+
+  enforcement:
+    when_violated: "HALT at Phase 4 entry"
+    message: "REDESIGN_LOOP SKIPPED: Must evaluate adversary findings for redesign need"
+    recovery: "Execute section 3.13, evaluate redesign criteria, present to user if required"
+
+  redesign_triggers:
+    - "≥3 critical STRIDE threats without viable mitigation"
+    - "FMEA failure mode with mitigated_rpn > 100"
+    - "Anti-patterns 'Big Ball of Mud' or 'Distributed Monolith' detected"
+    - "≥2 pre-mortem scenarios without preventive measures"
+
+  user_decisions:
+    REDESIGN: "Loop to Phase 1 (carry adversary findings as constraints)"
+    REDESIGN_ARTIFACTS: "Loop to Phase 2 (update diagrams/ADRs)"
+    ACCEPT_RISK: "Log risk acceptance, proceed to Phase 4"
+
+  related_zasady:
+    - "ZASADA 3: Mechanisms not intentions (IF critical → REDESIGN)"
+    - "ZASADA 2: COMPLETENESS > TOKEN_ECONOMY (don't skip redesign for speed)"
+
+# ==============================================================================
+# INV-14: PATTERN LIBRARY GROUNDING (CRITICAL)
+# ==============================================================================
+
+INV-14:
+  name: "Pattern Library Grounding"
+  severity: CRITICAL
+  description: "All pattern_id and anti_pattern_id references MUST exist in pattern library files"
+
+  rule: "FOR ALL pattern_ref IN architecture_artifacts: pattern_ref EXISTS IN data/patterns/*.yaml"
+
+  rationale: "Ungrounded pattern references indicate hallucination — agent invented pattern IDs not in library. Library provides curated guidance (when_to_use, trade_offs, implementation_hints); ungrounded IDs provide no guidance."
+
+  violation_scenarios:
+    - "Agent writes pattern_id 'AP-DEC-099' but only AP-DEC-001..007 exist in library"
+    - "Agent references 'AAP-COM-005' but only AAP-COM-001..004 exist"
+    - "Agent creates CP-AWS-020 but only CP-AWS-001..012 exist"
+    - "Agent references domain pattern DP-MS-010 but only DP-MS-001..008 exist"
+
+  detection: "step-06-verification.md section 6.8 Pattern Library Grounding check"
+
+  enforcement:
+    when_violated: "HALT at GATE_6 (G6-09)"
+    message: "PATTERN GROUNDING FAILURE: Reference to non-existent pattern ID"
+    recovery: "Replace with valid pattern_id from library OR add pattern to library if genuinely needed"
+
+  scope:
+    - "AP-XXX references → data/patterns/architecture-patterns.yaml"
+    - "AAP-XXX references → data/patterns/anti-patterns.yaml"
+    - "CP-XXX references → data/patterns/cloud-patterns.yaml"
+    - "DP-XXX references → data/patterns/domain-*.yaml"
+
+  related_zasady:
+    - "ZASADA 3: Mechanisms not intentions (grounding check, not 'should reference')"
+    - "ZASADA 1: Self-contained (all patterns in library files)"
+
+# ==============================================================================
+# INV-15: ARCHITECTURE FITNESS (CRITICAL)
+# ==============================================================================
+
+INV-15:
+  name: "Architecture Fitness"
+  severity: CRITICAL
+  description: "Architecture MUST be evaluated for fitness-for-purpose — solving USER's problem, not just passing gates"
+
+  rule: "validation.architecture_fitness.fitness_score >= 3 AND verdict in [FIT, PARTIALLY_FIT]"
+
+  rationale: "Process compliance ≠ architecture quality (Deep-Risk R-017). All 50+ gate conditions can PASS while architecture is strategically wrong. Gates verify operations EXECUTED, not that they PRODUCED the right result. Fitness assessment closes this gap."
+
+  fitness_criteria:
+    - id: "AF-01"
+      question: "Does architecture address ALL stated user requirements?"
+      method: "Trace each requirement to ≥1 design element (C-XXX, I-XXX, ADR-XXX)"
+    - id: "AF-02"
+      question: "Are primary quality attribute targets achievable?"
+      method: "Verify design decisions support each prioritized attribute target"
+    - id: "AF-03"
+      question: "Does architecture match context (team, budget, timeline)?"
+      method: "Check complexity proportional to team capability and constraints"
+    - id: "AF-04"
+      question: "Are there simpler alternatives? (over-engineering check)"
+      method: "Consider if simpler pattern/approach would achieve same goals"
+    - id: "AF-05"
+      question: "Would architecture survive pre-mortem scenarios?"
+      method: "Cross-reference top 3 pre-mortem scenarios with design"
+
+  scoring:
+    FIT: "≥4/5 criteria PASS"
+    PARTIALLY_FIT: "3/5 criteria PASS"
+    UNFIT: "≤2/5 criteria PASS → recommend redesign"
+
+  violation_scenarios:
+    - "All gates PASS but architecture doesn't address core user requirements (AF-01 FAIL)"
+    - "Architecture over-engineered for team/budget (AF-03, AF-04 FAIL)"
+    - "Architecture collapses under realistic failure scenarios (AF-05 FAIL)"
+
+  detection: "GATE_5 condition G5-07 checks fitness_score >= 3"
+
+  enforcement:
+    when_violated: "HALT at GATE_5, recommend returning to Phase 1"
+    message: "ARCHITECTURE UNFIT: Passes gates but does not solve user's problem"
+    recovery: "Redesign with focus on user requirements, context, and fitness criteria"
+
+  related_zasady:
+    - "ZASADA 2: COMPLETENESS > TOKEN_ECONOMY (fitness ≠ completion)"
+    - "ZASADA 3: Mechanisms not intentions (5 measurable criteria)"
+
+# ==============================================================================
+# INV-16: REASONING VISIBILITY (CRITICAL)
+# ==============================================================================
+
+INV-16:
+  name: "Reasoning Visibility"
+  severity: CRITICAL
+  description: "Key architecture decisions MUST include documented reasoning (WHY, not just WHAT)"
+
+  rule: "FOR ALL key_decisions: reasoning field exists AND reasoning.length > 0"
+
+  rationale: "Architecture without reasoning is opaque — stakeholders cannot evaluate trade-offs, reviewers cannot assess alternatives, future maintainers cannot understand constraints. Decisions become dogma instead of informed choices."
+
+  applies_to:
+    - "Component decomposition (C-XXX.reasoning — WHY this component exists)"
+    - "Pattern selection (pattern_application.rationale — WHY this pattern)"
+    - "Quality attribute priorities (prioritized[].rationale — WHY this ranking)"
+    - "Trade-off resolutions (decisions[].rationale — WHY this resolution)"
+    - "ADR decisions (adrs[].rationale — WHY this decision)"
+
+  minimum_coverage: 0.80  # ≥80% of key decisions must have reasoning
+
+  violation_scenarios:
+    - "Components defined without reasoning (C-001 exists but no WHY)"
+    - "Pattern selected without rationale (Microservices chosen but WHY not documented)"
+    - "Trade-off resolved without explanation (chose Performance over Security but WHY)"
+    - "ADR created without alternatives analysis"
+
+  detection: "GATE_1 condition G1-08 checks reasoning coverage >= 0.80"
+
+  enforcement:
+    when_violated: "LOG warning at GATE_1 (ERROR severity), fix before Phase 2"
+    message: "REASONING MISSING: Key decisions lack documented rationale"
+    recovery: "Add reasoning field to decisions missing WHY justification"
+
+  related_zasady:
+    - "ZASADA 10: Visible reasoning (log decisions)"
+    - "ZASADA 5: ASSUMPTIONS_DECLARED (reasoning includes assumptions)"
+
+# ==============================================================================
 # INVARIANT ENFORCEMENT SUMMARY
 # ==============================================================================
 
@@ -486,7 +654,7 @@ enforcement_summary:
     CRITICAL:
       action: "HALT at current phase, fix before proceeding"
       recovery: "Fix violation, re-execute phase, re-evaluate gate"
-      examples: ["INV-03", "INV-04", "INV-05", "INV-11"]
+      examples: ["INV-03", "INV-04", "INV-05", "INV-11", "INV-13", "INV-14", "INV-15", "INV-16"]
 
     ERROR:
       action: "LOG warning, proceed with degraded quality"
@@ -524,3 +692,25 @@ history:
       - "INV-11 enforces embedded methods (R1 compliance)"
       - "INV-12 enforces JIT loading (R12 compliance)"
       - "All invariants linked to ZASADY/R1-R12"
+
+  - version: "1.1.0"
+    date: "2026-02-11"
+    changes:
+      - "Operational verification fixes"
+      - "INV-13: REDESIGN_LOOP evaluation mandatory after GATE_3 (CRITICAL)"
+      - "Total: 13 invariants (5 BLOCKER, 5 CRITICAL, 2 ERROR, 1 REQUIRED)"
+
+  - version: "1.2.0"
+    date: "2026-02-12"
+    changes:
+      - "Architecture Pattern Library integration (V1.2.0)"
+      - "INV-14: Pattern Library Grounding (CRITICAL) — all pattern/anti-pattern IDs must reference library entries"
+      - "Total: 14 invariants (5 BLOCKER, 6 CRITICAL, 2 ERROR, 1 REQUIRED)"
+
+  - version: "1.4.0"
+    date: "2026-02-13"
+    changes:
+      - "Deep-Risk V2.1.0 mitigation implementation (R-017 top risk)"
+      - "INV-15: Architecture Fitness (CRITICAL) — architecture evaluated for fitness-for-purpose, 5 criteria (AF-01..05), scoring FIT/PARTIALLY_FIT/UNFIT"
+      - "INV-16: Reasoning Visibility (CRITICAL) — key decisions MUST include reasoning (WHY not just WHAT), ≥80% coverage"
+      - "Total: 16 invariants (5 BLOCKER, 8 CRITICAL, 2 ERROR, 1 REQUIRED)"

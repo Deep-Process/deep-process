@@ -1,0 +1,109 @@
+# Domain Patterns: Real-Time Processing — Deep-Architect V1.3.0
+# 6 deep patterns for real-time, streaming, and low-latency architectures
+# Loaded ONLY when DOM-PAR-RT detected (R12)
+# Version: 1.0.0
+# Date: 2026-02-12
+
+metadata:
+  version: "1.0.0"
+  domain: "DOM-PAR-RT"
+  total_patterns: 6
+
+patterns:
+
+  - pattern_id: "DP-RT-001"
+    name: "Event Time Processing"
+    description: "Process events based on when they occurred (event time), not when received (processing time). Handles out-of-order events via watermarks."
+    when_to_use:
+      - "Live data feeds with network-induced reordering"
+      - "Multi-source aggregation where sources have different latencies"
+      - "Accuracy more important than latency"
+    trade_offs: "Correctness vs latency. Watermark delay = accuracy buffer but increases end-to-end latency."
+    implementation_hints:
+      - "Watermark = event_time - allowed_lateness (e.g., 5s)"
+      - "Late events: drop, side-output, or update result"
+      - "Monotonic sequence IDs per source for gap detection"
+    failure_predictions:
+      - "DEADLOCK: Watermark stalls when one source stops producing → all windows freeze"
+      - "RACE CONDITION: Late event arrives after window closed → incorrect aggregate if not handled"
+
+  - pattern_id: "DP-RT-002"
+    name: "Hot/Cold Path Separation"
+    description: "Split incoming data into hot path (real-time, low-latency) and cold path (batch, high-throughput). Lambda/Kappa architecture variant."
+    when_to_use:
+      - "Need both real-time alerts AND historical analytics"
+      - "Different SLAs for real-time vs analytical queries"
+      - "Live trading signals + end-of-day reporting"
+    trade_offs: "Dual processing vs single-path simplicity. Real-time accuracy vs batch correctness."
+    implementation_hints:
+      - "Hot: Kafka Streams / Flink → Redis → WebSocket (ms latency)"
+      - "Cold: Same Kafka → S3/ADLS → Spark → DWH (minutes latency)"
+      - "Reconciliation job to detect hot/cold divergence"
+    failure_predictions:
+      - "DATA DIVERGENCE: Hot path computes $150.23 avg, cold path computes $150.19 → which is correct?"
+      - "RESOURCE CONTENTION: Cold batch job steals CPU from hot path during market hours"
+
+  - pattern_id: "DP-RT-003"
+    name: "Ring Buffer (Disruptor Pattern)"
+    description: "Lock-free, pre-allocated circular buffer for ultra-low-latency inter-thread communication. Eliminates GC pauses and lock contention."
+    when_to_use:
+      - "Sub-millisecond latency requirements"
+      - "Single-producer, multi-consumer pipelines"
+      - "High-frequency trading, signal processing"
+    trade_offs: "Extreme performance vs complexity and fixed buffer size. Lock-free vs harder debugging."
+    implementation_hints:
+      - "LMAX Disruptor (Java), custom ring buffer (Python/C++)"
+      - "Pre-allocate entries to avoid GC"
+      - "Sequence barriers for consumer coordination without locks"
+    failure_predictions:
+      - "BUFFER OVERFLOW: Producer faster than slowest consumer → overwrites unprocessed entries"
+      - "STARVATION: Fast consumer busy-waits on empty buffer → CPU waste"
+
+  - pattern_id: "DP-RT-004"
+    name: "Idempotent Consumer with Deduplication"
+    description: "Every message processed exactly once via deduplication key tracking, even with at-least-once delivery guarantees."
+    when_to_use:
+      - "Financial transactions (cannot double-execute trades)"
+      - "WebSocket reconnection with message replay"
+      - "Any at-least-once messaging system"
+    trade_offs: "Exactly-once semantics vs deduplication storage/lookup overhead. Safety vs throughput."
+    implementation_hints:
+      - "Dedup key = source_id + sequence_number (or idempotency_key)"
+      - "Redis SET with TTL for dedup window (e.g., 24h)"
+      - "Check before process: IF key EXISTS → skip, ELSE process + SET key"
+    failure_predictions:
+      - "DEDUP WINDOW EXPIRED: Message replayed after TTL → duplicate processing"
+      - "RACE CONDITION: Two instances check same key simultaneously → both process"
+
+  - pattern_id: "DP-RT-005"
+    name: "Tick Aggregation Pipeline"
+    description: "Multi-stage pipeline for aggregating high-frequency tick data into time-based windows (1s, 5s, 1m, 5m OHLCV bars)."
+    when_to_use:
+      - "Financial market data (stock prices, crypto, forex)"
+      - "IoT sensor aggregation at scale"
+      - "Real-time metrics computation"
+    trade_offs: "Aggregation latency vs accuracy. Window completeness vs real-time availability."
+    implementation_hints:
+      - "Stage 1: Raw ticks → 1-second OHLCV (Open, High, Low, Close, Volume)"
+      - "Stage 2: 1s bars → 1-minute bars (aggregate of aggregates)"
+      - "Watermark per instrument to handle late ticks independently"
+    failure_predictions:
+      - "CLOCK SKEW: Exchange timestamps vs local timestamps differ → ticks in wrong window"
+      - "MISSING TICKS: Network drop during volatile period → bar with gap → wrong High/Low"
+
+  - pattern_id: "DP-RT-006"
+    name: "Dual-Write Avoidance (Cache + DB)"
+    description: "Patterns to maintain consistency between cache (Redis) and database (PostgreSQL) without distributed transactions. Write-through, write-behind, or event-driven cache invalidation."
+    when_to_use:
+      - "CQRS with Redis read model + PostgreSQL write model"
+      - "Low-latency reads (cache) + durable writes (DB)"
+      - "Live dashboards backed by persistent storage"
+    trade_offs: "Cache freshness vs write latency. Consistency vs performance."
+    implementation_hints:
+      - "PREFERRED: Outbox pattern (AP-COM-007) — DB write + outbox → relay → cache update"
+      - "ALTERNATIVE: Write-through (DB first → cache update, adds write latency)"
+      - "NEVER: Independent writes to cache AND DB (dual-write = inconsistency guaranteed)"
+    failure_predictions:
+      - "STALE CACHE: DB updated but cache invalidation failed → reads return old data"
+      - "THUNDERING HERD: Cache invalidation → N concurrent readers hit DB simultaneously"
+      - "SPLIT BRAIN: Network partition → cache has price $150, DB has $149 → which is truth?"

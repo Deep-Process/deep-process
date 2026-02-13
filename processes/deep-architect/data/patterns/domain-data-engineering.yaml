@@ -1,0 +1,124 @@
+# Data Engineering Domain Patterns — Deep-Architect V1.2.0
+# 8 deep patterns specific to data engineering architecture
+# Loaded ONLY when DOM-PAR-DATA detected (R12)
+# Version: 1.0.0
+# Date: 2026-02-12
+
+metadata:
+  version: "1.0.0"
+  domain_id: "DOM-PAR-DATA"
+  total_patterns: 8
+
+patterns:
+
+  - pattern_id: "DP-DE-001"
+    name: "ETL Pipeline"
+    category: "pipeline"
+    description: "Extract-Transform-Load: extract from sources, transform to target schema, load into destination."
+    when_to_use:
+      - "Batch data processing with known transformations"
+      - "Data warehouse loading"
+      - "Transformation before loading (schema-on-write)"
+    trade_offs: "Transformation quality guaranteed before load vs higher processing latency. Clean data vs transformation bottleneck."
+    implementation_hints:
+      - "Idempotent loads (re-runnable without duplicates)"
+      - "Partition by date for incremental processing"
+      - "Validate data quality between transform and load"
+
+  - pattern_id: "DP-DE-002"
+    name: "ELT Pipeline"
+    category: "pipeline"
+    description: "Extract-Load-Transform: load raw data first, then transform using destination compute (e.g., SQL in warehouse)."
+    when_to_use:
+      - "Cloud data warehouse with powerful compute (Snowflake, BigQuery)"
+      - "Schema-on-read flexibility"
+      - "Need raw data available for multiple transformations"
+    trade_offs: "Flexibility vs raw data storage cost. Fast ingestion vs transformation complexity in SQL."
+    implementation_hints:
+      - "dbt for SQL-based transformation management"
+      - "Raw zone → staging → mart (medallion architecture)"
+      - "Version-controlled transformations"
+
+  - pattern_id: "DP-DE-003"
+    name: "Data Lake Architecture"
+    category: "storage"
+    description: "Centralized repository storing structured and unstructured data in raw format at scale."
+    when_to_use:
+      - "Multiple data sources and formats"
+      - "Data science and ML workloads"
+      - "Unknown future query patterns"
+    trade_offs: "Flexibility vs governance risk (data swamp). Cheap storage vs query performance."
+    implementation_hints:
+      - "Zone structure: raw/ → curated/ → refined/ → consumption/"
+      - "Metadata catalog for discoverability"
+      - "Access control per zone and dataset"
+
+  - pattern_id: "DP-DE-004"
+    name: "Lakehouse Architecture"
+    category: "storage"
+    description: "Combines data lake flexibility with data warehouse ACID transactions using Delta Lake/Iceberg."
+    when_to_use:
+      - "Need both analytics and ML on same data"
+      - "ACID transactions on data lake storage"
+      - "Time travel and schema evolution"
+    trade_offs: "Best of both worlds vs technology complexity. ACID on files vs query engine dependency."
+    implementation_hints:
+      - "Delta Lake, Apache Iceberg, or Apache Hudi"
+      - "Bronze/Silver/Gold medallion architecture"
+      - "MERGE operations for upserts"
+
+  - pattern_id: "DP-DE-005"
+    name: "Change Data Capture (CDC)"
+    category: "integration"
+    description: "Capture and propagate database changes as events from transaction log."
+    when_to_use:
+      - "Real-time data synchronization between systems"
+      - "Database to event stream bridge"
+      - "Replacing dual-write anti-pattern"
+    trade_offs: "Real-time sync vs database log dependency. Reliable vs database-specific implementation."
+    implementation_hints:
+      - "Debezium for open-source CDC"
+      - "AWS DMS or Azure Data Factory for managed"
+      - "Outbox pattern as alternative for application-level CDC"
+
+  - pattern_id: "DP-DE-006"
+    name: "Schema Evolution Strategy"
+    category: "governance"
+    description: "Systematic approach to evolving data schemas without breaking consumers."
+    when_to_use:
+      - "Multiple consumers of shared datasets"
+      - "Event schemas that evolve over time"
+      - "Data products with SLAs"
+    trade_offs: "Backward compatibility vs schema complexity accumulation."
+    implementation_hints:
+      - "Backward compatible: add optional fields, never remove"
+      - "Schema registry (Confluent, AWS Glue) for enforcement"
+      - "Version numbers in schema metadata"
+
+  - pattern_id: "DP-DE-007"
+    name: "Data Lineage Tracking"
+    category: "governance"
+    description: "Track data flow from source to destination, capturing transformations and dependencies."
+    when_to_use:
+      - "Regulatory compliance (GDPR, SOX)"
+      - "Data quality root cause analysis"
+      - "Impact analysis for schema changes"
+    trade_offs: "Full traceability vs lineage infrastructure overhead."
+    implementation_hints:
+      - "OpenLineage for standard lineage format"
+      - "Column-level lineage for fine-grained tracking"
+      - "Integration with data catalog"
+
+  - pattern_id: "DP-DE-008"
+    name: "Streaming vs Batch Decision Framework"
+    category: "pipeline"
+    description: "Decision framework for choosing between real-time streaming and batch processing."
+    when_to_use:
+      - "New data pipeline design"
+      - "Evaluating latency requirements"
+      - "Cost optimization of existing pipelines"
+    trade_offs: "Freshness vs cost. Real-time complexity vs batch simplicity."
+    implementation_hints:
+      - "Batch if: latency >1 hour acceptable, volume-based processing, simple transformations"
+      - "Stream if: latency <15 minutes required, event-driven, continuous processing"
+      - "Lambda architecture if: need both (batch for accuracy, stream for speed)"

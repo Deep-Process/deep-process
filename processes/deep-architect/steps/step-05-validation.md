@@ -8,7 +8,7 @@ next_steps: ["step-06-verification.md"]
 data_dependencies: ["data/schemas/validation-report.schema.yaml", "adversary-findings.yaml", "tradeoff-analysis.yaml"]
 outputs: ["validation-report.yaml"]
 gate: "GATE_5"
-gate_conditions: 6
+gate_conditions: 7
 ---
 
 # PHASE 5: VALIDATION — ENFORCED SEQUENCE
@@ -104,6 +104,64 @@ For each of the 10 selected issues, design a validation test:
 
 ---
 
+## 5.5b EXTRACT: Architecture Fitness Assessment (INV-15)
+
+**This section validates that the architecture SOLVES the user's problem, not just PASSES gates.**
+
+**Rationale (Deep-Risk R-017):** Process compliance ≠ architecture quality. All 50 gate conditions can pass while the architecture is strategically wrong. Gates verify operations were EXECUTED, not that they PRODUCED the right result.
+
+1. Read user brief → extract stated requirements, goals, constraints
+2. Read canonical-operations.yaml + architecture-model.yaml → extract design decisions
+3. Evaluate 5 fitness criteria:
+
+   ```yaml
+   architecture_fitness:
+     criteria:
+       - id: "AF-01"
+         question: "Does the architecture address ALL stated user requirements?"
+         check: "Trace each user requirement to ≥1 design element (C-XXX, I-XXX, ADR-XXX)"
+         result: PASS/FAIL
+         evidence: "[requirement coverage percentage]"
+
+       - id: "AF-02"
+         question: "Are primary quality attribute targets achievable with this design?"
+         check: "For each prioritized quality attribute, verify design decisions support the target"
+         result: PASS/FAIL
+         evidence: "[which targets achievable, which at risk]"
+
+       - id: "AF-03"
+         question: "Does the architecture match the context (team, budget, timeline)?"
+         check: "Verify complexity proportional to team capability and project constraints"
+         result: PASS/FAIL
+         evidence: "[proportionality assessment]"
+
+       - id: "AF-04"
+         question: "Are there simpler alternatives that would achieve the same goals?"
+         check: "Consider if a simpler pattern/approach would suffice (over-engineering check)"
+         result: PASS/FAIL
+         evidence: "[simplification opportunities or justification for complexity]"
+
+       - id: "AF-05"
+         question: "Would the architecture survive the pre-mortem scenarios?"
+         check: "Cross-reference top 3 pre-mortem scenarios with design — does architecture address them?"
+         result: PASS/FAIL
+         evidence: "[scenario coverage]"
+
+     fitness_score: "[count of PASS / 5]"
+     verdict: "FIT | PARTIALLY_FIT | UNFIT"
+     # FIT: ≥4/5 PASS
+     # PARTIALLY_FIT: 3/5 PASS
+     # UNFIT: ≤2/5 PASS → recommend redesign
+   ```
+
+4. IF verdict = UNFIT → HALT, document in validation-report.yaml, recommend returning to Phase 1
+5. IF verdict = PARTIALLY_FIT → LOG warning with specific improvement recommendations
+6. IF verdict = FIT → proceed
+
+**G5-07 enforcement:** Architecture fitness assessment MUST be completed with fitness_score ≥ 3/5.
+
+---
+
 ## 5.5 EXTRACT: Unknown-Unknown Detection
 
 1. Execute blind spot scan:
@@ -155,7 +213,7 @@ For each of the 10 selected issues, design a validation test:
 **PRECONDITION: [VERIFY_COMPLETE]**
 
 1. Create `validation-report.yaml` following schema
-2. Include: metadata, assumptions, issue_ranking, issues_validated (exactly 10), bounded_count_enforcement, unknown_unknowns, mitigation_summary, checklist, counter_checks
+2. Include: metadata, assumptions, issue_ranking, issues_validated (exactly 10), architecture_fitness, bounded_count_enforcement, unknown_unknowns, mitigation_summary, checklist, counter_checks
 3. Write to `{output_directory}/architecture-artifacts/validation-report.yaml`
 
 ---
@@ -169,11 +227,12 @@ For each of the 10 selected issues, design a validation test:
 | 3 | Exactly 10 issues selected for validation | PASS/FAIL |
 | 4 | Validation test designed for each issue | PASS/FAIL |
 | 5 | Mitigation adequacy assessed for each | PASS/FAIL |
-| 6 | Unknown-unknown detection executed | PASS/FAIL |
-| 7 | Blind spots acknowledged | PASS/FAIL |
-| 8 | ASSUMPTIONS_DECLARED | PASS/FAIL |
-| 9 | Counter-checks executed | PASS/FAIL |
-| 10 | validation-report.yaml written | PASS/FAIL |
+| 6 | Architecture fitness assessed (≥3/5 criteria PASS) | PASS/FAIL |
+| 7 | Unknown-unknown detection executed | PASS/FAIL |
+| 8 | Blind spots acknowledged | PASS/FAIL |
+| 9 | ASSUMPTIONS_DECLARED | PASS/FAIL |
+| 10 | Counter-checks executed | PASS/FAIL |
+| 11 | validation-report.yaml written | PASS/FAIL |
 
 ---
 
@@ -187,9 +246,11 @@ For each of the 10 selected issues, design a validation test:
 | G5-04 | Mitigation adequacy assessed | CRITICAL | |
 | G5-05 | Unknown-unknown detection executed | ERROR | |
 | G5-06 | ASSUMPTIONS_DECLARED for validation | REQUIRED | |
+| G5-07 | Architecture fitness assessed (fitness_score ≥ 3/5) | CRITICAL | |
 
 **Pass criteria:** G5-01 (BLOCKER) + ALL CRITICAL conditions met
 
 - IF G5-01 fails (not exactly 10) → GATE_5 = **LOCKED** → ABORT (BLOCKER)
+- IF G5-07 fails (fitness < 3/5) → GATE_5 = **LOCKED** → HALT, recommend redesign
 - IF CRITICAL fails → GATE_5 = **LOCKED** → HALT, fix
 - IF ALL pass → GATE_5 = **OPEN** → proceed to Phase 6

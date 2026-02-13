@@ -8,7 +8,7 @@ next_steps: []
 data_dependencies: ["data/schemas/verification-report.schema.yaml", "ALL previous artifacts"]
 outputs: ["verification-report.yaml", "process-log.yaml"]
 gate: "GATE_6"
-gate_conditions: 7
+gate_conditions: 9
 ---
 
 # PHASE 6: VERIFICATION — ENFORCED SEQUENCE
@@ -111,7 +111,7 @@ gate_conditions: 7
 
 ## 6.7 EXTRACT: Invariant Compliance
 
-1. Check each of the 12 invariants:
+1. Check each of the 16 invariants:
    ```yaml
    - invariant: "INV-01"
      name: "Sequential Execution"
@@ -119,11 +119,32 @@ gate_conditions: 7
      evidence: "Phases executed 0→1→2→3→4→5→6"
    ```
 2. Count compliant vs violated
-3. All 12 MUST be checked (G6-07 implicit)
+3. All 16 MUST be checked (G6-08 enforcement)
+4. INV-13 (REDESIGN_LOOP): Verify evaluation was executed after GATE_3
 
 ---
 
-## 6.8 VERIFY: Verification Quality
+## 6.8 EXTRACT: Pattern Library Grounding
+
+1. Collect ALL pattern_id references from canonical-operations.yaml:
+   - `pattern_application.architectural_pattern.pattern_id`
+   - `pattern_application.supporting_patterns[].pattern_id`
+   - `pattern_application.cloud_patterns[].pattern_id`
+   - `pattern_application.rejected_alternatives[].pattern_id`
+2. Collect ALL anti_pattern_id references from adversary-findings.yaml:
+   - `anti_patterns[].anti_pattern_id`
+3. For EACH reference: verify it exists in the corresponding library file:
+   - AP-XXX → data/patterns/architecture-patterns.yaml
+   - CP-XXX → data/patterns/cloud-patterns.yaml
+   - DP-XXX → data/patterns/domain-*.yaml
+   - AAP-XXX → data/patterns/anti-patterns.yaml
+4. Count: total_references, grounded (found in library), ungrounded (not found)
+5. Calculate grounding_rate = grounded / total_references
+6. IF any ungrounded reference → ERROR (G6-09), must fix before verdict
+
+---
+
+## 6.9 VERIFY: Verification Quality
 
 **PRECONDITION: [EXTRACT_COMPLETE]**
 
@@ -144,7 +165,7 @@ gate_conditions: 7
 
 ---
 
-## 6.9 RENDER: Final Verdict
+## 6.10 RENDER: Final Verdict
 
 **PRECONDITION: [VERIFY_COMPLETE]**
 
@@ -163,7 +184,7 @@ gate_conditions: 7
 
 ---
 
-## 6.10 RENDER: Artifacts
+## 6.11 RENDER: Artifacts
 
 **PRECONDITION: [VERIFY_COMPLETE]**
 
@@ -174,7 +195,7 @@ gate_conditions: 7
 
 ---
 
-## 6.11 CHECKLIST
+## 6.12 CHECKLIST
 
 | # | Item | Status |
 |---|------|--------|
@@ -184,15 +205,16 @@ gate_conditions: 7
 | 4 | Assumptions summary (≥10 total) | PASS/FAIL |
 | 5 | Scope reductions logged | PASS/FAIL |
 | 6 | Counter-checks summary | PASS/FAIL |
-| 7 | Invariant compliance (12/12 checked) | PASS/FAIL |
-| 8 | ASSUMPTIONS_DECLARED | PASS/FAIL |
-| 9 | Final verdict rendered | PASS/FAIL |
-| 10 | verification-report.yaml written | PASS/FAIL |
-| 11 | process-log.yaml written | PASS/FAIL |
+| 7 | Invariant compliance (16/16 checked) | PASS/FAIL |
+| 8 | Pattern library grounding (all references valid) | PASS/FAIL |
+| 9 | ASSUMPTIONS_DECLARED | PASS/FAIL |
+| 10 | Final verdict rendered | PASS/FAIL |
+| 11 | verification-report.yaml written | PASS/FAIL |
+| 12 | process-log.yaml written | PASS/FAIL |
 
 ---
 
-## 6.12 GATE_6 EVALUATION
+## 6.13 GATE_6 EVALUATION
 
 | Condition | Description | Severity | Status |
 |-----------|-------------|----------|--------|
@@ -203,6 +225,8 @@ gate_conditions: 7
 | G6-05 | Scope reductions logged | ERROR | |
 | G6-06 | Counter-checks (≥ minimum for depth) | CRITICAL | |
 | G6-07 | Final verdict rendered | REQUIRED | |
+| G6-08 | Invariant compliance verified (16/16 checked) | CRITICAL | |
+| G6-09 | Pattern library grounding (all pattern_id/anti_pattern_id references exist in library) | ERROR | |
 
 **Pass criteria:** G6-01 (BLOCKER) + ALL CRITICAL conditions met
 

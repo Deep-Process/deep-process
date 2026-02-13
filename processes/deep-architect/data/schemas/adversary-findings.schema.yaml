@@ -1,9 +1,9 @@
-# Deep-Architect V1.0 — Adversary Findings Schema
+# Deep-Architect V1.2 — Adversary Findings Schema
 # Output of Phase 3: ADVERSARY (8 mandatory operations, NON-NEGOTIABLE)
 # Consumed by: Phase 4 (trade-offs), Phase 5 (validation input), Phase 6 (traceability)
 
 schema:
-  version: "1.0.0"
+  version: "1.2.0"
   artifact: "adversary-findings.yaml"
   produced_by: "Phase 3"
   consumed_by: ["Phase 4", "Phase 5", "Phase 6"]
@@ -73,12 +73,15 @@ structure:
 
   # --- Operation 4: Anti-Pattern Detection ---
   anti_patterns:
-    - id: "string (required) — AP-XXX format"
+    - id: "string (required) — AP-XXX instance format"
+      anti_pattern_id: "string (required) — AAP-XXX from anti-patterns.yaml"
       name: "string (required) — anti-pattern name"
-      location: "string (required) — where detected"
-      description: "string (required) — why it's harmful"
-      recommendation: "string (required) — how to fix"
-      severity: "enum: low|medium|high (required)"
+      location: "string (required) — where detected (C-XXX or area)"
+      symptoms_matched: "string[] (required) — which symptoms from library were observed"
+      description: "string (required) — why it's harmful in this context"
+      remediation: "string[] (required) — fix steps from library + context-specific additions"
+      severity: "enum: low|medium|high|critical (required)"
+      related_patterns: "string[] (optional) — AP-XXX patterns that resolve this anti-pattern"
 
   # --- Operation 5: Complexity Analysis ---
   complexity:

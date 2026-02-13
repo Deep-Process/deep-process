@@ -8,7 +8,7 @@ next_steps: ["step-05-validation.md"]
 data_dependencies: ["data/schemas/tradeoff-analysis.schema.yaml", "canonical-operations.yaml", "architecture-model.yaml", "adversary-findings.yaml"]
 outputs: ["tradeoff-analysis.yaml"]
 gate: "GATE_4"
-gate_conditions: 5
+gate_conditions: 7
 ---
 
 # PHASE 4: TRADE-OFF ANALYSIS — ENFORCED SEQUENCE
@@ -122,7 +122,69 @@ gate_conditions: 5
 
 ---
 
-## 4.6 EXTRACT: Decisions
+## 4.6 EXTRACT: FinOps / Cost Architecture
+
+1. Estimate infrastructure costs per deployment environment:
+   ```yaml
+   cost_architecture:
+     environments:
+       - name: "production"
+         monthly_estimate: "$X,XXX"
+         cost_drivers:
+           - resource: "Compute (EC2/Lambda/K8s)"
+             monthly: "$X,XXX"
+           - resource: "Storage (S3/RDS/DynamoDB)"
+             monthly: "$XXX"
+           - resource: "Network (data transfer)"
+             monthly: "$XXX"
+       - name: "staging"
+         monthly_estimate: "$XXX"
+     total_monthly: "$X,XXX"
+     cost_optimization_strategies:
+       - "[Reserved instances, Spot instances, auto-scaling policies]"
+     cost_scaling_model: "linear | logarithmic | step-function"
+     break_even_analysis: "[At what scale does architecture choice X pay off]"
+   ```
+2. Compare cost implications of architectural alternatives (from CBAM)
+3. IF costs unknown → declare as assumption, estimate order of magnitude
+
+---
+
+## 4.7 EXTRACT: Evolution Strategy
+
+1. Define architecture evolution roadmap:
+   ```yaml
+   evolution_strategy:
+     phases:
+       - phase: "MVP / Phase 1"
+         timeline: "[0-3 months]"
+         scope: "[Core features, monolith-first]"
+         architecture: "[Simplified version]"
+       - phase: "Growth / Phase 2"
+         timeline: "[3-12 months]"
+         scope: "[Scale features, extract services]"
+         architecture: "[Decomposed version]"
+       - phase: "Maturity / Phase 3"
+         timeline: "[12+ months]"
+         scope: "[Optimization, advanced features]"
+         architecture: "[Full target architecture]"
+     migration_path:
+       - from: "[Current state]"
+         to: "[Target state]"
+         strategy: "strangler_fig | parallel_run | big_bang | incremental"
+         risks: ["[Risk 1]", "[Risk 2]"]
+         rollback_plan: "[How to revert if migration fails]"
+     extensibility_points:
+       - "[Where can new features be added with minimal disruption]"
+     deprecation_plan:
+       - "[What components will be retired and when]"
+   ```
+2. Ensure evolution aligns with team capacity and business roadmap
+3. IF brownfield/migration (from context-assessment.yaml) → evolution strategy is MANDATORY
+
+---
+
+## 4.8 EXTRACT: Decisions
 
 1. For each trade-off point, document the decision:
    ```yaml
@@ -140,7 +202,7 @@ gate_conditions: 5
 
 ---
 
-## 4.7 VERIFY: Trade-off Validation
+## 4.9 VERIFY: Trade-off Validation
 
 **PRECONDITION: [EXTRACT_COMPLETE]**
 
@@ -162,17 +224,17 @@ gate_conditions: 5
 
 ---
 
-## 4.8 RENDER: Trade-off Analysis Artifact
+## 4.10 RENDER: Trade-off Analysis Artifact
 
 **PRECONDITION: [VERIFY_COMPLETE]**
 
 1. Create `tradeoff-analysis.yaml` following schema
-2. Include: metadata, assumptions, atam (tree, scenarios, sensitivity, tradeoffs), cbam, decisions, checklist, counter_checks
+2. Include: metadata, assumptions, atam (tree, scenarios, sensitivity, tradeoffs), cbam, cost_architecture, evolution_strategy, decisions, checklist, counter_checks
 3. Write to `{output_directory}/architecture-artifacts/tradeoff-analysis.yaml`
 
 ---
 
-## 4.9 CHECKLIST
+## 4.11 CHECKLIST
 
 | # | Item | Status |
 |---|------|--------|
@@ -181,14 +243,16 @@ gate_conditions: 5
 | 3 | Sensitivity points identified (≥2) | PASS/FAIL |
 | 4 | Trade-off points documented (≥2) | PASS/FAIL |
 | 5 | CBAM cost-benefit calculated | PASS/FAIL |
-| 6 | Decisions with rationale | PASS/FAIL |
-| 7 | ASSUMPTIONS_DECLARED | PASS/FAIL |
-| 8 | Counter-checks executed | PASS/FAIL |
-| 9 | tradeoff-analysis.yaml written | PASS/FAIL |
+| 6 | FinOps / cost architecture estimated | PASS/FAIL |
+| 7 | Evolution strategy defined | PASS/FAIL |
+| 8 | Decisions with rationale | PASS/FAIL |
+| 9 | ASSUMPTIONS_DECLARED | PASS/FAIL |
+| 10 | Counter-checks executed | PASS/FAIL |
+| 11 | tradeoff-analysis.yaml written | PASS/FAIL |
 
 ---
 
-## 4.10 GATE_4 EVALUATION
+## 4.12 GATE_4 EVALUATION
 
 | Condition | Description | Severity | Status |
 |-----------|-------------|----------|--------|
@@ -197,8 +261,11 @@ gate_conditions: 5
 | G4-03 | Trade-off points documented (≥2) | CRITICAL | |
 | G4-04 | CBAM cost-benefit calculated | ERROR | |
 | G4-05 | Decisions justified | REQUIRED | |
+| G4-06 | Evolution strategy defined | ERROR | |
+| G4-07 | Cost architecture estimated | REQUIRED | |
 
 **Pass criteria:** ALL CRITICAL conditions met
 
 - IF ALL CRITICAL pass → GATE_4 = **OPEN** → proceed to Phase 5
 - IF any CRITICAL fails → GATE_4 = **LOCKED** → HALT, fix
+- IF G4-04/G4-06 fails → LOG warning, proceed (ERROR severity)

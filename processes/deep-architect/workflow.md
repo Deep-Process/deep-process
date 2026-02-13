@@ -1,4 +1,4 @@
-# Deep-Architect V1.0 — Orchestrator
+# Deep-Architect V1.2 — Orchestrator
 
 > Minimal orchestrator. All protocols, gates, schemas embedded in step files.
 > Load ONE step file at a time. Execute it. Pass its gate. Load next.
@@ -73,9 +73,33 @@ SCOPE_REDUCTION_DECLARATION:
 
 ---
 
+### USER CHECKPOINT 1 (After Phase 1, Before Phase 2)
+
+1. **Precondition:** GATE_1 = OPEN
+2. **Present to user:** Summary of canonical operations (components, boundaries, patterns, quality attributes)
+3. **User evaluation checklist** (present to help user assess quality, not just existence):
+
+   | # | Evaluation Question | Answer |
+   |---|---------------------|--------|
+   | 1 | Does the decomposition cover ALL functional areas from the brief? | YES/NO/PARTIAL |
+   | 2 | Are component boundaries clear (you can explain where each responsibility lives)? | YES/NO |
+   | 3 | Do the selected patterns match the problem (not over/under-engineered)? | YES/NO |
+   | 4 | Are quality attribute targets realistic and measurable? | YES/NO |
+   | 5 | Does the architecture match the team's capability to build and maintain it? | YES/NO |
+
+   **IF ≥2 answers are NO → recommend MODIFY**
+
+4. **User decides:**
+   - `APPROVE` → proceed to PHASE 2
+   - `MODIFY` → user provides feedback → re-execute affected operations in Phase 1 → re-evaluate GATE_1
+   - `ABORT` → log reason, terminate process
+5. **Rationale:** User validates decomposition BEFORE investing in diagrams/adversary (MA-003: max 4 checkpoints)
+
+---
+
 ### PHASE 2: ARTIFACT GENERATION
 
-1. **Precondition:** GATE_1 = OPEN (if not, HALT)
+1. **Precondition:** GATE_1 = OPEN AND Checkpoint 1 approved (if not, HALT)
 2. **Read tool:** `steps/step-02-artifacts.md`
 3. **Execute fully** (includes ASSUMPTIONS_DECLARED, EVR, checklist, GATE_2)
 4. **Verify:** GATE_2 = OPEN?
@@ -92,15 +116,49 @@ SCOPE_REDUCTION_DECLARATION:
 3. **Execute fully** (includes 8 adversarial operations, ASSUMPTIONS_DECLARED, EVR, checklist, GATE_3)
 4. **Verify:** GATE_3 = OPEN?
    - IF LOCKED → HALT (fix issues or declare SCOPE_REDUCTION)
-   - IF OPEN → proceed to PHASE 4
-5. **Violation check:** Agent MUST NOT read step-04 until GATE_3 = OPEN
-6. **NOTE:** ADVERSARY is NON-NEGOTIABLE (user requirement + MA-005)
+   - IF OPEN → evaluate REDESIGN_LOOP (section 3.13)
+5. **REDESIGN_LOOP evaluation (MANDATORY):**
+   - IF redesign_required = TRUE → present to user → user decides:
+     - `REDESIGN` → go to PHASE 1 (carry adversary findings as constraints)
+     - `REDESIGN_ARTIFACTS` → go to PHASE 2 (update diagrams/ADRs)
+     - `ACCEPT_RISK` → log risk acceptance, proceed to PHASE 4
+   - IF redesign_required = FALSE → proceed to PHASE 4
+   - Max iterations: config.iterations_max (1 quick / 3 standard / 10 deep)
+6. **Violation check:** Agent MUST NOT read step-04 until GATE_3 = OPEN AND REDESIGN_LOOP evaluated
+7. **NOTE:** ADVERSARY is NON-NEGOTIABLE (user requirement + MA-005)
+
+---
+
+### USER CHECKPOINT 2 (After ADVERSARY + REDESIGN_LOOP, Before Phase 4)
+
+1. **Precondition:** GATE_3 = OPEN AND REDESIGN_LOOP evaluated
+2. **Present to user:** Summary of adversary findings:
+   - Critical STRIDE threats (severity=critical)
+   - High-RPN failure modes (RPN > 100)
+   - Detected anti-patterns (severity=critical/high)
+   - Pre-mortem scenarios (impact=catastrophic)
+   - REDESIGN_LOOP result (triggered/not triggered, user decision)
+3. **User evaluation checklist:**
+
+   | # | Evaluation Question | Answer |
+   |---|---------------------|--------|
+   | 1 | Are the identified threats realistic for this system? | YES/NO |
+   | 2 | Are the proposed mitigations adequate for critical findings? | YES/NO |
+   | 3 | Are you comfortable proceeding to trade-off analysis? | YES/NO |
+
+   **IF any answer is NO → recommend REVIEW_IN_DETAIL**
+
+4. **User decides:**
+   - `PROCEED` → proceed to PHASE 4
+   - `REVIEW_IN_DETAIL` → user examines full adversary-findings.yaml, provides feedback
+   - `ABORT` → log reason, terminate process
+5. **Rationale:** User validates threat landscape BEFORE investing in trade-off analysis (MA-003: checkpoint_2 from config.yaml)
 
 ---
 
 ### PHASE 4: TRADE-OFF ANALYSIS
 
-1. **Precondition:** GATE_3 = OPEN (if not, HALT)
+1. **Precondition:** GATE_3 = OPEN AND Checkpoint 2 approved (if not, HALT)
 2. **Read tool:** `steps/step-04-tradeoffs.md`
 3. **Execute fully** (includes ATAM/CBAM, ASSUMPTIONS_DECLARED, EVR, checklist, GATE_4)
 4. **Verify:** GATE_4 = OPEN?
@@ -149,15 +207,18 @@ SCOPE_REDUCTION_DECLARATION:
 
 | Phase | Step File | Operations | Time Est | Gate |
 |-------|-----------|------------|----------|------|
-| 0 | step-00-context.md | Context assessment (domain/team/stability) | 15-30m | GATE_0 |
-| 1 | step-01-canonical.md | 8 canonical operations (Decomposition, Boundary, Relationship, Responsibility, Dependency, Pattern, Quality, Interface) | 60-120m | GATE_1 |
-| 2 | step-02-artifacts.md | C4 diagrams, data model, deployment, ADRs | 45-90m | GATE_2 |
-| 3 | step-03-adversary.md | 8 adversarial operations (STRIDE, FMEA, Bottleneck, Anti-patterns, Complexity, Compliance, Pre-mortem, Trade-offs) | 90-180m | GATE_3 |
-| 4 | step-04-tradeoffs.md | ATAM/CBAM trade-off analysis | 45-90m | GATE_4 |
-| 5 | step-05-validation.md | Bounded validation (top 10 critical issues) | 30-60m | GATE_5 |
-| 6 | step-06-verification.md | Completeness audit, traceability | 20-40m | GATE_6 |
+| 0 | step-00-context.md | Context assessment + domain detection + project scale | 15-30m | GATE_0 (8) |
+| CP1 | — | User Checkpoint 1 (evaluate decomposition quality) | 5-15m | User decision |
+| 1 | step-01-canonical.md | 8 canonical operations + reasoning + pattern library | 60-120m | GATE_1 (8) |
+| 2 | step-02-artifacts.md | Static + dynamic views, operational, data model, ADRs | 60-120m | GATE_2 (7) |
+| 3 | step-03-adversary.md | 8 adversarial operations + anti-pattern library + REDESIGN_LOOP | 90-180m | GATE_3 (7) |
+| RL | — | REDESIGN_LOOP evaluation (may loop to Phase 1/2) | 5-15m | User decision |
+| CP2 | — | User Checkpoint 2 (evaluate adversary findings) | 5-15m | User decision |
+| 4 | step-04-tradeoffs.md | ATAM/CBAM + FinOps + evolution strategy | 60-120m | GATE_4 (7) |
+| 5 | step-05-validation.md | Bounded validation + architecture fitness assessment | 30-60m | GATE_5 (7) |
+| 6 | step-06-verification.md | Completeness audit, traceability, pattern grounding | 20-40m | GATE_6 (10) |
 
-**Total time:** 5-10 hours (medium complexity with +25% buffer)
+**Total time:** 5.5-11 hours base estimate (7-14h with +25% buffer)
 
 ---
 
@@ -193,6 +254,10 @@ All artifacts saved to: `{output_directory}/architecture-artifacts/`
 **INV-10:** Checkpoint maximum (max 4 checkpoints to prevent approval fatigue)
 **INV-11:** Embedded methods (all methods inline in steps, no external files)
 **INV-12:** Just-in-time loading (load only current step, not all upfront)
+**INV-13:** REDESIGN_LOOP evaluation (mandatory after GATE_3, cannot skip)
+**INV-14:** Pattern Library Grounding (all pattern_id/anti_pattern_id references must exist in library)
+**INV-15:** Architecture Fitness (architecture MUST be evaluated for fitness-for-purpose, not just process compliance)
+**INV-16:** Reasoning Visibility (key decisions MUST include WHY, not just WHAT was decided)
 
 See `data/invariants.yaml` for full definitions and violation handling.
 
@@ -208,6 +273,8 @@ See `data/invariants.yaml` for full definitions and violation handling.
 - < 8 canonical operations in Phase 1
 - < 8 adversarial operations in Phase 3
 - ≠ 10 issues validated in Phase 5
+- Architecture fitness not assessed in Phase 5
+- Key decisions lack reasoning (INV-16 violation)
 
 **Severity levels:**
 - **BLOCKER:** Process halts immediately, cannot proceed
@@ -217,4 +284,4 @@ See `data/invariants.yaml` for full definitions and violation handling.
 
 ---
 
-**VERSION:** 1.0.0 (Deep-Architect Initial Release — 2026-02-11)
+**VERSION:** 1.4.0 (Deep-Architect — Risk Mitigations: Architecture Quality Gate, CP2, Reasoning, Proportionality — 2026-02-13)

@@ -1,0 +1,339 @@
+# Anti-Patterns Catalog — Deep-Architect V1.2.0
+# 15 anti-patterns with symptoms, severity, root causes, and remediation
+# Referenced by anti_pattern_id (AAP-XXX) from step-03-adversary.md
+# Version: 1.0.0
+# Date: 2026-02-12
+
+metadata:
+  version: "1.0.0"
+  total_anti_patterns: 15
+  categories: 5
+
+anti_patterns:
+
+  # ═══════════════════════════════════════════
+  # DECOMPOSITION ANTI-PATTERNS (4)
+  # ═══════════════════════════════════════════
+
+  - anti_pattern_id: "AAP-DEC-001"
+    name: "God Component"
+    category: "decomposition"
+    severity: "critical"
+    domain_applicability: ["DOM-PAR-MICRO", "DOM-PAR-MONO"]
+    symptoms:
+      - "Single component handles >5 distinct responsibilities"
+      - "Component has >20 direct dependencies"
+      - "Change in unrelated feature requires modifying this component"
+      - "Component is on critical path of >80% of requests"
+    root_causes:
+      - "Organic growth without periodic refactoring"
+      - "Unclear bounded context boundaries"
+      - "Convenience of adding to existing component"
+    remediation:
+      - "Identify distinct responsibilities via domain analysis"
+      - "Extract responsibilities into separate components (one at a time)"
+      - "Apply Single Responsibility Principle"
+      - "Use Strangler Fig for gradual extraction"
+    related_patterns: ["AP-DEC-001", "AP-DEC-002", "AP-DEC-005"]
+
+  - anti_pattern_id: "AAP-DEC-002"
+    name: "Big Ball of Mud"
+    category: "decomposition"
+    severity: "critical"
+    domain_applicability: ["DOM-PAR-MONO", "DOM-PAR-MICRO"]
+    symptoms:
+      - "No clear module boundaries"
+      - "Any code can call any other code"
+      - "Circular dependencies between modules"
+      - "Cannot deploy or test one module independently"
+    root_causes:
+      - "No architectural governance"
+      - "Rapid prototyping without cleanup"
+      - "No enforced dependency rules"
+    remediation:
+      - "Define module boundaries (bounded contexts)"
+      - "Enforce dependency direction with build tools"
+      - "Introduce anti-corruption layers between modules"
+      - "Incremental modularization (Strangler Fig approach)"
+    related_patterns: ["AP-DEC-002", "AP-DEC-004", "AP-INT-003"]
+
+  - anti_pattern_id: "AAP-DEC-003"
+    name: "Distributed Monolith"
+    category: "decomposition"
+    severity: "critical"
+    domain_applicability: ["DOM-PAR-MICRO"]
+    symptoms:
+      - "Services must be deployed together"
+      - "Shared database between services"
+      - "Synchronous call chains across 3+ services"
+      - "Change in one service requires changes in 2+ others"
+    root_causes:
+      - "Shared database schema"
+      - "Synchronous inter-service communication by default"
+      - "Shared libraries with business logic"
+      - "Incorrectly drawn service boundaries"
+    remediation:
+      - "Database-per-service (migrate data ownership)"
+      - "Replace synchronous chains with events"
+      - "Redraw boundaries using bounded contexts"
+      - "Eliminate shared business logic libraries"
+    related_patterns: ["AP-DAT-001", "AP-COM-001", "AP-DEC-001"]
+
+  - anti_pattern_id: "AAP-DEC-004"
+    name: "Nano-services"
+    category: "decomposition"
+    severity: "medium"
+    domain_applicability: ["DOM-PAR-MICRO"]
+    symptoms:
+      - "Services with <200 lines of code"
+      - "Service does only one trivial operation (single CRUD)"
+      - "Network overhead exceeds business logic cost"
+      - "Operational cost per service exceeds value delivered"
+    root_causes:
+      - "Over-application of microservices principle"
+      - "Decomposing by technical layer instead of business capability"
+      - "Lack of domain understanding"
+    remediation:
+      - "Merge related nano-services into cohesive service"
+      - "Decompose by business capability, not technical function"
+      - "Calculate operational cost per service to justify existence"
+    related_patterns: ["AP-DEC-001", "AP-DEC-002"]
+
+  # ═══════════════════════════════════════════
+  # COMMUNICATION ANTI-PATTERNS (4)
+  # ═══════════════════════════════════════════
+
+  - anti_pattern_id: "AAP-COM-001"
+    name: "Chatty Communication"
+    category: "communication"
+    severity: "high"
+    domain_applicability: ["DOM-PAR-MICRO"]
+    symptoms:
+      - "Single user action triggers >5 inter-service calls"
+      - "High network utilization between services"
+      - "Latency dominated by network round trips"
+      - "Fan-out of synchronous calls"
+    root_causes:
+      - "Fine-grained service APIs (getX, getY separately)"
+      - "Missing aggregation layer"
+      - "Data model spread across too many services"
+    remediation:
+      - "Batch/bulk APIs instead of single-item calls"
+      - "API Gateway or BFF for aggregation"
+      - "Consider merging chatty services"
+      - "Cache frequently accessed cross-service data"
+    related_patterns: ["AP-INT-001", "AP-INT-002", "AP-COM-006"]
+
+  - anti_pattern_id: "AAP-COM-002"
+    name: "Synchronous Chain"
+    category: "communication"
+    severity: "high"
+    domain_applicability: ["DOM-PAR-MICRO"]
+    symptoms:
+      - "Request travels through 3+ services synchronously"
+      - "End-to-end latency = sum of all service latencies"
+      - "Failure in any service fails entire chain"
+      - "Availability = product of all service availabilities"
+    root_causes:
+      - "Using synchronous REST/gRPC by default"
+      - "Not considering async alternatives"
+      - "Each service needs data from the next"
+    remediation:
+      - "Replace with event-driven for non-real-time"
+      - "Parallelize independent calls"
+      - "Add circuit breakers at each hop"
+      - "Consider CQRS with local read models"
+    related_patterns: ["AP-COM-001", "AP-RES-001", "AP-COM-002"]
+
+  - anti_pattern_id: "AAP-COM-003"
+    name: "Async Spaghetti"
+    category: "communication"
+    severity: "high"
+    domain_applicability: ["DOM-PAR-EVENT"]
+    symptoms:
+      - "Cannot trace event flow from start to end"
+      - "Undocumented event consumers"
+      - "Events triggering unexpected side effects"
+      - "Circular event chains"
+    root_causes:
+      - "No event catalog or schema registry"
+      - "Implicit contracts between publishers and consumers"
+      - "No event versioning"
+    remediation:
+      - "Create event catalog with ownership"
+      - "Schema registry with versioning"
+      - "Event flow diagrams (maintained)"
+      - "Distributed tracing for event chains"
+    related_patterns: ["AP-COM-001", "AP-OBS-001"]
+
+  - anti_pattern_id: "AAP-COM-004"
+    name: "Missing Circuit Breaker"
+    category: "communication"
+    severity: "high"
+    domain_applicability: ["DOM-PAR-MICRO"]
+    symptoms:
+      - "Single service failure cascades to all callers"
+      - "Thread pools exhausted waiting for failed service"
+      - "System-wide outage from single component failure"
+      - "No fallback behavior when dependency unavailable"
+    root_causes:
+      - "Assuming downstream services always available"
+      - "No resilience patterns in service template"
+      - "Missing failure mode analysis"
+    remediation:
+      - "Add circuit breakers to all synchronous calls"
+      - "Define fallback behavior per dependency"
+      - "Add timeout + retry + backoff"
+      - "Include resilience in service template/scaffold"
+    related_patterns: ["AP-RES-001", "AP-RES-003", "AP-RES-004", "AP-RES-005"]
+
+  # ═══════════════════════════════════════════
+  # DATA ANTI-PATTERNS (3)
+  # ═══════════════════════════════════════════
+
+  - anti_pattern_id: "AAP-DAT-001"
+    name: "Shared Database (between services)"
+    category: "data"
+    severity: "critical"
+    domain_applicability: ["DOM-PAR-MICRO"]
+    symptoms:
+      - "Multiple services read/write same database tables"
+      - "Schema changes require coordinated deployment of multiple services"
+      - "Database becomes bottleneck"
+      - "Cannot scale services independently"
+    root_causes:
+      - "Migrating from monolith without data separation"
+      - "Convenience of shared data access"
+      - "Cross-service reporting requirements"
+    remediation:
+      - "Extract data ownership per service"
+      - "API-based data access between services"
+      - "Event-driven data synchronization"
+      - "Read replicas or materialized views for reporting"
+    related_patterns: ["AP-DAT-001", "AP-COM-001"]
+
+  - anti_pattern_id: "AAP-DAT-002"
+    name: "Dual Write"
+    category: "data"
+    severity: "high"
+    domain_applicability: ["DOM-PAR-MICRO", "DOM-PAR-EVENT"]
+    symptoms:
+      - "Writing same data to two systems (DB + queue) without atomicity"
+      - "Inconsistencies between database and event store"
+      - "Lost events or orphaned database records"
+    root_causes:
+      - "No transactional outbox pattern"
+      - "Writing to DB and publishing event in same operation"
+    remediation:
+      - "Transactional outbox pattern"
+      - "Change data capture (CDC) from database log"
+      - "Event sourcing (single source of truth)"
+    related_patterns: ["AP-DAT-002", "AP-COM-001"]
+
+  - anti_pattern_id: "AAP-DAT-003"
+    name: "No Schema Evolution Strategy"
+    category: "data"
+    severity: "medium"
+    domain_applicability: ["DOM-PAR-MICRO", "DOM-PAR-EVENT", "DOM-PAR-DATA"]
+    symptoms:
+      - "Database migrations break running services"
+      - "Event consumers fail on new event fields"
+      - "API versioning absent or inconsistent"
+    root_causes:
+      - "No schema versioning policy"
+      - "Breaking changes deployed without consumer coordination"
+      - "Missing backward compatibility testing"
+    remediation:
+      - "Additive-only schema changes (never remove/rename)"
+      - "Schema versioning with backward compatibility"
+      - "Consumer-driven contract testing"
+      - "Schema registry for events"
+    related_patterns: ["AP-COM-001"]
+
+  # ═══════════════════════════════════════════
+  # SECURITY ANTI-PATTERNS (2)
+  # ═══════════════════════════════════════════
+
+  - anti_pattern_id: "AAP-SEC-001"
+    name: "Implicit Trust"
+    category: "security"
+    severity: "critical"
+    domain_applicability: ["DOM-BASE-SEC", "DOM-PAR-MICRO"]
+    symptoms:
+      - "Internal services accept requests without authentication"
+      - "Network perimeter is sole security boundary"
+      - "No authorization checks on service-to-service calls"
+      - "Assuming internal network is safe"
+    root_causes:
+      - "Castle-and-moat security model"
+      - "Development convenience (no auth in dev)"
+      - "Missing service identity management"
+    remediation:
+      - "Zero trust architecture — authenticate every request"
+      - "mTLS for service-to-service"
+      - "JWT/OAuth2 with scopes for authorization"
+      - "Network segmentation + identity-based access"
+    related_patterns: ["AP-SEC-001", "AP-SEC-002", "AP-SEC-003"]
+
+  - anti_pattern_id: "AAP-SEC-002"
+    name: "Secrets in Code"
+    category: "security"
+    severity: "critical"
+    domain_applicability: ["DOM-BASE-SEC"]
+    symptoms:
+      - "API keys, passwords, or tokens in source code"
+      - "Secrets in environment variables without encryption"
+      - "Secrets committed to version control (even if later removed)"
+      - "Same credentials across environments"
+    root_causes:
+      - "Developer convenience"
+      - "No secrets management infrastructure"
+      - "No pre-commit hooks scanning for secrets"
+    remediation:
+      - "Secrets management service (Vault, AWS SSM, Azure Key Vault)"
+      - "Pre-commit hooks with secret scanning"
+      - "Rotate all exposed credentials immediately"
+      - "Per-environment credentials with auto-rotation"
+    related_patterns: ["AP-SEC-004"]
+
+  # ═══════════════════════════════════════════
+  # OPERATIONAL ANTI-PATTERNS (2)
+  # ═══════════════════════════════════════════
+
+  - anti_pattern_id: "AAP-OPS-001"
+    name: "No API Gateway"
+    category: "operational"
+    severity: "medium"
+    domain_applicability: ["DOM-PAR-MICRO"]
+    symptoms:
+      - "Clients call services directly"
+      - "Cross-cutting concerns (auth, rate limiting) duplicated in each service"
+      - "Service discovery exposed to clients"
+      - "No single point for API versioning"
+    root_causes:
+      - "Started with few services and direct access"
+      - "Avoiding 'another component'"
+    remediation:
+      - "Introduce API gateway (managed or custom)"
+      - "Centralize auth, rate limiting, CORS"
+      - "Client-facing API versioning at gateway"
+    related_patterns: ["AP-INT-001"]
+
+  - anti_pattern_id: "AAP-OPS-002"
+    name: "Missing Health Checks"
+    category: "operational"
+    severity: "medium"
+    domain_applicability: ["DOM-PAR-MICRO", "DOM-PAR-MONO"]
+    symptoms:
+      - "Cannot determine service health automatically"
+      - "Load balancer sends traffic to unhealthy instances"
+      - "Container orchestrator cannot detect failed containers"
+      - "Manual monitoring required for availability"
+    root_causes:
+      - "Health endpoints not in service template"
+      - "Treating health checks as optional"
+    remediation:
+      - "Add /health (liveness) and /ready (readiness) endpoints"
+      - "Include dependency checks in readiness"
+      - "Configure load balancer and orchestrator health probes"
+    related_patterns: ["AP-OBS-003"]

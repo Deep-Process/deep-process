@@ -5,7 +5,7 @@ time_estimate: "90-180 minutes"
 goal: "Execute ALL 8 adversarial operations — NON-NEGOTIABLE"
 requires_completion: true
 next_steps: ["step-04-tradeoffs.md"]
-data_dependencies: ["data/schemas/adversary-findings.schema.yaml", "architecture-model.yaml", "canonical-operations.yaml"]
+data_dependencies: ["data/schemas/adversary-findings.schema.yaml", "architecture-model.yaml", "canonical-operations.yaml", "context-assessment.yaml", "data/patterns/anti-patterns.yaml"]
 outputs: ["adversary-findings.yaml"]
 gate: "GATE_3"
 gate_conditions: 7
@@ -107,27 +107,45 @@ Identify performance choke points.
 
 ## 3.4 OPERATION 4: ANTI-PATTERN DETECTION
 
-Scan architecture for known anti-patterns.
+Scan architecture against anti-pattern library for detected domains.
 
-1. Check for common architectural anti-patterns:
-   - **God Component**: One component with too many responsibilities
-   - **Distributed Monolith**: Microservices with tight coupling
-   - **Chatty Communication**: Excessive inter-service calls
-   - **Shared Database**: Multiple services sharing one database
-   - **No API Gateway**: Direct client-to-service communication
-   - **Missing Circuit Breaker**: No fault isolation
-   - **Synchronous Chain**: Long synchronous call chains
-   - **Big Ball of Mud**: No clear structure
+**Prerequisites:**
+- Read `data/patterns/anti-patterns.yaml` (15 anti-patterns catalog)
+- Read `context-assessment.yaml` → `architecture_domains.final_domains` (detected domains)
 
-2. For each detected:
-   ```yaml
-   - id: "AP-001"
-     name: "Distributed Monolith"
-     location: "Services C-001, C-002, C-003"
-     description: "Services share database and deploy together"
-     recommendation: "Separate databases, async communication"
-     severity: "high"
-   ```
+**Detection Algorithm:**
+
+1. **Filter by domain:** From anti-patterns.yaml, select anti-patterns where `domain_applicability` intersects with `final_domains`
+2. **Check symptoms:** For each filtered anti-pattern, evaluate each `symptom` against canonical-operations and architecture-model artifacts:
+   - God Component: Check if any component has >5 responsibilities or >20 dependencies
+   - Distributed Monolith: Check for shared databases AND synchronous chains between services
+   - Chatty Communication: Check if any request path triggers >5 inter-service calls
+   - Shared Database: Check if multiple services access same database tables
+   - Synchronous Chain: Check for 3+ service synchronous call chains
+   - Others: Evaluate symptoms from library against architecture artifacts
+3. **Match symptoms:** For each anti-pattern, record which symptoms were observed
+4. **Determine severity:** Use severity from library, escalate if multiple symptoms match
+5. **Select remediation:** Use remediation steps from library + context-specific additions
+6. **Map related patterns:** Link to AP-XXX patterns that resolve the anti-pattern
+
+**Output for each detected anti-pattern:**
+```yaml
+- id: "AP-001"
+  anti_pattern_id: "AAP-DEC-003"  # FROM library
+  name: "Distributed Monolith"
+  location: "Services C-001, C-002, C-003"
+  symptoms_matched:
+    - "Services must be deployed together"
+    - "Shared database between services"
+  description: "Services share database and deploy together, defeating microservices benefits"
+  remediation:
+    - "Database-per-service (migrate data ownership)"
+    - "Replace synchronous chains with events"
+  severity: "critical"
+  related_patterns: ["AP-DAT-001", "AP-COM-001"]
+```
+
+**G3-05 enforcement (ERROR):** Each detected anti-pattern MUST reference valid `anti_pattern_id` from library with ≥1 matched symptom.
 
 ---
 
@@ -292,7 +310,7 @@ Identify conflicting quality attributes.
 | G3-02 | STRIDE complete (all 6 categories) | CRITICAL | |
 | G3-03 | FMEA failure modes identified (≥5) | CRITICAL | |
 | G3-04 | Bottlenecks identified (≥2) | ERROR | |
-| G3-05 | Anti-patterns scanned | REQUIRED | |
+| G3-05 | Anti-patterns scanned against library, each references valid AAP-XXX with ≥1 symptom matched | ERROR | |
 | G3-06 | Complexity metrics calculated | CRITICAL | |
 | G3-07 | Pre-mortem executed (≥5 scenarios) | CRITICAL | |
 
@@ -307,3 +325,78 @@ Identify conflicting quality attributes.
 - Declare SCOPE_REDUCTION for G3-01
 - Request user approval to bypass
 - Cite "token limits" or "brevity" to abbreviate
+
+---
+
+## 3.13 REDESIGN_LOOP EVALUATION (Post-GATE_3)
+
+**After GATE_3 = OPEN, evaluate if ADVERSARY findings require redesign.**
+
+1. Count CRITICAL adversary findings:
+   - STRIDE threats with severity "critical"
+   - FMEA failure modes with RPN > 200
+   - Anti-patterns with severity "critical"
+   - Pre-mortem scenarios with impact "catastrophic" AND probability "high"
+
+2. Evaluate REDESIGN_LOOP trigger:
+   ```
+   redesign_required = FALSE
+   IF critical_threats ≥ 3 AND any threat has no viable mitigation → redesign_required = TRUE
+   IF any FMEA failure mode has mitigated_rpn > 100 → redesign_required = TRUE
+   IF anti_pattern "Big Ball of Mud" OR "Distributed Monolith" detected → redesign_required = TRUE
+   IF ≥2 pre-mortem scenarios have no preventive_measures → redesign_required = TRUE
+   ```
+
+3. IF redesign_required = TRUE:
+   1. **HALT** — present findings to user
+   2. Document redesign justification:
+      ```yaml
+      redesign_loop:
+        triggered: true
+        iteration: N  # 1-based, max from config iterations_max
+        critical_findings: ["[finding IDs requiring redesign]"]
+        components_affected: ["C-XXX", "C-YYY"]
+        redesign_scope: "component | boundary | pattern | full"
+        justification: "[why redesign needed, not just mitigation]"
+      ```
+   3. User decides: `REDESIGN` (loop to Phase 1) | `REDESIGN_ARTIFACTS` (loop to Phase 2) | `ACCEPT_RISK` (proceed to Phase 4)
+   4. IF REDESIGN → go to Phase 1, carrying adversary findings as constraints
+   5. IF REDESIGN_ARTIFACTS → go to Phase 2, update diagrams/ADRs
+   6. IF ACCEPT_RISK → log acceptance in process-log.yaml, proceed to Phase 4
+   7. **Max iterations:** config.iterations_max (1 for quick, 3 for standard, 10 for deep)
+   8. **Staleness tracking (M-11):** IF REDESIGN or REDESIGN_ARTIFACTS triggered:
+      ```yaml
+      staleness:
+        trigger: "REDESIGN_LOOP iteration N"
+        stale_artifacts:
+          - artifact: "canonical-operations.yaml"
+            status: "STALE"  # if REDESIGN → Phase 1
+            reason: "Adversary findings require canonical redesign"
+          - artifact: "architecture-model.yaml"
+            status: "STALE"  # if REDESIGN_ARTIFACTS → Phase 2
+            reason: "Diagrams/ADRs need update based on adversary findings"
+        fresh_artifacts:
+          - artifact: "context-assessment.yaml"
+            status: "FRESH"  # context doesn't change
+          - artifact: "adversary-findings.yaml"
+            status: "FRESH"  # adversary findings carry forward as constraints
+      ```
+      Mark affected artifacts STALE, carry adversary findings as FRESH constraints.
+
+4. IF redesign_required = FALSE:
+   - Log `redesign_loop.triggered: false`
+   - Proceed to Phase 4
+
+5. **Context handoff (to Phase 4):**
+   Document critical findings summary for next phase consumption:
+   ```yaml
+   context_handoff:
+     critical_threats_count: N
+     high_rpn_failure_modes: N
+     detected_anti_patterns: ["[names]"]
+     unresolved_risks: ["[descriptions]"]
+     redesign_loop_result: "not_triggered | redesign | redesign_artifacts | accept_risk"
+   ```
+
+**ENFORCEMENT:** REDESIGN_LOOP is NOT optional — evaluation MUST happen after GATE_3.
+Skipping evaluation = SILENT_OMISSION = CRITICAL PROCESS VIOLATION.

@@ -5,16 +5,18 @@ time_estimate: "60-120 minutes"
 goal: "Execute ALL 8 canonical architecture operations — no exceptions"
 requires_completion: true
 next_steps: ["step-02-artifacts.md"]
-data_dependencies: ["data/schemas/canonical-operations.schema.yaml", "context-assessment.yaml"]
+data_dependencies: ["data/schemas/canonical-operations.schema.yaml", "context-assessment.yaml", "data/patterns/architecture-patterns.yaml"]
 outputs: ["canonical-operations.yaml"]
 gate: "GATE_1"
-gate_conditions: 6
+gate_conditions: 8
 operations_required: 8
 ---
 
 # PHASE 1: CANONICAL OPERATIONS — ENFORCED SEQUENCE
 
 **ALL 8 operations MUST be executed (INV-07, BLOCKER). Skipping any = ABORT.**
+
+**REASONING REQUIREMENT (INV-16):** Every key decision in canonical operations MUST include a `reasoning` field explaining WHY, not just WHAT was decided. Reasoning must be 1-2 sentences linking the decision to user requirements, context, or trade-offs. Decisions without reasoning = gate violation (G1-08).
 
 ## 1.0 ASSUMPTIONS_DECLARED (BEFORE ANY EXTRACTION)
 
@@ -43,6 +45,7 @@ Break the system into components/modules/services.
      name: "[Component Name]"
      type: "service|module|component|library|database|queue|cache|external"
      responsibility: "[Single responsibility — one sentence]"
+     reasoning: "[WHY this component exists — what user need does it address]"
      dependencies: ["C-002", "C-003"]
      interfaces: ["I-001"]
    ```
@@ -135,20 +138,60 @@ Analyze coupling and cohesion.
 
 ## 1.6 OPERATION 6: PATTERN APPLICATION
 
-Apply architectural and design patterns.
+Select and apply patterns from the architecture pattern library.
 
-1. Select primary architectural pattern based on domain + requirements:
-   - Microservices, Layered, Event-Driven, CQRS, Hexagonal, Pipe-and-Filter, Serverless, Monolith-first
-2. Document:
-   ```yaml
-   architectural_pattern:
-     name: "Event-Driven"
-     rationale: "High throughput, loose coupling required"
-     trade_offs: "Eventual consistency, debugging complexity"
-   ```
-3. Apply design patterns where appropriate:
+**Prerequisites:**
+- Read `data/patterns/architecture-patterns.yaml` (35 patterns catalog)
+- Read `context-assessment.yaml` → `architecture_domains.final_domains` (detected domains)
+- IF platform domain detected (DOM-PLT-*): Read `data/patterns/cloud-patterns.yaml` (platform section only, R12)
+- IF domain-specific file referenced: Read corresponding `data/patterns/domain-*.yaml` (R12)
+
+**7-Step Pattern Selection Algorithm:**
+
+1. **Filter by domain:** From architecture-patterns.yaml, select patterns where `domain_applicability` intersects with `final_domains`
+2. **Evaluate when_to_use:** For each candidate pattern, check `when_to_use` conditions against user brief and context
+3. **Check when_not_to_use:** Eliminate patterns where `when_not_to_use` conditions match current context
+4. **Select primary pattern:** Choose the architectural pattern with strongest fit as primary decomposition pattern
+5. **Select supporting patterns:** Choose communication, data, resilience, integration patterns that complement primary
+6. **Add cloud patterns:** IF platform domain detected → select applicable cloud-specific patterns from cloud-patterns.yaml
+7. **Document rejections:** For each considered-but-rejected pattern, record rationale
+
+**Output:**
+```yaml
+pattern_application:
+  architectural_pattern:
+    pattern_id: "AP-DEC-001"  # FROM library
+    name: "Microservices"
+    source_domains: ["DOM-PAR-MICRO"]
+    rationale: "Multiple teams, independent deployment required"
+    trade_offs: "Distributed complexity vs team autonomy"
+  supporting_patterns:
+    - pattern_id: "AP-COM-001"
+      name: "Event-Driven Architecture"
+      source: "architecture-patterns.yaml / DOM-PAR-EVENT"
+      applied_to: "C-001, C-002 inter-service communication"
+      rationale: "Loose coupling between order and payment services"
+    - pattern_id: "AP-RES-001"
+      name: "Circuit Breaker"
+      source: "architecture-patterns.yaml / DOM-PAR-MICRO"
+      applied_to: "C-003 payment gateway calls"
+      rationale: "External dependency failure isolation"
+  cloud_patterns:
+    - pattern_id: "CP-AWS-003"
+      name: "SQS/SNS Fan-out"
+      applied_to: "C-001→C-002 event delivery"
+      rationale: "Guaranteed delivery with DLQ"
+  rejected_alternatives:
+    - pattern_id: "AP-DEC-002"
+      name: "Modular Monolith"
+      rejection_rationale: "Multiple teams need independent deployment — monolith would create release coupling"
+```
+
+8. Apply design patterns where appropriate:
    - Repository, Factory, Strategy, Observer, Circuit Breaker, Saga, etc.
-4. For each pattern: name, applied_to (C-XXX), rationale
+9. For each design pattern: name, applied_to (C-XXX), rationale
+
+**G1-07 enforcement:** Primary pattern MUST reference valid `pattern_id` from library. Source domains MUST be subset of detected domains.
 
 ---
 
@@ -175,6 +218,16 @@ Prioritize quality attributes (ISO 25010).
        rationale: "User experience"
    ```
 3. Targets MUST be measurable (not "good performance" but "P95 < 200ms")
+4. For performance/reliability attributes, include capacity planning:
+   ```yaml
+   capacity_planning:
+     current_load: "[N users/requests/transactions per unit time]"
+     projected_load_6m: "[projected growth]"
+     projected_load_12m: "[projected growth]"
+     scaling_strategy: "horizontal | vertical | hybrid"
+     bottleneck_threshold: "[when does current design fail]"
+   ```
+5. IF capacity projections unknown → declare as assumption with confidence level
 
 ---
 
@@ -258,6 +311,8 @@ Define contracts and protocols.
 | G1-04 | Dependencies mapped | ERROR | |
 | G1-05 | Quality attributes prioritized (≥3) | CRITICAL | |
 | G1-06 | ASSUMPTIONS_DECLARED present (≥3) | CRITICAL | |
+| G1-07 | Primary pattern references valid pattern_id from library, source_domains ⊆ detected domains | CRITICAL | |
+| G1-08 | Key decisions include reasoning (WHY not just WHAT) — ≥80% of components have reasoning field | ERROR | |
 
 **Pass criteria:** G1-01 (BLOCKER) + ALL CRITICAL conditions met
 

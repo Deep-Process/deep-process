@@ -1,12 +1,12 @@
-# Deep-Architect V1.0 — Context Assessment Schema
+# Deep-Architect V1.2 — Context Assessment Schema
 # Output of Phase 0: Context Assessment
-# Consumed by: Phase 1 (execution mode), Phase 3 (compliance domain), Phase 6 (traceability)
+# Consumed by: Phase 1 (execution mode, domains), Phase 3 (compliance domain, anti-patterns), Phase 6 (traceability)
 
 schema:
-  version: "1.0.0"
+  version: "1.2.0"
   artifact: "context-assessment.yaml"
   produced_by: "Phase 0"
-  consumed_by: ["Phase 1", "Phase 3", "Phase 4", "Phase 6"]
+  consumed_by: ["Phase 1", "Phase 3", "Phase 6"]
 
 structure:
   metadata:
@@ -69,6 +69,36 @@ structure:
       team_maturity: "string — team.maturity"
       domain: "string — domain.classification"
 
+  # V1.2.0: Architecture domain detection from user brief
+  architecture_domains:
+    base_domains:
+      - domain_id: "string (required) — DOM-BASE-* format"
+        name: "string (required)"
+        source: "auto_apply"
+    detected_domains:
+      - domain_id: "string (required) — DOM-* format"
+        name: "string (required)"
+        confidence: "float 0.0-1.0 (required)"
+        source: "detected"
+        matched_keywords: "string[] (required) — keywords from brief that triggered detection"
+        conditions_met: "string[] (required) — which detection conditions passed"
+    auto_included_domains:
+      - domain_id: "string (required) — DOM-* format"
+        name: "string (required)"
+        source: "transitive"
+        required_by: "string (required) — domain_id that requires this"
+    final_domains: "string[] (required) — all domain_ids (base ∪ detected ∪ auto_included)"
+    detection_evidence:
+      total_domains: "integer (required)"
+      base_count: "integer (required) — always 3"
+      detected_count: "integer (required)"
+      auto_included_count: "integer (required)"
+    counter_check_results:
+      - id: "string (required) — CC-DOM-* format"
+        method: "string (required)"
+        status: "enum: PASS|FAIL|WARNING (required)"
+        findings: "string (required)"
+
   assumptions:
     - id: "string (required) — A-0XX format"
       assumption: "string (required) — what is assumed"
@@ -92,3 +122,6 @@ validation_rules:
   - "assumptions.length >= 1"
   - "checklist.length >= 5"
   - "counter_checks.length >= depth_counter_check_minimum"
+  - "architecture_domains.final_domains.length >= 3 (at least BASE domains)"
+  - "architecture_domains.base_count == 3"
+  - "architecture_domains.counter_check_results.length >= 1"

@@ -2,9 +2,9 @@
 # Process parameters, thresholds, depth levels
 
 metadata:
-  version: "1.0.0"
+  version: "1.4.0"
   description: "Configuration for deep-architect process"
-  last_updated: "2026-02-11"
+  last_updated: "2026-02-13"
 
 # ==============================================================================
 # DEPTH LEVELS (User Selectable)
@@ -105,6 +105,48 @@ timeline:
       - "Multiple deployment targets"
       - "Many external integrations"
       - "Compliance requirements"
+
+# ==============================================================================
+# PROJECT SCALE CLASSIFICATION (V1.4.0)
+# ==============================================================================
+
+project_scale:
+  classifications:
+    small:
+      criteria:
+        max_components: 5
+        max_integrations: 3
+        regulatory: "none"
+        max_team_size: 3
+      depth_guidance: "Quick depth often sufficient. 16 ops still required but analysis proportional."
+
+    medium:
+      criteria:
+        components_range: "5-15"
+        integrations_range: "3-10"
+        regulatory: "basic"
+        team_size_range: "3-10"
+      depth_guidance: "Standard depth. Full analysis expected."
+
+    large:
+      criteria:
+        components_range: "15-50"
+        integrations_range: "10+"
+        regulatory: "compliance required"
+        team_size_range: "10-30"
+      depth_guidance: "Deep depth recommended. Thorough analysis across all 16 operations."
+
+    enterprise:
+      criteria:
+        min_components: 50
+        integrations: "many"
+        regulatory: "heavy compliance"
+        min_team_size: 30
+      depth_guidance: "Deep depth mandatory. Maximum rigor, full counter-checks."
+
+  proportionality_warnings:
+    over_engineering: "Small project + deep depth → LOG warning 'Deep depth may be disproportionate'"
+    under_engineering: "Enterprise project + quick depth → LOG warning 'Quick depth may be insufficient'"
 
 # ==============================================================================
 # VALIDATION CONFIGURATION
@@ -246,9 +288,9 @@ counter_checks:
     deep: 3
 
   total_minimum:
-    quick: 6
-    standard: 12
-    deep: 18
+    quick: 7
+    standard: 14
+    deep: 21
 
   method_references:
     grounding_check:
@@ -295,7 +337,7 @@ artifacts:
   output_directory: "{output_directory}/architecture-artifacts/"
 
   schemas_location: "data/schemas/"
-  schemas_count: 7
+  schemas_count: 8
 
   required_artifacts:
     phase_0:
@@ -427,6 +469,46 @@ limits:
   max_iterations: 10
 
 # ==============================================================================
+# PATTERN LIBRARY (V1.2.0)
+# ==============================================================================
+
+pattern_library:
+  version: "1.1.0"
+  location: "data/patterns/"
+  files:
+    domains: "architecture-domains.yaml"
+    detection: "domain-detection-rules.yaml"
+    patterns: "architecture-patterns.yaml"
+    anti_patterns: "anti-patterns.yaml"
+    cloud: "cloud-patterns.yaml"
+    domain_microservices: "domain-microservices.yaml"
+    domain_data_engineering: "domain-data-engineering.yaml"
+    domain_rag_ai: "domain-rag-ai.yaml"
+    domain_real_time: "domain-real-time.yaml"
+
+  loading_rules:
+    # R12 Just-In-Time: Load ONLY when needed
+    phase_0: ["architecture-domains.yaml", "domain-detection-rules.yaml"]
+    phase_1: ["architecture-patterns.yaml", "cloud-patterns.yaml (if platform detected)", "domain-*.yaml (if domain detected)"]
+    phase_3: ["anti-patterns.yaml"]
+    phase_6: ["ALL (for grounding verification)"]
+
+  detection:
+    source: "user_brief"
+    thresholds:
+      paradigm_domains: 0.65
+      platform_domains: 0.60
+      integration_domains: 0.60
+    base_domains_auto_apply: ["DOM-BASE-SOLID", "DOM-BASE-SEC", "DOM-BASE-OBS"]
+
+  counts:
+    total_patterns: 110
+    architecture_patterns: 38
+    anti_patterns: 15
+    cloud_patterns: 29
+    domain_patterns: 28
+
+# ==============================================================================
 # VERSION HISTORY
 # ==============================================================================
 
@@ -442,3 +524,30 @@ history:
       - "ADVERSARY configuration with STRIDE, FMEA, complexity"
       - "Counter-check minimums per depth"
       - "+25% timeline buffer"
+
+  - version: "1.2.0"
+    date: "2026-02-12"
+    changes:
+      - "Added pattern_library section (V1.2.0)"
+      - "8 pattern files, 92 total patterns"
+      - "R12-compliant loading rules per phase"
+      - "Detection thresholds (paradigm 0.65, platform 0.60, integration 0.60)"
+      - "3 auto-apply base domains"
+
+  - version: "1.3.0"
+    date: "2026-02-12"
+    changes:
+      - "Pattern Library Expansion: 92 → 110 patterns (+18)"
+      - "+3 architecture patterns: AP-COM-007 (Outbox), AP-COM-008 (WebSocket Reconnection), AP-RES-006 (Backpressure)"
+      - "+9 cloud patterns: CP-AZ-009 (Synapse), CP-K8S-001..004 (Helm, Service Mesh, KEDA, Operator), CP-GCP-001..004 (Cloud Run, BigQuery, Pub/Sub, Dataflow)"
+      - "+6 domain patterns: DP-RT-001..006 (real-time processing domain)"
+      - "+1 domain: DOM-PAR-RT (Real-Time Processing) with detection rules"
+      - "Synapse/ADLS/Delta Lake keywords added to DOM-PAR-DATA detection"
+      - "9 pattern files (was 8), 17 domains (was 16), 14 detection rules (was 13)"
+
+  - version: "1.4.0"
+    date: "2026-02-13"
+    changes:
+      - "Deep-Risk V2.1.0 mitigation implementation"
+      - "Added project_scale section with 4 classifications (small/medium/large/enterprise)"
+      - "Proportionality warnings for over-engineering and under-engineering"

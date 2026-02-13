@@ -1,0 +1,870 @@
+# Architecture Patterns Catalog — Deep-Architect V1.2.0
+# 38 architectural patterns across 7 categories
+# Referenced by pattern_id (AP-XXX) from step-01-canonical.md
+# Version: 1.0.0
+# Date: 2026-02-12
+
+metadata:
+  version: "1.0.0"
+  total_patterns: 38
+  categories: 7
+
+patterns:
+
+  # ═══════════════════════════════════════════
+  # DECOMPOSITION (7 patterns)
+  # ═══════════════════════════════════════════
+
+  - pattern_id: "AP-DEC-001"
+    name: "Microservices"
+    category: "decomposition"
+    domain_applicability: ["DOM-PAR-MICRO"]
+    description: "Decompose application into independently deployable services organized around business capabilities."
+    when_to_use:
+      - "Multiple teams need independent deployment"
+      - "Different scaling requirements per capability"
+      - "Polyglot technology requirements"
+    when_not_to_use:
+      - "Small team (<5 developers)"
+      - "Simple domain with low complexity"
+      - "Tight latency requirements across all operations"
+    quality_attributes_affected:
+      improves: ["scalability", "deployability", "team-autonomy"]
+      degrades: ["complexity", "data-consistency", "debugging"]
+    trade_offs: "Independent scaling vs distributed system complexity. Eventually consistent data vs strong consistency."
+    related_patterns: ["AP-COM-001", "AP-DAT-001", "AP-INT-001", "AP-RES-001"]
+    implementation_hints:
+      - "Start with bounded contexts from DDD"
+      - "One database per service (avoid shared DB)"
+      - "API gateway for external communication"
+
+  - pattern_id: "AP-DEC-002"
+    name: "Modular Monolith"
+    category: "decomposition"
+    domain_applicability: ["DOM-PAR-MONO"]
+    description: "Single deployment unit with strict module boundaries, enforced interfaces, and isolated data access."
+    when_to_use:
+      - "Small team needing rapid development"
+      - "Clear domain boundaries but simple deployment needs"
+      - "Future microservices migration planned"
+    when_not_to_use:
+      - "Multiple teams with conflicting release schedules"
+      - "Extreme scalability differences between modules"
+    quality_attributes_affected:
+      improves: ["simplicity", "development-speed", "consistency"]
+      degrades: ["independent-scalability", "technology-diversity"]
+    trade_offs: "Simpler operations vs coupling risk. Fast development vs potential future decomposition cost."
+    related_patterns: ["AP-DEC-005", "AP-DEC-004"]
+    implementation_hints:
+      - "Enforce module boundaries via package visibility or build tools"
+      - "Each module owns its database schema/tables"
+      - "Prepare seams for future service extraction"
+
+  - pattern_id: "AP-DEC-003"
+    name: "Layered Architecture"
+    category: "decomposition"
+    domain_applicability: ["DOM-PAR-MONO", "DOM-BASE-SOLID"]
+    description: "Organize code into horizontal layers (presentation, business, data access) with unidirectional dependencies."
+    when_to_use:
+      - "Traditional business application"
+      - "Team familiar with MVC/MVP patterns"
+      - "Clear separation of concerns needed"
+    when_not_to_use:
+      - "Complex domain logic that doesn't fit layers"
+      - "Need for high performance (layer overhead)"
+    quality_attributes_affected:
+      improves: ["maintainability", "testability", "separation-of-concerns"]
+      degrades: ["performance", "flexibility"]
+    trade_offs: "Clean separation vs potential layer bloat. Familiar pattern vs limited flexibility."
+    related_patterns: ["AP-DEC-004", "AP-DEC-005"]
+    implementation_hints:
+      - "Strict dependency direction: presentation → business → data"
+      - "No skipping layers (presentation must not call data directly)"
+      - "Consider thin layers to reduce ceremony"
+
+  - pattern_id: "AP-DEC-004"
+    name: "Hexagonal (Ports & Adapters)"
+    category: "decomposition"
+    domain_applicability: ["DOM-BASE-SOLID", "DOM-PAR-MICRO", "DOM-PAR-MONO"]
+    description: "Isolate core domain logic from external concerns via ports (interfaces) and adapters (implementations)."
+    when_to_use:
+      - "Complex domain logic requiring isolation"
+      - "Multiple external integrations (DB, APIs, queues)"
+      - "High testability requirements"
+    when_not_to_use:
+      - "Simple CRUD applications"
+      - "Prototypes or throwaway code"
+    quality_attributes_affected:
+      improves: ["testability", "maintainability", "adaptability"]
+      degrades: ["initial-complexity", "development-speed"]
+    trade_offs: "Maximum decoupling vs more boilerplate. Testable core vs indirection overhead."
+    related_patterns: ["AP-DEC-003", "AP-DEC-005"]
+    implementation_hints:
+      - "Core domain has ZERO framework dependencies"
+      - "Define ports as interfaces in domain layer"
+      - "Adapters implement ports for specific technologies"
+
+  - pattern_id: "AP-DEC-005"
+    name: "Vertical Slice"
+    category: "decomposition"
+    domain_applicability: ["DOM-PAR-MONO", "DOM-PAR-MICRO"]
+    description: "Organize code by feature/use-case, each slice containing all layers needed for that feature."
+    when_to_use:
+      - "Feature-driven development"
+      - "Team organized by features, not layers"
+      - "CQRS-style separation of reads and writes"
+    when_not_to_use:
+      - "Heavy cross-cutting concerns shared between features"
+      - "Small team with single-feature focus"
+    quality_attributes_affected:
+      improves: ["cohesion", "independent-development", "feature-isolation"]
+      degrades: ["code-reuse", "consistency-across-features"]
+    trade_offs: "Feature cohesion vs potential code duplication. Independent work vs shared concerns management."
+    related_patterns: ["AP-DEC-002", "AP-COM-002"]
+    implementation_hints:
+      - "One folder per feature with handler, model, validator"
+      - "Shared kernel for truly cross-cutting concerns only"
+      - "MediatR or similar for request routing"
+
+  - pattern_id: "AP-DEC-006"
+    name: "Plugin Architecture"
+    category: "decomposition"
+    domain_applicability: ["DOM-PAR-MONO"]
+    description: "Core system with extension points that third-party or internal plugins can hook into."
+    when_to_use:
+      - "Product requiring third-party extensibility"
+      - "Multiple customers with custom requirements"
+      - "Platform/marketplace model"
+    when_not_to_use:
+      - "Single-purpose application"
+      - "No extension requirements"
+    quality_attributes_affected:
+      improves: ["extensibility", "customizability", "modularity"]
+      degrades: ["complexity", "security-surface", "versioning"]
+    trade_offs: "Maximum extensibility vs API stability burden. Customer customization vs security/quality control."
+    related_patterns: ["AP-DEC-002"]
+    implementation_hints:
+      - "Define stable plugin API with versioning"
+      - "Sandbox plugin execution for security"
+      - "Plugin dependency resolution and lifecycle management"
+
+  - pattern_id: "AP-DEC-007"
+    name: "Cell-Based Architecture"
+    category: "decomposition"
+    domain_applicability: ["DOM-PAR-MICRO", "DOM-PAR-SERVER"]
+    description: "Group related microservices into self-contained cells with independent deployment, data, and routing."
+    when_to_use:
+      - "Large-scale microservices (>20 services)"
+      - "Need blast radius containment"
+      - "Multi-region deployment"
+    when_not_to_use:
+      - "Small number of services (<10)"
+      - "Single-region deployment"
+    quality_attributes_affected:
+      improves: ["fault-isolation", "scalability", "deployment-safety"]
+      degrades: ["complexity", "data-consistency", "operational-overhead"]
+    trade_offs: "Blast radius containment vs cell boundary management. Regional isolation vs cross-cell coordination."
+    related_patterns: ["AP-DEC-001", "AP-RES-002"]
+    implementation_hints:
+      - "Cell = bounded set of services + data + routing"
+      - "Cell gateway for ingress routing"
+      - "Cross-cell communication via async events only"
+
+  # ═══════════════════════════════════════════
+  # COMMUNICATION (6 patterns)
+  # ═══════════════════════════════════════════
+
+  - pattern_id: "AP-COM-001"
+    name: "Event-Driven Architecture"
+    category: "communication"
+    domain_applicability: ["DOM-PAR-EVENT", "DOM-PAR-MICRO"]
+    description: "Components communicate by producing and consuming events via event broker."
+    when_to_use:
+      - "Loose coupling between services"
+      - "Audit trail / event sourcing requirements"
+      - "Variable load requiring buffering"
+    when_not_to_use:
+      - "Strict request-response requirements"
+      - "Simple synchronous workflows"
+    quality_attributes_affected:
+      improves: ["scalability", "loose-coupling", "resilience"]
+      degrades: ["debugging", "consistency", "latency-predictability"]
+    trade_offs: "Temporal decoupling vs eventual consistency. Scalable vs harder to debug."
+    related_patterns: ["AP-COM-002", "AP-COM-003", "AP-DAT-002"]
+    implementation_hints:
+      - "Design events as immutable facts (past tense)"
+      - "Include correlation ID for tracing"
+      - "Dead letter queue for failed processing"
+
+  - pattern_id: "AP-COM-002"
+    name: "CQRS"
+    category: "communication"
+    domain_applicability: ["DOM-PAR-EVENT", "DOM-PAR-MICRO"]
+    description: "Separate read and write models for complex domains where query and command patterns differ."
+    when_to_use:
+      - "Read/write ratio heavily skewed"
+      - "Complex domain with different read/write models"
+      - "Independent scaling of reads and writes"
+    when_not_to_use:
+      - "Simple CRUD domains"
+      - "Strong consistency required on reads"
+    quality_attributes_affected:
+      improves: ["read-performance", "scalability", "model-clarity"]
+      degrades: ["complexity", "consistency-latency"]
+    trade_offs: "Optimized reads/writes vs synchronization complexity. Model clarity vs eventual consistency."
+    related_patterns: ["AP-COM-001", "AP-DAT-002"]
+    implementation_hints:
+      - "Separate command and query databases if needed"
+      - "Projection handlers to update read models"
+      - "Consider event sourcing for write side"
+
+  - pattern_id: "AP-COM-003"
+    name: "Saga — Orchestration"
+    category: "communication"
+    domain_applicability: ["DOM-PAR-MICRO", "DOM-PAR-EVENT"]
+    description: "Central orchestrator coordinates multi-service transactions, managing compensating actions on failure."
+    when_to_use:
+      - "Multi-step business process across services"
+      - "Need clear process visibility and control"
+      - "Complex compensation logic"
+    when_not_to_use:
+      - "Simple two-service transactions"
+      - "When choreography provides sufficient coordination"
+    quality_attributes_affected:
+      improves: ["process-visibility", "error-handling", "debugging"]
+      degrades: ["coupling-to-orchestrator", "single-point-of-failure"]
+    trade_offs: "Central control vs orchestrator as bottleneck. Clear flow vs coupling to coordinator."
+    related_patterns: ["AP-COM-004", "AP-COM-001"]
+    implementation_hints:
+      - "Use state machine for saga state management"
+      - "Define compensating action for every step"
+      - "Idempotent operations for retry safety"
+
+  - pattern_id: "AP-COM-004"
+    name: "Saga — Choreography"
+    category: "communication"
+    domain_applicability: ["DOM-PAR-MICRO", "DOM-PAR-EVENT"]
+    description: "Services react to domain events autonomously, no central coordinator."
+    when_to_use:
+      - "Simple multi-service flows (3-4 steps)"
+      - "High autonomy between teams"
+      - "Avoiding single point of failure"
+    when_not_to_use:
+      - "Complex flows with many steps (>5)"
+      - "Need clear process visualization"
+    quality_attributes_affected:
+      improves: ["autonomy", "loose-coupling", "resilience"]
+      degrades: ["visibility", "debugging", "process-tracking"]
+    trade_offs: "No central bottleneck vs harder to understand flow. Autonomous vs harder to debug."
+    related_patterns: ["AP-COM-003", "AP-COM-001"]
+    implementation_hints:
+      - "Each service publishes completion event"
+      - "Compensating events for rollback"
+      - "Correlation IDs for end-to-end tracing"
+
+  - pattern_id: "AP-COM-005"
+    name: "Request-Reply (Synchronous)"
+    category: "communication"
+    domain_applicability: ["DOM-PAR-MICRO", "DOM-PAR-MONO"]
+    description: "Direct synchronous call between services via HTTP/gRPC for real-time responses."
+    when_to_use:
+      - "Real-time response required"
+      - "Simple query/command patterns"
+      - "Low-latency requirements"
+    when_not_to_use:
+      - "When caller doesn't need immediate response"
+      - "High fan-out scenarios"
+    quality_attributes_affected:
+      improves: ["simplicity", "latency", "consistency"]
+      degrades: ["coupling", "resilience", "scalability"]
+    trade_offs: "Simple mental model vs temporal coupling. Immediate consistency vs cascading failures."
+    related_patterns: ["AP-RES-001", "AP-RES-003"]
+    implementation_hints:
+      - "Always add timeout and retry with backoff"
+      - "Circuit breaker for downstream failures"
+      - "Consider gRPC for internal, REST for external"
+
+  - pattern_id: "AP-COM-006"
+    name: "Message Queue"
+    category: "communication"
+    domain_applicability: ["DOM-PAR-EVENT", "DOM-PAR-MICRO"]
+    description: "Point-to-point asynchronous messaging with guaranteed delivery."
+    when_to_use:
+      - "Work distribution across consumers"
+      - "Load leveling and buffering"
+      - "Guaranteed at-least-once delivery"
+    when_not_to_use:
+      - "Fan-out to multiple consumers (use pub/sub)"
+      - "Real-time response needed"
+    quality_attributes_affected:
+      improves: ["reliability", "load-leveling", "decoupling"]
+      degrades: ["latency", "ordering-guarantees"]
+    trade_offs: "Guaranteed delivery vs processing delay. Load leveling vs queue depth monitoring."
+    related_patterns: ["AP-COM-001", "AP-RES-005"]
+    implementation_hints:
+      - "Dead letter queue for poison messages"
+      - "Visibility timeout for at-least-once processing"
+      - "Message deduplication for idempotency"
+
+  - pattern_id: "AP-COM-007"
+    name: "Transactional Outbox"
+    category: "communication"
+    domain_applicability: ["DOM-PAR-MICRO", "DOM-PAR-EVENT", "DOM-PAR-RT"]
+    description: "Write events to a local outbox table in the same database transaction as state change, then relay to message broker asynchronously. Eliminates dual-write inconsistency."
+    when_to_use:
+      - "Dual-write across database + message broker (e.g., PostgreSQL + Kafka/Redis)"
+      - "Exactly-once semantics needed between store and event"
+      - "CQRS with separate read/write stores"
+    when_not_to_use:
+      - "Single database without messaging"
+      - "Fire-and-forget events where loss is acceptable"
+    quality_attributes_affected:
+      improves: ["consistency", "reliability", "data-integrity"]
+      degrades: ["latency", "operational-complexity"]
+    trade_offs: "Guaranteed consistency vs outbox relay latency (100-500ms). Data integrity vs additional polling/CDC infrastructure."
+    related_patterns: ["AP-COM-001", "AP-DAT-002", "AP-COM-002"]
+    implementation_hints:
+      - "Outbox table: id, aggregate_id, event_type, payload, created_at, published_at"
+      - "Relay via CDC (Debezium) or polling publisher (every 100ms)"
+      - "Mark events as published after broker acknowledgment"
+
+  - pattern_id: "AP-COM-008"
+    name: "WebSocket with Reconnection"
+    category: "communication"
+    domain_applicability: ["DOM-PAR-RT", "DOM-PAR-EVENT"]
+    description: "Persistent bidirectional WebSocket connection with automatic reconnection, gap detection, and historical data backfill on reconnect."
+    when_to_use:
+      - "Real-time data streaming (prices, signals, metrics)"
+      - "Low-latency push updates to clients"
+      - "Bidirectional communication needed"
+    when_not_to_use:
+      - "Request-response only (use REST/gRPC)"
+      - "Low-frequency updates (<1/min, use polling)"
+    quality_attributes_affected:
+      improves: ["latency", "real-time-delivery", "bandwidth-efficiency"]
+      degrades: ["connection-management", "scaling-complexity", "state-management"]
+    trade_offs: "Real-time delivery vs connection state management. Low latency vs reconnection gap risk."
+    related_patterns: ["AP-RES-006", "AP-COM-001"]
+    implementation_hints:
+      - "Exponential backoff on reconnection (1s, 2s, 4s, max 30s)"
+      - "Sequence numbers on every message for gap detection"
+      - "On reconnect: send last_sequence_id, server backfills gap from replay buffer"
+
+  # ═══════════════════════════════════════════
+  # DATA (5 patterns)
+  # ═══════════════════════════════════════════
+
+  - pattern_id: "AP-DAT-001"
+    name: "Database-per-Service"
+    category: "data"
+    domain_applicability: ["DOM-PAR-MICRO"]
+    description: "Each service owns its database; no direct cross-service database access."
+    when_to_use:
+      - "Microservices with independent data models"
+      - "Different storage needs per service"
+      - "Independent schema evolution"
+    when_not_to_use:
+      - "Strong cross-service consistency requirements"
+      - "Reporting across service boundaries"
+    quality_attributes_affected:
+      improves: ["autonomy", "independent-deployment", "technology-freedom"]
+      degrades: ["cross-service-queries", "data-consistency"]
+    trade_offs: "Data autonomy vs cross-service reporting complexity. Schema freedom vs data duplication."
+    related_patterns: ["AP-DAT-002", "AP-DAT-004"]
+    implementation_hints:
+      - "API-based data access between services"
+      - "Saga or event-driven for cross-service transactions"
+      - "Read replicas or materialized views for cross-service queries"
+
+  - pattern_id: "AP-DAT-002"
+    name: "Event Sourcing"
+    category: "data"
+    domain_applicability: ["DOM-PAR-EVENT"]
+    description: "Store all state changes as immutable events; derive current state by replaying events."
+    when_to_use:
+      - "Complete audit trail requirement"
+      - "Temporal queries (state at any point in time)"
+      - "Complex domain with CQRS"
+    when_not_to_use:
+      - "Simple CRUD with no audit needs"
+      - "High-frequency updates with simple state"
+    quality_attributes_affected:
+      improves: ["auditability", "temporal-queries", "debugging"]
+      degrades: ["query-complexity", "storage-growth", "learning-curve"]
+    trade_offs: "Complete history vs storage and replay complexity. Audit compliance vs query difficulty."
+    related_patterns: ["AP-COM-002", "AP-COM-001"]
+    implementation_hints:
+      - "Events are immutable — never update or delete"
+      - "Snapshots for performance (avoid replaying all events)"
+      - "Schema versioning for event evolution"
+
+  - pattern_id: "AP-DAT-003"
+    name: "Shared Database"
+    category: "data"
+    domain_applicability: ["DOM-PAR-MONO"]
+    description: "Multiple modules or services share a single database, trading autonomy for consistency."
+    when_to_use:
+      - "Strong consistency requirements across modules"
+      - "Simple reporting across all data"
+      - "Small team, single deployment"
+    when_not_to_use:
+      - "Independent deployment requirements"
+      - "Different scaling needs"
+    quality_attributes_affected:
+      improves: ["consistency", "simplicity", "reporting"]
+      degrades: ["autonomy", "independent-scaling", "schema-evolution"]
+    trade_offs: "ACID transactions vs deployment coupling. Simple queries vs schema contention."
+    related_patterns: ["AP-DAT-001"]
+    implementation_hints:
+      - "Schema ownership per module (no cross-module writes)"
+      - "Views for cross-module reads"
+      - "Migration coordination between modules"
+
+  - pattern_id: "AP-DAT-004"
+    name: "Polyglot Persistence"
+    category: "data"
+    domain_applicability: ["DOM-PAR-MICRO", "DOM-PAR-DATA"]
+    description: "Use different database technologies for different services based on their data access patterns."
+    when_to_use:
+      - "Diverse data access patterns (key-value, graph, document, relational)"
+      - "Service-specific performance optimization"
+      - "Different consistency/availability trade-offs per service"
+    when_not_to_use:
+      - "Small team without diverse database expertise"
+      - "Uniform data access patterns"
+    quality_attributes_affected:
+      improves: ["performance", "fit-for-purpose", "scalability"]
+      degrades: ["operational-complexity", "team-knowledge", "backup-strategy"]
+    trade_offs: "Optimal data model per service vs operational complexity. Performance vs team expertise spread."
+    related_patterns: ["AP-DAT-001", "AP-DAT-005"]
+    implementation_hints:
+      - "Match database type to access pattern (OLTP→SQL, OLAP→columnar, cache→Redis)"
+      - "Centralized monitoring across database types"
+      - "Team training on each technology in use"
+
+  - pattern_id: "AP-DAT-005"
+    name: "Data Mesh"
+    category: "data"
+    domain_applicability: ["DOM-PAR-DATA"]
+    description: "Decentralized data ownership where domain teams own their data products with federated governance."
+    when_to_use:
+      - "Large organization with multiple data domains"
+      - "Central data team is bottleneck"
+      - "Domain expertise matters for data quality"
+    when_not_to_use:
+      - "Small organization (<50 people)"
+      - "Single data domain"
+    quality_attributes_affected:
+      improves: ["domain-ownership", "data-quality", "team-autonomy"]
+      degrades: ["governance-complexity", "cross-domain-queries", "standards-enforcement"]
+    trade_offs: "Domain ownership vs governance overhead. Data quality vs cross-domain discovery."
+    related_patterns: ["AP-DAT-001", "AP-DAT-004"]
+    implementation_hints:
+      - "Data products with SLAs (freshness, quality, schema)"
+      - "Self-serve data infrastructure platform"
+      - "Federated computational governance"
+
+  # ═══════════════════════════════════════════
+  # RESILIENCE (5 patterns)
+  # ═══════════════════════════════════════════
+
+  - pattern_id: "AP-RES-001"
+    name: "Circuit Breaker"
+    category: "resilience"
+    domain_applicability: ["DOM-PAR-MICRO", "DOM-PAR-EVENT"]
+    description: "Prevent cascading failures by cutting off calls to failing downstream services."
+    when_to_use:
+      - "Synchronous inter-service communication"
+      - "Downstream services with variable reliability"
+      - "Need to fail fast rather than hang"
+    when_not_to_use:
+      - "Fire-and-forget messaging"
+      - "Single-service applications"
+    quality_attributes_affected:
+      improves: ["resilience", "fail-fast", "resource-protection"]
+      degrades: ["availability-during-open-state"]
+    trade_offs: "Fast failure vs temporary unavailability. Resource protection vs partial degradation."
+    related_patterns: ["AP-RES-002", "AP-RES-003", "AP-RES-005"]
+    implementation_hints:
+      - "States: Closed → Open → Half-Open"
+      - "Configure failure threshold, timeout, reset interval"
+      - "Provide fallback response during open state"
+
+  - pattern_id: "AP-RES-002"
+    name: "Bulkhead"
+    category: "resilience"
+    domain_applicability: ["DOM-PAR-MICRO"]
+    description: "Isolate resources (thread pools, connections) per service to prevent single failure from consuming all resources."
+    when_to_use:
+      - "Multiple downstream dependencies"
+      - "Need to contain blast radius"
+      - "Resource contention between consumers"
+    when_not_to_use:
+      - "Single downstream dependency"
+      - "Simple applications with low concurrency"
+    quality_attributes_affected:
+      improves: ["fault-isolation", "stability", "predictability"]
+      degrades: ["resource-utilization", "configuration-complexity"]
+    trade_offs: "Isolation vs resource efficiency. Predictability vs underutilized reserved resources."
+    related_patterns: ["AP-RES-001", "AP-DEC-007"]
+    implementation_hints:
+      - "Separate thread pool per downstream service"
+      - "Connection pool limits per dependency"
+      - "Monitor pool saturation for capacity planning"
+
+  - pattern_id: "AP-RES-003"
+    name: "Retry with Exponential Backoff"
+    category: "resilience"
+    domain_applicability: ["DOM-PAR-MICRO", "DOM-PAR-EVENT"]
+    description: "Automatically retry transient failures with increasing delay between attempts."
+    when_to_use:
+      - "Transient failures (network, throttling)"
+      - "Idempotent operations"
+      - "Downstream service with intermittent issues"
+    when_not_to_use:
+      - "Non-idempotent operations without dedup"
+      - "Permanent failures (4xx errors)"
+    quality_attributes_affected:
+      improves: ["reliability", "transient-fault-tolerance"]
+      degrades: ["latency", "load-amplification"]
+    trade_offs: "Automatic recovery vs retry storm risk. Reliability vs increased downstream load."
+    related_patterns: ["AP-RES-001", "AP-RES-004"]
+    implementation_hints:
+      - "Add jitter to prevent thundering herd"
+      - "Set max retry count (typically 3-5)"
+      - "Only retry on transient errors (5xx, timeout)"
+
+  - pattern_id: "AP-RES-004"
+    name: "Timeout"
+    category: "resilience"
+    domain_applicability: ["DOM-PAR-MICRO", "DOM-PAR-MONO"]
+    description: "Set explicit time limits on all external calls to prevent resource holding."
+    when_to_use:
+      - "Any synchronous external call"
+      - "Database queries"
+      - "Third-party API calls"
+    when_not_to_use:
+      - "Long-running batch operations (use async instead)"
+    quality_attributes_affected:
+      improves: ["predictability", "resource-management", "fail-fast"]
+      degrades: ["false-positives-on-slow-ops"]
+    trade_offs: "Predictable response time vs premature timeout on legitimate slow operations."
+    related_patterns: ["AP-RES-001", "AP-RES-003"]
+    implementation_hints:
+      - "Connection timeout + read timeout separately"
+      - "Shorter timeout for user-facing, longer for background"
+      - "Log timeouts for SLO tracking"
+
+  - pattern_id: "AP-RES-005"
+    name: "Fallback"
+    category: "resilience"
+    domain_applicability: ["DOM-PAR-MICRO", "DOM-PAR-EVENT"]
+    description: "Provide degraded but functional response when primary service is unavailable."
+    when_to_use:
+      - "Non-critical features with graceful degradation"
+      - "Cached data acceptable as fallback"
+      - "Default values better than errors"
+    when_not_to_use:
+      - "Critical operations requiring exact data"
+      - "Financial transactions"
+    quality_attributes_affected:
+      improves: ["availability", "user-experience"]
+      degrades: ["data-freshness", "accuracy"]
+    trade_offs: "Continued operation vs stale/default data. User experience vs accuracy."
+    related_patterns: ["AP-RES-001"]
+    implementation_hints:
+      - "Cache last known good response"
+      - "Static fallback for non-dynamic content"
+      - "Clearly indicate degraded mode to users"
+
+  - pattern_id: "AP-RES-006"
+    name: "Backpressure"
+    category: "resilience"
+    domain_applicability: ["DOM-PAR-RT", "DOM-PAR-EVENT", "DOM-PAR-MICRO"]
+    description: "Flow control mechanism where consumer signals producer to slow down when overwhelmed. Prevents OOM, queue explosion, and cascading failures during traffic spikes."
+    when_to_use:
+      - "Producer rate exceeds consumer capacity (market data feeds, IoT streams)"
+      - "Unpredictable traffic bursts (market open, flash sales)"
+      - "Memory-constrained consumers (Lambda, containers)"
+    when_not_to_use:
+      - "Low-frequency messaging (<10 msgs/sec)"
+      - "Fire-and-forget with unlimited queue depth acceptable"
+    quality_attributes_affected:
+      improves: ["stability", "resource-protection", "predictability"]
+      degrades: ["throughput", "latency-under-pressure"]
+    trade_offs: "System stability vs data freshness under load. Resource protection vs temporary message dropping or delay."
+    related_patterns: ["AP-COM-008", "AP-RES-002", "AP-RES-001"]
+    implementation_hints:
+      - "Reactive Streams (Project Reactor, RxJava) for pull-based backpressure"
+      - "Bounded buffer with drop-oldest or drop-newest policy"
+      - "Monitor queue depth → alert at 70%, shed load at 90%"
+
+  # ═══════════════════════════════════════════
+  # INTEGRATION (4 patterns)
+  # ═══════════════════════════════════════════
+
+  - pattern_id: "AP-INT-001"
+    name: "API Gateway"
+    category: "integration"
+    domain_applicability: ["DOM-PAR-MICRO", "DOM-PAR-SERVER"]
+    description: "Single entry point for all client requests, handling routing, auth, rate limiting, and aggregation."
+    when_to_use:
+      - "Multiple backend services exposed to clients"
+      - "Cross-cutting concerns (auth, rate limiting)"
+      - "Client request aggregation"
+    when_not_to_use:
+      - "Single backend service"
+      - "Internal service-to-service only"
+    quality_attributes_affected:
+      improves: ["security", "manageability", "client-simplicity"]
+      degrades: ["latency", "single-point-of-failure"]
+    trade_offs: "Centralized control vs potential bottleneck. Simplified client vs gateway complexity."
+    related_patterns: ["AP-INT-002", "AP-SEC-001"]
+    implementation_hints:
+      - "Avoid business logic in gateway (routing + cross-cutting only)"
+      - "Health check all backends"
+      - "Rate limiting per client/API key"
+
+  - pattern_id: "AP-INT-002"
+    name: "Backend-for-Frontend (BFF)"
+    category: "integration"
+    domain_applicability: ["DOM-PAR-MICRO"]
+    description: "Dedicated backend per client type (web, mobile, IoT) optimizing API shape for each."
+    when_to_use:
+      - "Multiple client types with different data needs"
+      - "Mobile vs web with different payloads"
+      - "Client-specific aggregation"
+    when_not_to_use:
+      - "Single client type"
+      - "Simple API with uniform access"
+    quality_attributes_affected:
+      improves: ["client-performance", "api-fit", "team-autonomy"]
+      degrades: ["code-duplication", "maintenance-cost"]
+    trade_offs: "Optimal API per client vs duplicate backend logic. Client performance vs maintenance."
+    related_patterns: ["AP-INT-001"]
+    implementation_hints:
+      - "One BFF per client platform (web-bff, mobile-bff)"
+      - "BFF owned by client team, not backend team"
+      - "Share common libraries, not common BFF"
+
+  - pattern_id: "AP-INT-003"
+    name: "Anti-Corruption Layer"
+    category: "integration"
+    domain_applicability: ["DOM-INT-LEGACY", "DOM-INT-POLY", "DOM-PAR-MICRO"]
+    description: "Translation layer between bounded contexts to prevent one model from corrupting another."
+    when_to_use:
+      - "Integrating with legacy systems"
+      - "Different domain models between services"
+      - "Third-party API integration"
+    when_not_to_use:
+      - "Same team owns both sides"
+      - "Models are already aligned"
+    quality_attributes_affected:
+      improves: ["model-integrity", "independence", "evolvability"]
+      degrades: ["latency", "maintenance-overhead"]
+    trade_offs: "Model purity vs translation overhead. Independence vs additional mapping code."
+    related_patterns: ["AP-INT-004", "AP-DEC-004"]
+    implementation_hints:
+      - "Adapter pattern for translating between models"
+      - "Facade for simplifying complex legacy APIs"
+      - "Map to your domain language, not theirs"
+
+  - pattern_id: "AP-INT-004"
+    name: "Strangler Fig"
+    category: "integration"
+    domain_applicability: ["DOM-INT-LEGACY"]
+    description: "Incrementally replace legacy system by routing traffic to new implementation feature-by-feature."
+    when_to_use:
+      - "Legacy system modernization"
+      - "Risk-averse migration approach"
+      - "Cannot afford big-bang replacement"
+    when_not_to_use:
+      - "Greenfield development"
+      - "System small enough for full rewrite"
+    quality_attributes_affected:
+      improves: ["migration-safety", "incremental-delivery"]
+      degrades: ["operational-complexity-during-migration"]
+    trade_offs: "Safe incremental migration vs dual-system operational overhead. Reduced risk vs longer timeline."
+    related_patterns: ["AP-INT-003"]
+    implementation_hints:
+      - "Route by feature/URL path to old or new"
+      - "Proxy/facade in front of legacy system"
+      - "Track migration progress per feature"
+
+  # ═══════════════════════════════════════════
+  # SECURITY (4 patterns)
+  # ═══════════════════════════════════════════
+
+  - pattern_id: "AP-SEC-001"
+    name: "Zero Trust Architecture"
+    category: "security"
+    domain_applicability: ["DOM-BASE-SEC", "DOM-PAR-MICRO"]
+    description: "Never trust, always verify. Authenticate and authorize every request regardless of network location."
+    when_to_use:
+      - "Distributed systems"
+      - "Multi-cloud or hybrid environments"
+      - "Compliance requirements (SOC2, PCI)"
+    when_not_to_use:
+      - "Isolated single-server prototype"
+    quality_attributes_affected:
+      improves: ["security", "compliance", "lateral-movement-prevention"]
+      degrades: ["latency", "operational-complexity"]
+    trade_offs: "Maximum security vs authentication overhead per request."
+    related_patterns: ["AP-SEC-002", "AP-SEC-003"]
+    implementation_hints:
+      - "mTLS between all services"
+      - "Short-lived tokens (JWT with rotation)"
+      - "Network segmentation + identity-based access"
+
+  - pattern_id: "AP-SEC-002"
+    name: "OAuth2 / OIDC"
+    category: "security"
+    domain_applicability: ["DOM-BASE-SEC"]
+    description: "Delegated authorization (OAuth2) and federated identity (OIDC) for user and service authentication."
+    when_to_use:
+      - "User-facing applications"
+      - "Third-party integration"
+      - "SSO requirements"
+    when_not_to_use:
+      - "Machine-to-machine only (use mTLS or API keys)"
+    quality_attributes_affected:
+      improves: ["security", "user-experience", "standards-compliance"]
+      degrades: ["implementation-complexity"]
+    trade_offs: "Standardized auth vs token management complexity."
+    related_patterns: ["AP-SEC-001"]
+    implementation_hints:
+      - "Use proven identity provider (Cognito, Entra ID, Auth0)"
+      - "PKCE for public clients (SPA, mobile)"
+      - "Refresh token rotation for security"
+
+  - pattern_id: "AP-SEC-003"
+    name: "mTLS (Mutual TLS)"
+    category: "security"
+    domain_applicability: ["DOM-BASE-SEC", "DOM-PAR-MICRO"]
+    description: "Both client and server authenticate via certificates for service-to-service communication."
+    when_to_use:
+      - "Service-to-service authentication"
+      - "Zero trust network"
+      - "High-security environments"
+    when_not_to_use:
+      - "Browser-to-server communication"
+      - "Simple internal APIs with network security"
+    quality_attributes_affected:
+      improves: ["authentication-strength", "non-repudiation"]
+      degrades: ["certificate-management-complexity", "debugging"]
+    trade_offs: "Strong mutual auth vs certificate lifecycle management."
+    related_patterns: ["AP-SEC-001"]
+    implementation_hints:
+      - "Service mesh (Istio, Linkerd) for automatic mTLS"
+      - "Certificate rotation automation"
+      - "Certificate authority (CA) management"
+
+  - pattern_id: "AP-SEC-004"
+    name: "Secrets Management"
+    category: "security"
+    domain_applicability: ["DOM-BASE-SEC"]
+    description: "Centralized, encrypted storage and rotation of secrets (API keys, passwords, certificates)."
+    when_to_use:
+      - "Any production system"
+      - "Multiple environments (dev, staging, prod)"
+      - "Compliance requirements"
+    when_not_to_use:
+      - "Local development prototype (use .env)"
+    quality_attributes_affected:
+      improves: ["security", "auditability", "rotation-automation"]
+      degrades: ["operational-setup"]
+    trade_offs: "Secure secrets vs additional infrastructure dependency."
+    related_patterns: ["AP-SEC-001"]
+    implementation_hints:
+      - "Use platform-native (AWS SSM/Secrets Manager, Azure Key Vault)"
+      - "Automatic rotation with zero downtime"
+      - "Audit log for secret access"
+
+  # ═══════════════════════════════════════════
+  # OBSERVABILITY (4 patterns)
+  # ═══════════════════════════════════════════
+
+  - pattern_id: "AP-OBS-001"
+    name: "Distributed Tracing"
+    category: "observability"
+    domain_applicability: ["DOM-BASE-OBS", "DOM-PAR-MICRO"]
+    description: "Track request flow across service boundaries with correlation IDs and span context."
+    when_to_use:
+      - "Multi-service request paths"
+      - "Latency debugging across services"
+      - "Dependency mapping"
+    when_not_to_use:
+      - "Single-service applications"
+    quality_attributes_affected:
+      improves: ["debugging", "performance-analysis", "dependency-visibility"]
+      degrades: ["overhead", "storage-cost"]
+    trade_offs: "Full visibility vs tracing overhead and storage."
+    related_patterns: ["AP-OBS-002", "AP-OBS-003"]
+    implementation_hints:
+      - "OpenTelemetry for vendor-neutral instrumentation"
+      - "Propagate trace context in all inter-service calls"
+      - "Sample traces in high-throughput systems"
+
+  - pattern_id: "AP-OBS-002"
+    name: "Centralized Logging"
+    category: "observability"
+    domain_applicability: ["DOM-BASE-OBS"]
+    description: "Aggregate logs from all services into central platform with structured format and search."
+    when_to_use:
+      - "Any multi-component system"
+      - "Debugging and audit requirements"
+      - "Compliance and security monitoring"
+    when_not_to_use:
+      - "Single-process local development"
+    quality_attributes_affected:
+      improves: ["debugging", "audit-compliance", "incident-response"]
+      degrades: ["cost", "network-bandwidth"]
+    trade_offs: "Central visibility vs log volume cost."
+    related_patterns: ["AP-OBS-001"]
+    implementation_hints:
+      - "Structured JSON logging (not plain text)"
+      - "Include correlation ID, timestamp, service name, level"
+      - "Log retention policy aligned with compliance"
+
+  - pattern_id: "AP-OBS-003"
+    name: "Health Check API"
+    category: "observability"
+    domain_applicability: ["DOM-BASE-OBS"]
+    description: "Expose health and readiness endpoints for automated monitoring and orchestration."
+    when_to_use:
+      - "Any service in production"
+      - "Container orchestration (K8s liveness/readiness)"
+      - "Load balancer health checks"
+    when_not_to_use:
+      - "Batch jobs without long-running processes"
+    quality_attributes_affected:
+      improves: ["operability", "automated-recovery", "monitoring"]
+      degrades: []
+    trade_offs: "Minimal overhead for significant operational benefit."
+    related_patterns: ["AP-OBS-001", "AP-OBS-002"]
+    implementation_hints:
+      - "Separate liveness (process alive) from readiness (can serve traffic)"
+      - "Check downstream dependencies in readiness"
+      - "Return structured JSON with component status"
+
+  - pattern_id: "AP-OBS-004"
+    name: "Feature Flags"
+    category: "observability"
+    domain_applicability: ["DOM-BASE-OBS", "DOM-PAR-MICRO"]
+    description: "Runtime toggles to enable/disable features without deployment, enabling canary releases and A/B testing."
+    when_to_use:
+      - "Progressive rollout of features"
+      - "A/B testing"
+      - "Kill switch for risky features"
+    when_not_to_use:
+      - "Simple on/off configuration (use config)"
+      - "Long-lived flags (becomes tech debt)"
+    quality_attributes_affected:
+      improves: ["deployment-safety", "experimentation", "rollback-speed"]
+      degrades: ["code-complexity", "testing-matrix"]
+    trade_offs: "Deployment flexibility vs flag lifecycle management."
+    related_patterns: []
+    implementation_hints:
+      - "Use feature flag service (LaunchDarkly, Unleash, Flagsmith)"
+      - "Plan flag cleanup lifecycle"
+      - "Test both flag states in CI"
