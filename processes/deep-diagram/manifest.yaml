@@ -1,0 +1,16 @@
+id: deep-diagram
+name: "Deep Diagram"
+version: "0.1.0"
+description: "Standalone architecture diagram generation from evidence and ontology"
+shortDescription: "Generate architecture diagrams from code evidence"
+workflowFile: "workflow.md"
+firstStepFile: "steps/step-01-load-inputs.md"
+firstStepLabel: "Step 1"
+agentName: "Deep Diagram Agent"
+agentInstruction: "This process requires pre-built input artifacts (evidence_map.yaml, documentation-plan.yaml, domain-ontology.yaml). Follow the logic in step-01-load-inputs.md to load and validate the required inputs."
+githubAgentTools:
+  - read
+  - search
+slashCommand: "deep-diagram"
+excludeFromInstall:
+  - "docs/**"

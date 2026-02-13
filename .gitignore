@@ -51,3 +51,6 @@ z*/
 
 # Reference module (not part of this package)
 bmad-builder/
+
+# Plans and roadmaps (internal use only)
+plans/

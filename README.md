@@ -17,7 +17,9 @@ Deep Process fixes this by giving the LLM a structured protocol to follow - spec
 
 Each process produces a structured, evidence-based deliverable - not conversation, not hand-waving. Scored assessments, traceable findings, falsifiable conclusions. The kind of output you can actually act on.
 
-## Quick start
+## Installation
+
+### Option A: Universal installer (any AI tool)
 
 ```bash
 npx deep-process init
@@ -35,13 +37,13 @@ Then open your AI tool and run:
 /deep-verify Check the API in src/api/ against the spec in docs/requirements.md
 ```
 
-### Non-interactive mode
+#### Non-interactive mode
 
 ```bash
 npx deep-process init --yes --tools claude,gemini
 ```
 
-### Other commands
+#### Other commands
 
 ```bash
 npx deep-process status       # Show what's installed
@@ -50,6 +52,26 @@ npx deep-process remove-tool cursor # Remove a tool integration
 npx deep-process update       # Update processes to latest versions
 npx deep-process uninstall    # Remove everything
 ```
+
+### Option B: Claude Code Plugin
+
+If you only use Claude Code, install directly as a plugin:
+
+```bash
+claude plugin install deep-process
+```
+
+This gives you `/deep-process:deep-verify`, `/deep-process:deep-explore`, etc. — no file copying needed.
+
+### Option C: GitHub Copilot Agents
+
+Copy the agent files from [`plugins/github-copilot/agents/`](plugins/github-copilot/agents/) to your project's `.github/agents/` directory:
+
+```bash
+cp plugins/github-copilot/agents/*.agent.md your-project/.github/agents/
+```
+
+Or use the universal installer (Option A) which auto-generates these files with correct paths for your project.
 
 ## The processes
 

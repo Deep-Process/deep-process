@@ -17,6 +17,10 @@ _deep-process/
 *.gif
 *.svg
 
+# Plugins (GitHub-only, not needed in npm package)
+plugins/
+.claude-plugin/
+
 # Misc
 CHANGELOG.md
 CONTRIBUTING.md
