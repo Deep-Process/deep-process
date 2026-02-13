@@ -196,6 +196,49 @@ These processes aren't isolated. A typical flow might look like:
 
 You don't have to use them all. Each process works standalone. But when combined, the output of one naturally feeds into the next.
 
+## Development
+
+### Building from Source
+
+```powershell
+# Build all packages (Core, CLI, VS Code Extension)
+.\build-all.ps1
+
+# Options
+.\build-all.ps1 -Clean           # Clean before build
+.\build-all.ps1 -SkipInstall     # Skip pnpm install
+.\build-all.ps1 -Verbose         # Detailed output
+```
+
+### Testing VS Code Extension
+
+```powershell
+# Method 1: Install .vsix file
+.\build-all.ps1
+code --install-extension packages/vscode/deep-process-vscode-1.0.0.vsix
+
+# Method 2: Extension Development Host (live debugging)
+cd packages/vscode
+code .
+# Press F5 in VS Code
+```
+
+See [BUILD.md](BUILD.md) and [packages/vscode/TESTING.md](packages/vscode/TESTING.md) for detailed guides.
+
+### Monorepo Structure
+
+```
+deep-process/
+├── processes/              # Single source of truth for all workflows
+├── packages/
+│   ├── core/              # Shared utilities (@deep-process/core)
+│   ├── cli/               # npm package (deep-process)
+│   ├── vscode/            # VS Code extension
+│   ├── claude-plugin/     # Claude Code plugin
+│   └── copilot-agents/    # GitHub Copilot agents
+└── .github/workflows/     # CI/CD automation
+```
+
 ## License
 
 MIT
