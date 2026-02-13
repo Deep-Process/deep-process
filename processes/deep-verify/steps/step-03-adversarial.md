@@ -1,324 +1,233 @@
 ---
 step: 3
 name: "Adversarial Validation"
-time_estimate: "10-20 minutes"
-goal: "Attack findings to ensure they survive scrutiny, test counter-hypotheses"
+time_estimate: "10-15 minutes"
+goal: "Attack your own findings to ensure they survive scrutiny"
 requires_completion: [0, 1, 2]
 next_steps:
   DEFAULT: "steps/step-04-verdict.md"
-gate: "GATE_3"
 data_dependencies:
-  - "../deep-verify/data/severity-scoring.yaml"
-  - "../deep-verify/data/method-procedures/063_Challenge_from_Critical_Perspective.md"
+  - "data/methods.csv"
+  - "data/severity-scoring.yaml"
 outputs:
   - findings (updated with survived_phase3)
   - currentScore (adjusted)
-  - hypotheses (updated statuses)
 ---
 
 # Phase 3: Adversarial Validation
 
-## ENFORCEMENT RULES
+## ⚠️ CRITICAL: THIS PHASE IS MANDATORY
 
-```
-1. THIS PHASE IS MANDATORY IN ALL MODES. No exceptions.
-2. Review ALL IMPORTANT+ findings. No skipping.
-3. Answer ALL FOUR adversarial prompts per finding. No shortcuts.
-4. Construct steel-man for opposite verdict.
-5. Complete False Positive Checklist if REJECT direction.
-6. Test all UNTESTED hypotheses from Phase 0 and Phase 1.
-7. Adjust scores HONESTLY based on what prompts reveal.
-8. COMPLETE binding checklist before GATE_3.
-```
+Empirical data shows adversarial review changes verdict direction in **57% of borderline cases**.
+
+**Skip ONLY if:** Early exit triggered in Phase 1 WITH Pattern Library confirmation (which would have bypassed Phase 2 entirely).
+
+---
+
+## MANDATORY EXECUTION RULES
+
+1. **LOAD DATA FILES FIRST** — Read all `data_dependencies` before proceeding
+2. **Review ALL IMPORTANT+ findings** — No skipping
+3. **Answer ALL FOUR adversarial prompts** — Per finding
+4. **Construct steel-man** — For opposite verdict
+5. **Complete False Positive Checklist** — Before REJECT
+6. **Adjust scores honestly** — Based on what prompts reveal
 
 ---
 
 ## 3.0 Load Required Data
 
-**Execute:**
-
-1. Read `../deep-verify/data/severity-scoring.yaml` → `phase3_adjustment_rules` section
-2. Optionally read `../deep-verify/data/method-procedures/063_Challenge_from_Critical_Perspective.md`
+**Before ANY analysis, load these files:**
 
 ```
-Data loaded:
-  [ ] severity-scoring.yaml — phase3 rules loaded
-  [ ] Method #63 procedure — [ ] loaded  [ ] using inline guide
+1. data/method-procedures/063_Challenge_from_Critical_Perspective.md
+   → Load for method #63 (Critical Challenge) procedure
+
+2. data/severity-scoring.yaml
+   → Load phase3_adjustment_rules section
 ```
 
-> **HALT** — Confirm data loaded.
+→ **HALT** — Confirm data files loaded
 
 ---
 
-## 3.1 Hypothesis Resolution
+## 3.1 Devil's Advocate Prompts
 
-**ENFORCEMENT:** Before attacking findings, resolve all UNTESTED hypotheses from earlier phases.
+**For EACH finding with severity ≥ IMPORTANT, complete all four prompts:**
 
-**Execute for each hypothesis with status=UNTESTED:**
+### Finding: [F_id] — [description]
 
-```
-HYPOTHESIS H[N]: "[statement]"
-  Original confidence: [0.0-1.0]
-
-  Resolution method:
-    [ ] RE-READ artifact sections [location] for evidence
-    [ ] COMPARE against extracted claims
-    [ ] DOMAIN KNOWLEDGE check
-    [ ] CANNOT RESOLVE — will note in report
-
-  Evidence found:
-    For: "________________________________"
-    Against: "________________________________"
-
-  Updated status:
-    [ ] CONFIRMED — evidence supports hypothesis
-    [ ] REFUTED — evidence contradicts hypothesis
-    [ ] INCONCLUSIVE — insufficient evidence
-    [ ] CANNOT_RESOLVE — requires external input
-
-  Updated confidence: [0.0-1.0]
-
-  IMPACT on findings:
-    [ ] No impact on existing findings
-    [ ] Affects finding F[N]: [describe impact]
-    [ ] Creates new finding: [describe]
-```
-
-> **HALT** — Resolve all hypotheses before proceeding to adversarial prompts.
+**Original severity:** [CRITICAL / IMPORTANT]
+**Quote:** "[exact text]"
 
 ---
 
-## 3.2 Devil's Advocate Prompts
+#### □ PROMPT 1: ALTERNATIVE EXPLANATION
 
-**Execute for EACH finding with severity >= IMPORTANT:**
+> "What if the author meant X instead of Y?"
+> "Is there a reading where this is not a problem?"
 
-### Finding F[N]: [description]
+**Answer:** ________________________________
 
-```
-ORIGINAL SEVERITY: [CRITICAL / IMPORTANT]
-QUOTE: "[exact text]"
-COUNTER-CHECK RESULT from Phase 2: [HOLDS / FAILS / INCONCLUSIVE]
-```
+**Weakens finding?** [ ] Yes [ ] No
 
----
-
-#### PROMPT 1: ALTERNATIVE EXPLANATION
-
-```
-Question: "What if the author meant X instead of Y?"
-         "Is there a reading where this is NOT a problem?"
-
-Answer: ________________________________
-
-Evidence for alternative: "________________________________"
-
-Weakens finding? [ ] Yes  [ ] No
-
-If Yes — explain: ________________________________
-```
+**If Yes, explain:** ________________________________
 
 ---
 
-#### PROMPT 2: HIDDEN CONTEXT
+#### □ PROMPT 2: HIDDEN CONTEXT
 
-```
-Question: "What unstated assumption would make this work?"
-         "Is there a footnote/appendix/convention that resolves this?"
+> "What unstated assumption would make this work?"
+> "Is there a footnote/appendix that resolves this?"
 
-Answer: ________________________________
+**Answer:** ________________________________
 
-Evidence for hidden context: "________________________________"
+**Weakens finding?** [ ] Yes [ ] No
 
-Weakens finding? [ ] Yes  [ ] No
-
-If Yes — explain: ________________________________
-```
+**If Yes, explain:** ________________________________
 
 ---
 
-#### PROMPT 3: DOMAIN EXCEPTION
+#### □ PROMPT 3: DOMAIN EXCEPTION
 
-```
-Question: "Is there a known exception in this domain?"
-         "Do practitioners actually treat this as a problem?"
+> "Is there a known exception in this domain?"
+> "Do practitioners actually treat this as a problem?"
 
-Answer: ________________________________
+**Answer:** ________________________________
 
-Evidence for domain exception: "________________________________"
+**Weakens finding?** [ ] Yes [ ] No
 
-Weakens finding? [ ] Yes  [ ] No
-
-If Yes — explain: ________________________________
-```
+**If Yes, explain:** ________________________________
 
 ---
 
-#### PROMPT 4: SURVIVORSHIP BIAS
+#### □ PROMPT 4: SURVIVORSHIP BIAS
 
-```
-Question: "Am I focusing on this because I found it first?"
-         "What would I conclude if I'd read in different order?"
+> "Am I focusing on this because I found it first?"
+> "What would I conclude if I'd read in different order?"
 
-Answer: ________________________________
+**Answer:** ________________________________
 
-Evidence for survivorship bias: "________________________________"
+**Weakens finding?** [ ] Yes [ ] No
 
-Weakens finding? [ ] Yes  [ ] No
-
-If Yes — explain: ________________________________
-```
+**If Yes, explain:** ________________________________
 
 ---
 
-#### ADVERSARIAL RESULT FOR F[N]
+#### RESULT
 
 ```
 Prompts that weaken this finding: _____/4
 
-ACTION (execute the matching rule):
+RULE: If ≥2 prompts weaken → downgrade or remove
 
-[ ] 0-1 prompts weaken → KEEP severity unchanged
-    Finding status: SURVIVED_PHASE3
-
-[ ] 2 prompts weaken → CONSIDER downgrade
-    Downgrade decision:
-      [ ] DOWNGRADE: CRITICAL → IMPORTANT (S adjustment: -2)
-      [ ] DOWNGRADE: IMPORTANT → MINOR (S adjustment: -0.7)
-      [ ] KEEP (explain why: ________________________________)
-
-[ ] 3 prompts weaken → DOWNGRADE (mandatory)
-    [ ] CRITICAL → IMPORTANT (S adjustment: -2)
-    [ ] IMPORTANT → MINOR (S adjustment: -0.7)
-
-[ ] 4 prompts weaken → REMOVE finding
-    S adjustment: -[original severity points]
-    Finding status: REMOVED_PHASE3
-    Removal reason: "________________________________"
+ACTION:
+[ ] Keep severity (0-1 prompts weakened)
+[ ] Downgrade severity (2-3 prompts weakened)
+    CRITICAL → IMPORTANT: S adjustment = -2
+    IMPORTANT → MINOR: S adjustment = -0.7
+[ ] Remove finding (all 4 prompts weakened)
+    S adjustment = -[original severity points]
 ```
 
-> **HALT** — Complete ALL four prompts for EACH IMPORTANT+ finding before proceeding.
+→ **HALT** — Complete for each IMPORTANT+ finding before proceeding
 
 ---
 
-## 3.3 Steel-Man Construction
+## 3.2 Steel-Man the Artifact
 
-**Execute:** Construct the strongest possible case for the OPPOSITE of your current leaning.
+**Construct the strongest possible case for the OPPOSITE of your current leaning:**
 
 ```
-Current evidence direction: [ ] REJECT  [ ] ACCEPT  [ ] UNCERTAIN
+Current evidence suggests: [ ] REJECT [ ] ACCEPT [ ] UNCERTAIN
 
-STEEL-MAN for [OPPOSITE DIRECTION]:
+Steel-man arguments for [opposite]:
 ```
 
 ### Argument 1:
 
-```
-Claim: "________________________________"
-Evidence FROM ARTIFACT: "[exact quote]" at [location]
-Holds up under scrutiny? [ ] Yes  [ ] No
-If No — why: ________________________________
-```
+**Claim:** ________________________________
+
+**Evidence from artifact:** ________________________________
+
+**Holds up under scrutiny?** [ ] Yes [ ] No
+
+**If No, why:** ________________________________
+
+---
 
 ### Argument 2:
 
-```
-Claim: "________________________________"
-Evidence FROM ARTIFACT: "[exact quote]" at [location]
-Holds up under scrutiny? [ ] Yes  [ ] No
-If No — why: ________________________________
-```
+**Claim:** ________________________________
+
+**Evidence from artifact:** ________________________________
+
+**Holds up under scrutiny?** [ ] Yes [ ] No
+
+**If No, why:** ________________________________
+
+---
 
 ### Argument 3:
 
-```
-Claim: "________________________________"
-Evidence FROM ARTIFACT: "[exact quote]" at [location]
-Holds up under scrutiny? [ ] Yes  [ ] No
-If No — why: ________________________________
-```
+**Claim:** ________________________________
+
+**Evidence from artifact:** ________________________________
+
+**Holds up under scrutiny?** [ ] Yes [ ] No
+
+**If No, why:** ________________________________
+
+---
 
 ### Steel-Man Assessment
 
 ```
 Arguments that hold up: _____/3
 
-ENFORCEMENT RULE:
-  If ANY steel-man argument holds:
-    [ ] Reconsider verdict direction
-    [ ] Document why proceeding anyway:
-        "________________________________"
+If ANY steel-man argument holds:
+→ Reconsider verdict direction
+→ Document why you're proceeding anyway if you don't change
 ```
 
-> **HALT** — Complete steel-man before proceeding.
+→ **HALT** — Wait for steel-man construction
 
 ---
 
-## 3.4 False Positive Checklist (Before REJECT)
+## 3.3 False Positive Checklist (Before REJECT)
 
-**ENFORCEMENT:** If current direction is REJECT, execute this checklist. Otherwise skip to 3.5.
+**If current direction is REJECT, verify:**
 
 ```
-□ 1. Did I search for disconfirming evidence with same rigor as confirming?
-     Answer: ________________________________
-     Evidence of balanced search: ________________________________
+□ Did I search for disconfirming evidence with same rigor as confirming?
+  Answer: ________________________________
 
-□ 2. Could a domain expert reasonably disagree with my interpretation?
-     Answer: ________________________________
-     Specific expert perspective: ________________________________
+□ Could a domain expert reasonably disagree with my interpretation?
+  Answer: ________________________________
 
-□ 3. Is my finding based on what artifact SAYS vs what it IMPLIES?
-     Answer: ________________________________
-     If IMPLIES — LOG HYPOTHESIS
+□ Is my finding based on what artifact SAYS vs what it IMPLIES?
+  Answer: ________________________________
 
-□ 4. Did I give artifact benefit of the doubt on ambiguous language?
-     Answer: ________________________________
-     Ambiguities resolved in favor: [count] Against: [count]
+□ Did I give artifact benefit of the doubt on ambiguous language?
+  Answer: ________________________________
 
-□ 5. Would the original author recognize my characterization as fair?
-     Answer: ________________________________
-     Strongest author defense: ________________________________
+□ Would the original author recognize my characterization as fair?
+  Answer: ________________________________
 
 Boxes checked: _____/5
 
-ENFORCEMENT RULE:
-  If 2+ boxes unchecked → RETURN to 3.2 and re-examine findings
-  with explicit focus on the unchecked dimensions.
+RULE: If 2+ boxes unchecked → Return to 3.1 with fresh perspective
 ```
 
-> **HALT** — Complete checklist if REJECT direction.
+→ **HALT** — Complete checklist if REJECT direction
 
 ---
 
-## 3.5 Counter-Check Reconciliation
+## 3.4 Reconciliation
 
-**Execute:** Reconcile Phase 2 counter-checks with Phase 3 adversarial results.
-
-```
-For each CRITICAL/IMPORTANT finding:
-  F[N]:
-    Phase 2 counter-check: [HOLDS / FAILS / INCONCLUSIVE]
-    Phase 3 adversarial: [SURVIVED / DOWNGRADED / REMOVED]
-    Combined assessment:
-      [ ] CONSISTENT — both phases agree
-      [ ] INCONSISTENT — phases disagree
-          Resolution: ________________________________
-```
-
-**ENFORCEMENT:** If counter-check and adversarial review DISAGREE:
-- If counter-check said HOLDS (finding is false) but adversarial SURVIVED → RE-EXAMINE.
-  Log: "Counter-check and adversarial disagree on F[N]. Resolution: ___"
-- If counter-check said FAILS (finding stands) but adversarial REMOVED → RE-EXAMINE.
-  Log: "Counter-check and adversarial disagree on F[N]. Resolution: ___"
-
----
-
-## 3.6 Reconciliation Summary
+**Summarize Phase 3 adjustments:**
 
 ```
-═══════════════════════════════════════════════════════════════
-PHASE 3 RECONCILIATION
-═══════════════════════════════════════════════════════════════
-
 Original findings count:
   CRITICAL: _____
   IMPORTANT: _____
@@ -337,75 +246,50 @@ Final findings count:
 Score before Phase 3: _____
 Phase 3 adjustments: _____
 Score after Phase 3: _____
-
-Hypotheses resolved: _____/[total]
-Hypotheses still UNTESTED: _____ (will go to NOT_CHECKED)
-
-═══════════════════════════════════════════════════════════════
 ```
 
 ---
 
-## BINDING CHECKLIST — Phase 3
+## 3.5 Update Findings Array
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  PHASE 3 COMPLETION CHECKLIST                                       │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  [ ] ALL UNTESTED hypotheses resolved or flagged    Status: ____   │
-│  [ ] ALL IMPORTANT+ findings adversarially reviewed Status: ____   │
-│  [ ] ALL FOUR prompts answered per finding          Status: ____   │
-│  [ ] Steel-man constructed for opposite verdict     Status: ____   │
-│  [ ] False Positive Checklist completed (if REJECT) Status: ____   │
-│  [ ] Counter-check reconciliation completed         Status: ____   │
-│  [ ] Score adjusted based on adversarial results    Status: ____   │
-│  [ ] Reconciliation summary compiled                Status: ____   │
-│  [ ] Frontmatter updated                            Status: ____   │
-│                                                                     │
-│  For each item: DONE or SCOPE_REDUCED                              │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
+**For each finding, update `survived_phase3`:**
+
+```yaml
+findings:
+  - id: F1
+    severity: [original or adjusted]
+    description: "[description]"
+    quote: "[exact text]"
+    location: "[line/section]"
+    pattern: "[pattern_id or null]"
+    method: [method_num]
+    survived_phase3: true  # Survived adversarial review
+    phase3_notes: "[any notes about why kept/adjusted]"
+
+  - id: F2
+    # ... if downgraded, update severity ...
+    survived_phase3: true
+    phase3_notes: "Downgraded from CRITICAL due to alternative explanation"
+
+  # Removed findings can be kept with flag or deleted
+  - id: F3
+    survived_phase3: false
+    removal_reason: "4/4 adversarial prompts weakened"
 ```
 
 ---
 
-## GATE_3: Adversarial → Verdict
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  GATE_3: ADVERSARIAL COMPLETE → VERDICT                            │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  [ ] ALL IMPORTANT+ findings reviewed adversarially Status: ____   │
-│  [ ] ALL four prompts answered per finding          Status: ____   │
-│  [ ] Steel-man attempted                            Status: ____   │
-│  [ ] False Positive Checklist done (if applicable)  Status: ____   │
-│  [ ] Counter-checks reconciled with adversarial     Status: ____   │
-│  [ ] Score adjusted: S = _____                      Status: ____   │
-│  [ ] Phase 3 checklist ALL items addressed          Status: ____   │
-│  [ ] All findings have survived_phase3 set          Status: ____   │
-│                                                                     │
-│  GATE_3 passed: [ ] Yes  [ ] No                                    │
-│  Timestamp: ________________________________                       │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-**IF GATE_3 PASSED:** Load `steps/step-04-verdict.md`
-**IF GATE_3 FAILED:** Complete missing items. Do NOT proceed.
-
----
-
-## Update Frontmatter
+## 3.6 Update Frontmatter
 
 ```yaml
 stepsCompleted: [0, 1, 2, 3]
 currentStep: 4
 currentScore: [adjusted S]
 scoreHistory:
+  - step: 1
+    # ... existing ...
   - step: 2
-    # ...
+    # ... existing ...
   - step: 3
     action: "adversarial_review"
     findings_examined: [count]
@@ -414,21 +298,35 @@ scoreHistory:
     delta: "[calculation]"
     total: [adjusted S]
 
-findings:
-  - id: F1
-    severity: [original or adjusted]
-    survived_phase3: [true / false]
-    phase3_notes: "[notes]"
-  # ...
-
 phase3_summary:
-  findings_examined: [count]
-  findings_weakened: [count]
+  findings_examined: [count of IMPORTANT+ findings reviewed]
+  findings_weakened: [count of findings downgraded or removed]
   adversarial_prompts_applied: true
   steel_man_attempted: true
   steel_man_arguments_held: [count]
   false_positive_checklist: [count]/5 or "N/A"
-  hypotheses_resolved: [count]
-  hypotheses_remaining: [count]
 ```
 
+---
+
+## 3.7 Proceed to Verdict
+
+**Next step:** Load `steps/step-04-verdict.md`
+
+**Before loading, verify:**
+- [ ] All IMPORTANT+ findings reviewed adversarially
+- [ ] All four prompts answered per finding
+- [ ] Steel-man constructed for opposite verdict
+- [ ] False Positive Checklist completed (if REJECT direction)
+- [ ] Score adjusted based on findings
+- [ ] Frontmatter updated with Phase 3 summary
+
+---
+
+## Output Checklist
+
+- [ ] All IMPORTANT+ findings have `survived_phase3` set
+- [ ] `currentScore` adjusted for any downgrades/removals
+- [ ] Steel-man arguments documented
+- [ ] False Positive Checklist completed (if applicable)
+- [ ] Ready to proceed to final verdict

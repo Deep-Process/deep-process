@@ -1,295 +1,492 @@
-# Deep Verify V2.0 — Execution Program
+# Deep Verify V3.0 — Universal Verification Workflow for LLM CLI
 
-> This file is a PROGRAM. Execute it step by step. For reference documentation, see [reference.md](./reference.md).
-> Data files are shared from `../deep-verify/data/`. V2-specific data is in `./data/`.
-
----
-
-## DESIGN PRINCIPLES
+## CORE PHILOSOPHY
 
 ```
-+-----------------------------------------------------------------------------+
-|  THIS IS AN EXECUTION PROCESS — NOT A DESCRIPTION                           |
-+-----------------------------------------------------------------------------+
-|                                                                              |
-|  Every instruction specifies HOW and IN WHAT ORDER.                         |
-|  No instruction says "should" or "consider" — all say MUST and DO.          |
-|                                                                              |
-|  PRIORITY: COMPLETENESS > TOKEN_ECONOMY > DEPTH > AESTHETICS               |
-|                                                                              |
-|  ENFORCEMENT: Every phase has BINDING GATES.                                |
-|  No phase transition without explicit gate passage.                         |
-|  No "intelligent" omissions without SCOPE_REDUCTION_RECORD.                 |
-|                                                                              |
-|  SEQUENCE: EXTRACT → VERIFY → RENDER (enforced, no jumping)                |
-|  Agent MUST NOT generate report content until Phase 5.                      |
-|  Agent MUST NOT assign severity until Phase 2.                              |
-|                                                                              |
-+-----------------------------------------------------------------------------+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  DEEP VERIFY = RIGOROUS VERIFICATION + PATTERN INTELLIGENCE + EVIDENCE     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  INPUT:   Any artifact (code, documentation, PRD, architecture, claims)    │
+│  OUTPUT:  Structured VERIFICATION REPORT with verdict & evidence           │
+│                                                                              │
+│  PRINCIPLE: NO QUOTE = NO FINDING                                          │
+│             Every finding must cite exact text from the artifact            │
+│                                                                              │
+│  EXECUTION: Designed for LLM CLI (Claude, Gemini, Ollama, etc.)           │
+│             Single prompt → Structured output                               │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## COMMANDMENTS
+## EXECUTION MODES
+
+**Selection:** Mode is determined in **Phase 0 (Setup)** via CLI flags or interactive prompt.
+
+### 1. Quick Verify (QV) — Fast Triage
+*   **Time:** 2-5 min
+*   **Scope:** Phase 0 + Phase 1 ONLY
+*   **Goal:** Rapid assessment, sanity check
+*   **Triggers:** `--quick`, `-q`, or interactive selection
+
+### 2. Standard Verify (SV) — Full Process
+*   **Time:** 15-45 min
+*   **Scope:** Phase 0 through Phase 5
+*   **Goal:** Complete verification with adversarial review
+*   **Triggers:** Default, `--full`, or interactive selection
+
+### 3. Deep Verify (DV) — Maximum Rigor
+*   **Time:** 30-60 min
+*   **Scope:** Standard + Phase 6 (Pattern Candidate Evaluation)
+*   **Goal:** High stakes, finding new patterns
+*   **Triggers:** `--deep`, `--high-stakes`, or interactive selection
+
+---
+
+## WORKFLOW LOGIC
+
+**Execute the following sequence based on selected MODE:**
+
+1.  **SETUP (All Modes)**
+    *   Assess stakes, note biases, record metadata.
+
+2.  **PHASE 1: PATTERN SCAN (All Modes)**
+    *   Execute Tier 1 Methods (#71, #100, #17).
+    *   Check Pattern Library.
+    *   Calculate Score (S).
+    *   **DECISION POINT:**
+        *   If **Quick Verify**: STOP here. Proceed directly to REPORT.
+        *   If **Early Exit condition met** (S ≥ 6 with pattern OR S ≤ -3): STOP. Proceed directly to VERDICT -> REPORT.
+        *   Otherwise: Continue to PHASE 2.
+
+3.  **PHASE 2: TARGETED (Standard/Deep Only)**
+    *   Select methods based on signals.
+    *   Execute methods.
+
+4.  **PHASE 3: ADVERSARIAL (Standard/Deep Only)**
+    *   **MANDATORY** unless Early Exit occurred.
+    *   Devil's Advocate & Steel-man.
+
+5.  **PHASE 4: VERDICT (Standard/Deep Only)**
+    *   Final Score calculation.
+
+6.  **PHASE 5: REPORT (All Modes)**
+    *   Generate output.
+    *   Note if "Quick Verify" mode was used.
+
+7.  **PHASE 6: PATTERN CANDIDATE (Deep Only)**
+    *   Evaluates critical findings for new patterns.
+
+---
+
+## SCORING SYSTEM
+
+### Evidence Score (S)
+
+| Finding Severity | Points | Notes |
+|------------------|--------|-------|
+| CRITICAL | +3 | Fundamental flaw, impossibility |
+| IMPORTANT | +1 | Significant issue, requires attention |
+| MINOR | +0.3 | Worth noting, not blocking |
+| Clean method pass | -0.5 | Method found nothing |
+| Pattern match bonus | +1 | Max once per finding |
+
+### Verdict Thresholds
+
+| Score | Verdict | Meaning |
+|-------|---------|---------|
+| S ≥ 6 | REJECT | Artifact contains fatal flaws |
+| -3 < S < 6 | UNCERTAIN | Cannot determine validity |
+| S ≤ -3 | ACCEPT | Artifact appears sound |
+| Any + ESCALATE flag | ESCALATE | Needs human expert |
+
+---
+
+## METHOD TIERS
+
+### Tier 1 — Phase 1 (ALL mandatory)
+
+| # | Method | When to Use | File |
+|---|--------|-------------|------|
+| 71 | First Principles Analysis | Always first | `071_First_Principles_Analysis.md` |
+| 100 | Vocabulary Consistency | Always second | `100_Vocabulary_Consistency.md` |
+| 17 | Abstraction Laddering | Always third | `017_Abstraction_Laddering.md` |
+
+### Tier 2 — Phase 2 (Select based on signals)
+
+| Signal from Phase 1 | Recommended Methods |
+|---------------------|---------------------|
+| Absolute claims ("always", "never", "100%") | #153, #154 |
+| Structural complexity, dependencies | #116, #86 |
+| Ungrounded claims, missing evidence | #85, #78 |
+| Diffuse belief, clean Phase 1 | #84, #109 |
+| Causation claims | #165, #162 |
+| Circular reasoning detected | #116, #159 |
+
+**Tier 2 Method Files:**
+```
+data/method-procedures/
+├── 078_Assumption_Excavation.md
+├── 084_Coherence_Check.md
+├── 085_Grounding_Check.md
+├── 086_Topological_Hole_Detection.md
+├── 087_Falsifiability_Check.md
+├── 109_Contraposition_Inversion.md
+├── 116_Strange_Loop_Detection.md
+├── 130_Assumption_Torture.md
+├── 153_Theoretical_Impossibility_Check.md
+├── 154_Definitional_Contradiction_Detector.md
+├── 159_Transitive_Dependency_Closure.md
+├── 162_Theory_Dependence_Verification.md
+├── 163_Existence_Proof_Demand.md
+└── 165_Constructive_Counterexample.md
+```
+
+### Tier 3 — Phase 3 (Adversarial)
+
+| # | Method | Purpose |
+|---|--------|---------|
+| 63 | Challenge from Critical Perspective | Attack your own findings |
+
+---
+
+## PATTERN LIBRARY
+
+**Load:** `data/pattern-library.yaml`
+
+The Pattern Library contains known impossibility patterns, definitional contradictions, and theorem violations. Pattern match = higher confidence + enables early exit.
+
+### Quick Reference — Critical Patterns
+
+| ID | Pattern | Signals | Check |
+|----|---------|---------|-------|
+| DC-001 | PFS + Escrow | "forward secrecy" + "key recovery" | Both claimed? |
+| DC-002 | Gradual Typing + Termination | "dynamic types" + "guarantees termination" | Both claimed? |
+| DC-004 | CAP Violation | "strong consistency" + "high availability" + "partition tolerance" | All three? |
+| TV-002 | FLP Impossibility | "async" + "consensus" + "fault tolerance" + "guaranteed termination" | All four? |
+| TV-004 | Universal Detection | "100% recall", "finds all bugs", "no false negatives" | Unbounded claim? |
+| SI-001 | Accuracy Without N | High % + no sample size | Missing N? |
+| UG-001 | Undefined Core Term | Key concept never operationalized | Can you measure it? |
+
+---
+
+## DOMAIN-SPECIFIC PATTERNS
+
+Deep Verify supports domain libraries that add specialized patterns:
 
 ```
-+-----------------------------------------------------------------------------+
-|  VERIFICATION COMMANDMENTS (V2 — ENFORCEMENT EDITION)                       |
-+-----------------------------------------------------------------------------+
-|                                                                              |
-|  1. NO QUOTE = NO FINDING                                                   |
-|     Every finding MUST cite exact text from the artifact.                   |
-|     Violation: finding is VOID and MUST be removed.                        |
-|                                                                              |
-|  2. ALL PHASES ARE MANDATORY                                                |
-|     There are NO early exits. Every phase executes fully.                  |
-|     Quick mode reduces DEPTH within phases, not phase COUNT.               |
-|                                                                              |
-|  3. BINDING GATES BETWEEN PHASES                                            |
-|     Every gate item: DONE or SCOPE_REDUCED with formal record.             |
-|     Gate not passed = phase not started. No exceptions.                     |
-|                                                                              |
-|  4. ASSUMPTIONS BEFORE EXTRACTION                                           |
-|     ASSUMPTIONS_DECLARED section MUST be completed before Phase 1.         |
-|     Every interpretive decision = logged HYPOTHESIS.                       |
-|                                                                              |
-|  5. EXTRACT → VERIFY → RENDER                                              |
-|     Phase 1 extracts. Phase 2 verifies. Phase 5 renders.                   |
-|     Agent MUST NOT skip ahead in this sequence.                            |
-|                                                                              |
-|  6. CHECKLISTS AFTER EVERY PHASE                                            |
-|     Every phase ends with a BINDING checklist.                             |
-|     Checklist IS the gate. No shortcuts.                                   |
-|                                                                              |
-|  7. COUNTER-CHECKS ON KEY CLAIMS                                            |
-|     Every CRITICAL/IMPORTANT claim gets a counter-hypothesis.              |
-|     Counter-hypothesis MUST be tested, not just stated.                    |
-|                                                                              |
-|  8. HYPOTHESIS LOGGING                                                      |
-|     Every interpretive decision is a HYPOTHESIS with:                      |
-|     evidence_for, evidence_against, confidence, status.                    |
-|                                                                              |
-|  9. OUTPUT = REPORT (Phase 5 only)                                          |
-|     No report fragments before Phase 5.                                    |
-|     No conversational output during execution.                             |
-|                                                                              |
-| 10. SCOPE REDUCTION IS VISIBLE                                              |
-|     Every omission requires SCOPE_REDUCTION_RECORD with:                   |
-|     what_omitted, why, impact_assessment, user_approved.                   |
-|                                                                              |
-+-----------------------------------------------------------------------------+
+data/pattern-libraries/
+├── _manifest.yaml        # Library metadata
+├── core.yaml             # Universal patterns (always included)
+├── agile-process.yaml    # Agile/Scrum patterns
+├── documentation.yaml    # Technical docs patterns
+├── fiction.yaml          # Narrative consistency
+├── iac.yaml              # Infrastructure as Code
+├── medical-research.yaml # Clinical/regulatory
+├── microservices.yaml    # Distributed systems
+└── prd.yaml              # Product requirements
+```
+
+**During installation/setup:** Selected domains are merged into `pattern-library.yaml`
+
+---
+
+## ARTIFACT TYPES & APPROACHES
+
+### Code Artifacts
+```
+Focus: Logic correctness, edge cases, security
+Methods: #71, #100, #85, #165
+Patterns: Load language-specific patterns
+Context: Include imports, types, related files
+```
+
+### Documentation Artifacts
+```
+Focus: Consistency, accuracy, completeness
+Methods: #100, #84, #85, #17
+Patterns: documentation.yaml
+Context: Include code it describes
+```
+
+### PRD / Requirements
+```
+Focus: Feasibility, completeness, contradictions
+Methods: #71, #78, #154, #153
+Patterns: prd.yaml
+Context: Include technical constraints
+```
+
+### Architecture / Design
+```
+Focus: Theoretical soundness, constraint satisfaction
+Methods: #153, #116, #86, #159
+Patterns: microservices.yaml (if applicable)
+Context: Include requirements, constraints
+```
+
+### Claims / Papers / Proposals
+```
+Focus: Falsifiability, evidence, logical structure
+Methods: #87, #85, #163, #165
+Patterns: core.yaml
+Context: Include cited sources if available
 ```
 
 ---
 
-## START HERE
+## CONTEXT MANAGEMENT
+
+### Context Levels
+
+| Level | Includes | When to Use |
+|-------|----------|-------------|
+| Minimal | Target artifact only | Quick triage |
+| File | Target + same-file context | Standard verification |
+| Imports | Target + imported/referenced files | Code with dependencies |
+| Project | Target + related project files | Complex verification |
+| Full | Everything relevant | HIGH stakes |
+
+### Context Budget
 
 ```
-1. Load step-00-setup.md → EXECUTE it fully (includes ASSUMPTIONS_DECLARED)
-2. Pass GATE_0 → Load step-01-extraction.md → EXECUTE fully
-3. Pass GATE_1 → Load step-02-verification.md → EXECUTE fully
-4. Pass GATE_2 → Load step-03-adversarial.md → EXECUTE fully
-5. Pass GATE_3 → Load step-04-verdict.md → EXECUTE fully
-6. Pass GATE_4 → Load step-05-render.md → EXECUTE fully
-7. Pass GATE_5 → Workflow complete (or continue to step-06 in Deep mode)
-```
-
-**ENFORCEMENT:** Load ONE step file at a time. Complete it fully. Pass its gate. Then load next.
-
----
-
-## PHASE SEQUENCE
-
-```
-Phase 0: SETUP + ASSUMPTIONS_DECLARED               [All Modes]
-  Step 0   steps/step-00-setup.md
-           Select mode, define artifact, set stakes/bias.
-           DECLARE all assumptions. Log hypotheses.
-           ──► GATE_0
-
-Phase 1: EXTRACTION                                  [All Modes]
-  Step 1   steps/step-01-extraction.md
-           Extract claims, terms, structure from artifact.
-           NO SEVERITY JUDGMENTS. Pure extraction only.
-           Check Pattern Library for signal matching.
-           ──► GATE_1
-
-Phase 2: VERIFICATION                                [All Modes]
-  Step 2   steps/step-02-verification.md
-           Apply Tier 1 methods (#71, #100, #17) ALWAYS.
-           Apply Tier 2 methods (2-4) based on extraction signals.
-           Score findings. Create severity assignments.
-           Counter-check every CRITICAL/IMPORTANT claim.
-           ──► GATE_2
-
-Phase 3: ADVERSARIAL VALIDATION                      [All Modes]
-  Step 3   steps/step-03-adversarial.md
-           Devil's advocate 4 prompts per IMPORTANT+ finding.
-           Steel-man opposite verdict.
-           False positive checklist.
-           Counter-checks on retained findings.
-           ──► GATE_3
-
-Phase 4: VERDICT                                     [All Modes]
-  Step 4   steps/step-04-verdict.md
-           Calculate final S. Determine verdict.
-           Validate verdict. Assess confidence. Check escalation.
-           ──► GATE_4
-
-Phase 5: RENDER                                      [All Modes]
-  Step 5   steps/step-05-render.md
-           Generate structured verification report.
-           Fill template. Document what was NOT checked.
-           THIS IS THE ONLY PHASE THAT PRODUCES OUTPUT.
-           ──► GATE_5
-
-Phase 6: PATTERN CANDIDATE                           [Deep Only]
-  Step 6   steps/step-06-pattern-candidate.md
-           Evaluate CRITICAL findings without pattern match.
-           Propose new patterns for pattern-library.yaml.
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  CONTEXT BUDGET MANAGEMENT                                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  LLMs have context limits. Deep Verify manages this automatically:          │
+│                                                                              │
+│  1. Always include: Target artifact (full)                                  │
+│  2. Priority: Pattern library excerpts (matching domain)                    │
+│  3. Priority: Method procedures (loaded as needed)                          │
+│  4. Remaining: Context files (most relevant first)                          │
+│                                                                              │
+│  If context exceeds budget:                                                  │
+│  - Summarize less relevant context                                          │
+│  - Note in report what was excluded                                         │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## GATE MECHANISM
+## CLI INVOCATION EXAMPLES
 
-Every gate follows this exact structure:
+### Claude CLI
+```bash
+# Quick verify
+claude "QV this PRD" < document.md
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  GATE_N: [Phase Name] → [Next Phase Name]                          │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  For each REQUIRED item:                                            │
-│                                                                     │
-│  Status: [ ] DONE                                                   │
-│          [ ] SCOPE_REDUCED → requires SCOPE_REDUCTION_RECORD        │
-│                                                                     │
-│  SCOPE_REDUCTION_RECORD (if applicable):                            │
-│    what_omitted: "________________________________"                 │
-│    why: "________________________________"                          │
-│    impact_assessment: "________________________________"            │
-│    user_approved: [ ] Yes  [ ] No (if No: HALT and ask user)       │
-│                                                                     │
-│  GATE PASS CONDITION:                                               │
-│    ALL items DONE or SCOPE_REDUCED with user_approved=Yes           │
-│                                                                     │
-│  GATE LOG:                                                          │
-│    timestamp: [ISO]                                                 │
-│    items_done: [count]                                              │
-│    items_reduced: [count]                                           │
-│    gate_passed: [true/false]                                        │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
+# Standard verify with context
+claude "DV this code with project context" \
+  --context src/main.py src/utils/*.py
+
+# Full verify with domain
+claude "DV --domain medical-research" < research_paper.md
 ```
 
-**ENFORCEMENT:** Agent MUST NOT load next step file until gate is passed.
-**ENFORCEMENT:** If ANY item is neither DONE nor SCOPE_REDUCED, gate FAILS. Agent MUST complete or formally reduce scope.
+### Gemini CLI
+```bash
+# Quick verify
+gemini "QV: verify this architecture" < architecture.md
+
+# Standard verify
+gemini "Run Deep Verify full process" < code.py
+```
+
+### Generic Pattern
+```bash
+<llm-cli> "<trigger> <options>" < <artifact>
+
+Triggers: QV, DV, verify, "Deep Verify"
+Options: --quick, --full, --deep, --domain <domain>, --context <files>
+```
 
 ---
 
-## HYPOTHESIS LOGGING
+## FILE LOADING PROTOCOL
 
-Every interpretive decision during the process MUST be logged as a hypothesis:
+When you need specific data, announce and load:
 
+| Situation | Load | Announcement |
+|-----------|------|--------------|
+| Start verification | `data/pattern-library.yaml` | "📂 Loading pattern library" |
+| Execute method | `data/method-procedures/{NUM}_{Name}.md` | "📂 Loading method #N" |
+| Calculate score | `data/severity-scoring.yaml` | "📂 Loading scoring rules" |
+| Select Phase 2 methods | `data/method-clusters.yaml` | "📂 Loading method clusters" |
+| Generate report | `data/report-template.md` | "📂 Loading report template" |
+| Pattern candidate eval | `data/pattern-update-protocol.yaml` | "📂 Loading pattern protocol" |
+
+---
+
+## ADVERSARIAL PROMPTS (Phase 3)
+
+For each IMPORTANT+ finding, challenge with:
+
+```
+1. ALTERNATIVE EXPLANATION
+   "What innocent explanation could account for this text?"
+   → If plausible, WEAKENS finding
+
+2. HIDDEN CONTEXT
+   "What domain knowledge might make this valid?"
+   → If likely, WEAKENS finding
+
+3. DOMAIN EXCEPTION
+   "Is this an accepted practice in this field?"
+   → If yes, WEAKENS finding
+
+4. SURVIVORSHIP BIAS
+   "Am I only seeing problems and missing the valid parts?"
+   → If yes, recalibrate
+
+RESULT:
+- 0/4 weaken → Finding HOLDS
+- 1-2/4 weaken → Consider DOWNGRADE
+- 3-4/4 weaken → REMOVE finding
+```
+
+---
+
+## CRITICAL RULES
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  VERIFICATION COMMANDMENTS                                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  1. NO QUOTE = NO FINDING                                                   │
+│     Every finding MUST cite exact text from the artifact                    │
+│                                                                              │
+│  2. MANDATORY PHASE 3                                                       │
+│     Always do adversarial review (except early exit with pattern match)    │
+│                                                                              │
+│  3. OUTPUT = REPORT                                                         │
+│     Deliverable is a structured verification report, not conversation       │
+│                                                                              │
+│  4. DON'T NARRATE                                                           │
+│     Don't describe reasoning steps; DO announce file loads briefly          │
+│                                                                              │
+│  5. LOAD FILES WHEN NEEDED                                                  │
+│     Read method procedures, templates, data files as you need them          │
+│                                                                              │
+│  6. BE CALIBRATED                                                           │
+│     Track confidence levels, acknowledge uncertainty                        │
+│                                                                              │
+│  7. SIGNAL LIMITATIONS                                                      │
+│     Report what was NOT checked and why                                     │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## DIRECTORY STRUCTURE
+
+```
+deep-verify/
+├── workflow.md                 ← YOU ARE HERE
+├── data/
+│   ├── methods.csv                  # Method definitions (reference)
+│   ├── method-procedures/           # Individual method procedures
+│   │   ├── 017_Abstraction_Laddering.md
+│   │   ├── 063_Challenge_from_Critical_Perspective.md
+│   │   ├── 071_First_Principles_Analysis.md
+│   │   ├── 078_Assumption_Excavation.md
+│   │   ├── 084_Coherence_Check.md
+│   │   ├── 085_Grounding_Check.md
+│   │   ├── 086_Topological_Hole_Detection.md
+│   │   ├── 087_Falsifiability_Check.md
+│   │   ├── 100_Vocabulary_Consistency.md
+│   │   ├── 109_Contraposition_Inversion.md
+│   │   ├── 116_Strange_Loop_Detection.md
+│   │   ├── 130_Assumption_Torture.md
+│   │   ├── 153_Theoretical_Impossibility_Check.md
+│   │   ├── 154_Definitional_Contradiction_Detector.md
+│   │   ├── 159_Transitive_Dependency_Closure.md
+│   │   ├── 162_Theory_Dependence_Verification.md
+│   │   ├── 163_Existence_Proof_Demand.md
+│   │   └── 165_Constructive_Counterexample.md
+│   ├── pattern-library.yaml         # ★ MERGED patterns (load this)
+│   ├── pattern-libraries/           # Source libraries (reference)
+│   │   ├── _manifest.yaml
+│   │   ├── core.yaml
+│   │   └── {domain}.yaml
+│   ├── pattern-update-protocol.yaml # Adding new patterns
+│   ├── severity-scoring.yaml        # Scoring rules
+│   ├── method-clusters.yaml         # Method selection guidance
+│   ├── decision-thresholds.yaml     # Verdict rules
+│   ├── report-template.md           # Report format
+│   ├── examples.md                  # Worked examples
+│   └── calibration.yaml             # Accuracy tracking
+└── steps/                           # Detailed step files (optional)
+    ├── step-00-setup.md
+    ├── step-01-pattern-scan.md
+    ├── step-02-targeted.md
+    ├── step-03-adversarial.md
+    ├── step-04-verdict.md
+    ├── step-05-report.md
+    └── step-06-pattern-candidate.md
+```
+
+---
+
+## INTEGRATION WITH DEVELOPMENT WORKFLOWS
+
+### Pre-Commit Hook
+```bash
+#!/bin/bash
+# .git/hooks/pre-commit
+
+# Get changed files
+CHANGED=$(git diff --cached --name-only --diff-filter=ACM)
+
+# Run Quick Verify on each
+for file in $CHANGED; do
+  result=$(claude "QV --output json" < "$file")
+  if echo "$result" | jq -e '.verdict == "REJECT"' > /dev/null; then
+    echo "❌ Verification failed for $file"
+    exit 1
+  fi
+done
+```
+
+### CI/CD Pipeline
 ```yaml
-hypothesis:
-  id: H[N]
-  phase: [0-6]
-  statement: "[what you interpreted/decided]"
-  evidence_for: "[supporting evidence from artifact]"
-  evidence_against: "[contradicting evidence, if any]"
-  confidence: [0.0 - 1.0]
-  status: [UNTESTED / CONFIRMED / REFUTED / INCONCLUSIVE]
-  tested_by: "[method # or phase that tested this]"
+# .github/workflows/verify.yml
+name: Deep Verify
+on: [pull_request]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Deep Verify
+        run: |
+          for file in $(git diff --name-only origin/main); do
+            claude "DV --output json" < "$file" > "verify-${file//\//-}.json"
+          done
+
+      - name: Check Results
+        run: |
+          if grep -l '"verdict":"REJECT"' verify-*.json; then
+            echo "Critical issues found"
+            exit 1
+          fi
 ```
 
-**ENFORCEMENT:** Hypotheses with status=UNTESTED at GATE_4 MUST be listed in the NOT_CHECKED section of the report.
+### IDE Integration (Conceptual)
+Developers can configure their IDEs to trigger the CLI agent:
 
----
-
-## SCORING QUICK REFERENCE
-
-```
-CRITICAL finding: +3     Clean method pass: -0.5
-IMPORTANT finding: +1    Pattern match bonus: +1 (max once per finding)
-MINOR finding: +0.3      Confirmation bonus: +1
-
-Verdict: S >= 6 → REJECT | S <= -3 → ACCEPT | else → UNCERTAIN
-```
-
-Scoring rules: Load `../deep-verify/data/severity-scoring.yaml`
-Decision thresholds: Load `../deep-verify/data/decision-thresholds.yaml`
-
----
-
-## COUNTER-CHECK MECHANISM
-
-For every finding rated CRITICAL or IMPORTANT, the agent MUST generate and test a counter-hypothesis:
-
-```
-FINDING: [description]
-COUNTER-HYPOTHESIS: "This finding is FALSE because _______________"
-COUNTER-EVIDENCE: [what would need to be true for counter-hypothesis to hold]
-COUNTER-TEST: [how to test the counter-hypothesis]
-COUNTER-RESULT: [ ] Counter holds (downgrade/remove finding)
-                [ ] Counter fails (finding stands)
-                [ ] Inconclusive (flag for Phase 3)
-```
-
-**ENFORCEMENT:** A finding without a tested counter-hypothesis MUST NOT be rated CRITICAL.
-
----
-
-## MODE DEFINITIONS
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  MODE       │ PHASES  │ DEPTH          │ DIFFERENCE FROM V1         │
-├─────────────┼─────────┼────────────────┼────────────────────────────┤
-│  Quick      │ 0-5     │ Tier 1 + min   │ V1: stops at Phase 1       │
-│  Verify     │         │ 1 Tier 2       │ V2: ALL phases, reduced    │
-│             │         │ method         │     depth within Phase 2   │
-├─────────────┼─────────┼────────────────┼────────────────────────────┤
-│  Standard   │ 0-5     │ Tier 1 + 2-4   │ Same phases, enforced      │
-│  Verify     │         │ Tier 2 methods │ gates and counter-checks   │
-├─────────────┼─────────┼────────────────┼────────────────────────────┤
-│  Deep       │ 0-6     │ Full Tier 1+2  │ Same + Pattern Candidate   │
-│  Verify     │         │ + Phase 6      │ phase at end               │
-└─────────────┴─────────┴────────────────┴────────────────────────────┘
-```
-
-**ENFORCEMENT:** Quick mode in V2 still runs ALL phases 0-5. It reduces the NUMBER of Tier 2 methods in Phase 2 (minimum 1 instead of 2-4), not the number of phases.
-
----
-
-## DATA FILES
-
-Shared data (from `../deep-verify/data/`):
-- `methods.csv` — Method definitions
-- `method-procedures/` — Individual method procedures
-- `pattern-library.yaml` — Merged patterns
-- `pattern-libraries/` — Source libraries
-- `severity-scoring.yaml` — Scoring rules
-- `method-clusters.yaml` — Method selection guidance
-- `decision-thresholds.yaml` — Verdict rules
-- `report-template.md` — Report format
-- `calibration.yaml` — Accuracy tracking
-- `pattern-update-protocol.yaml` — Adding new patterns
-- `examples.md` — Worked examples
-
-V2-specific data (in `./data/`):
-- `gate-definitions.yaml` — Gate requirements per phase
-- `extraction-schema.yaml` — Extraction output format
-
----
-
-## For detailed documentation see: [reference.md](./reference.md)
+*   **Quick Check:** Map keybinding to `<cli> run .<cli>/commands/deep-verify --quick <current_file>`
+*   **Full Verify:** Map keybinding to `<cli> run .<cli>/commands/deep-verify <current_file>`
 
 ---
 
 ## VERSION HISTORY
 
-- **V2.0** — Enforcement edition: binding gates, ASSUMPTIONS_DECLARED, extract→verify→render sequence, counter-checks, no early exits, checklists after every phase, hypothesis logging
-- Based on Deep Verify V3.1
-
+- **V12.2** — Original with bias mitigation, mandatory Phase 3

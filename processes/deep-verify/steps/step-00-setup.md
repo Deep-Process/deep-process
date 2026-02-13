@@ -1,302 +1,134 @@
 ---
 step: 0
-name: "Setup + Assumptions Declaration"
-time_estimate: "3-8 minutes"
-goal: "Configure verification, declare all assumptions, log initial hypotheses"
+name: "Setup"
+time_estimate: "2-5 minutes"
+goal: "Assess stakes, document biases, prepare for verification"
 requires_completion: []
 next_steps:
-  DEFAULT: "steps/step-01-extraction.md"
-gate: "GATE_0"
+  DEFAULT: "steps/step-01-pattern-scan.md"
 data_dependencies:
-  - "../deep-verify/data/decision-thresholds.yaml"
+  - "data/decision-thresholds.yaml"
+  - "_bmad/dv/deep-verify-config.yaml (optional - for default stakes)"
 outputs:
   - stakes
   - bias_mode
   - initial_assessment
-  - assumptions_declared
-  - hypotheses
 ---
 
-# Phase 0: Setup + Assumptions Declaration
+# Phase 0: Setup
 
-## ENFORCEMENT RULES
+## INTERACTION PROTOCOL (CRITICAL)
 
-```
-1. EXECUTE the interaction sequence IN ORDER. Do not skip steps.
-2. COMPLETE ASSUMPTIONS_DECLARED before proceeding.
-3. LOG every interpretive decision as a HYPOTHESIS.
-4. PASS GATE_0 before loading Phase 1.
-```
+**Do NOT present all questions at once.** You must engage the user in a sequential dialogue.
+Follow the **Interaction Sequence** below strictly. Stop and wait for the user's response after each step.
 
 ---
 
 ## 0.0 Argument Parsing (Internal)
 
-**Execute these steps in this order:**
+**Before starting the menu, analyze the `USER ARGUMENTS` section from the prompt:**
 
-1. Read the `USER ARGUMENTS` section from the prompt.
-2. Scan for flags: `--quick`, `-q`, `--deep`, `--full`.
-   - IF flag found: SET `execution_mode` to matching mode.
-   - IF no flag found: SET `execution_mode` = null (will ask user).
-3. Scan for non-flag strings (does not start with `-`).
-   - IF found: SET `artifact` to the string value.
-   - IF not found: SET `artifact` = null (will ask user).
-4. Record parsed values:
-
-```yaml
-parsed:
-  execution_mode: [Quick / Standard / Deep / null]
-  artifact: [path or null]
-  flags_found: [list]
-```
+1.  **Flags:** Look for `--quick`, `-q`, `--deep`, `--full`. Set `execution_mode` if found.
+2.  **Artifact:** Look for any **non-flag string** (does not start with `-`).
+    *   *Example:* `/deep-verify src/main.py` -> Artifact is `src/main.py`.
+    *   *Example:* `/deep-verify --deep @src/core` -> Artifact is `src/core`.
+    *   If found, set `artifact` variable immediately.
 
 ---
 
-## 0.1 Verification Mode Selection
+## Interaction Sequence
 
-**Execute:**
+### Step 1: Verification Mode
 
-1. Check if `execution_mode` was set in 0.0.
-2. IF YES: Output `"Mode: [mode] (selected via flag)"`. Proceed to 0.2.
-3. IF NO: Display this exact menu and HALT:
+**Logic:**
+1.  Check if `execution_mode` was set via CLI flags in step 0.0.
+2.  If **YES**: Log the selection (e.g., "Mode: Deep Verify (selected via flag)") and **SKIP** to Step 2.
+3.  If **NO**: Display the menu below and **HALT**.
 
-```
-Select Verification Mode:
-1. Quick Verify (All phases, reduced Tier 2 depth)
-2. Standard Verify (Full rigor, all methods)
-3. Deep Verify (Maximum rigor + Pattern Evaluation)
+> **Prompt to User:**
+> "Select Verification Mode:
+> 1. **Quick Verify** (Fast triage, Phase 1 only)
+> 2. **Standard Verify** (Full rigor, Phases 1-5)
+> 3. **Deep Verify** (High stakes, includes Pattern Evaluation)"
 
-NOTE: V2 runs ALL phases in every mode. Quick mode reduces
-method depth within Phase 2, not phase count.
-```
-
-> **HALT** — Wait for user response. Record selection.
+→ **HALT** — Wait for user response.
 
 ---
 
-## 0.2 Artifact Definition
+### Step 2: Artifact Definition
 
-**Execute:**
+**Logic:**
+1.  Check if `artifact` was detected in step 0.0 (Argument Parsing) or context.
+2.  If **YES**:
+    *   State: "Target Artifact: [artifact_path]"
+    *   Ask: "Is this correct? (Y/N)"
+    *   **HALT** and wait.
+    *   If user says Y -> Proceed to Step 3.
+    *   If user says N -> Ask for new path.
+3.  If **NO**: Ask the user to define the target.
 
-1. Check if `artifact` was detected in 0.0.
-2. IF YES:
-   - Output: `"Target Artifact: [artifact_path]"`
-   - Output: `"Is this correct? (Y/N)"`
-   - **HALT** — Wait for confirmation.
-   - IF Y: proceed to 0.3.
-   - IF N: ask for new path.
-3. IF NO:
-   - Output this exact prompt:
+> **Prompt to User:**
+> "1. **The Artifact:** Please provide the **path** to the file/folder you want to verify.
+>  2. **Description:** Briefly describe what this artifact is (e.g., 'API Spec', 'Auth Module')."
 
-```
-1. The Artifact: Provide the PATH to the file/folder to verify.
-2. Description: Briefly describe what this artifact is
-   (e.g., 'API Spec', 'Auth Module', 'PRD').
-```
-
-> **HALT** — Wait for user response. Record artifact path and description.
+→ **HALT** — Wait for user response.
 
 ---
 
-## 0.3 Stakes & Bias Configuration
+### Step 3: Stakes & Bias Configuration
 
-**Execute:**
+**Logic:**
+Now that Mode and Artifact are known, ask if the user wants detailed configuration or smart defaults.
 
-0. Load `../deep-verify/data/decision-thresholds.yaml` → `stakes_assessment` section. This defines LOW/MEDIUM/HIGH stakes criteria.
+> **Prompt to User:**
+> "Do you want to configure **Stakes & Bias settings**, or use **DEFAULT** values based on your selected Mode?
+>
+> **Options:**
+> - **DEFAULT**: Uses standard settings for [Selected Mode] (Recommended).
+> - **CUSTOM**: Manually set Stakes, Initial Assessment, and Bias Check."
 
-1. Display this exact prompt:
+→ **HALT** — Wait for user response.
 
-```
-Configure Stakes & Bias settings, or use DEFAULT?
+**Branching Logic:**
 
-Options:
-- DEFAULT: Uses standard settings for [Selected Mode] (Recommended).
-- CUSTOM: Manually set Stakes, Initial Assessment, and Bias Check.
-```
+*   **IF DEFAULT:**
+    *   **Quick/Standard Mode**: Set `stakes=MEDIUM`, `bias_mode=Standard`, `initial_assessment=Uncertain`.
+    *   **Deep Mode**: Set `stakes=HIGH`, `bias_mode=Blind`, `initial_assessment=BLIND`.
+    *   Proceed to **0.4 Update Frontmatter**.
 
-> **HALT** — Wait for user response.
-
-2. IF DEFAULT:
-   - Quick/Standard Mode: SET `stakes=MEDIUM`, `bias_mode=Standard`, `initial_assessment=Uncertain`.
-   - Deep Mode: SET `stakes=HIGH`, `bias_mode=Blind`, `initial_assessment=BLIND`.
-   - Proceed to 0.4.
-
-3. IF CUSTOM:
-   - Ask Stakes Assessment: "Which is worse: accepting a flawed artifact, or rejecting a sound one?"
-     - Accept flawed is worse → stakes=HIGH
-     - Reject sound is worse → stakes=LOW
-     - Both equally bad → stakes=MEDIUM
-   - Ask Initial Assessment: Sound / Uncertain / Flawed / BLIND
-   - Ask Bias Check: Any expectations or pressures?
-   - Record all answers. Proceed to 0.4.
+*   **IF CUSTOM**:
+    *   Ask **Stakes Assessment** (Accept Flawed vs Reject Sound).
+    *   Ask **Initial Assessment** (Sound/Uncertain/Flawed).
+    *   Ask **Bias Check** (Expectations/Pressure).
+    *   Proceed to **0.4 Update Frontmatter**.
 
 ---
 
-## 0.4 ASSUMPTIONS_DECLARED
+## 0.4 Update Frontmatter
 
-**ENFORCEMENT: This section is MANDATORY. Do not skip.**
-
-Before ANY extraction or analysis, the agent MUST declare all assumptions it is making. This prevents silent interpretive drift.
-
-**Execute these steps in this exact order:**
-
-### Step 1: Artifact Type Assumptions
-
-```
-ASSUMPTION_TYPE: artifact_classification
-What I assume this artifact IS:
-  type: [code / documentation / PRD / architecture / claims / paper / other]
-  domain: [web / distributed-systems / ML / security / medical / other]
-  maturity: [draft / review-ready / published / production]
-
-Classification basis:
-  [ ] STATED_IN_ARTIFACT — artifact explicitly declares its type
-  [ ] INFERRED — I inferred from file extension, content, context
-  [ ] USER_STATED — user told me in the prompt
-
-If INFERRED → LOG AS HYPOTHESIS:
-  H1: "This artifact is a [type] in the [domain] domain"
-  evidence_for: "[what I saw that suggests this]"
-  evidence_against: "[what might contradict this]"
-  confidence: [0.0-1.0]
-  status: UNTESTED
-```
-
-### Step 2: Scope Assumptions
-
-```
-ASSUMPTION_TYPE: scope
-What I assume is IN SCOPE for verification:
-  1. ________________________________
-  2. ________________________________
-  3. ________________________________
-
-What I assume is OUT OF SCOPE:
-  1. ________________________________
-  2. ________________________________
-
-Scope basis:
-  [ ] STATED — user explicitly defined scope
-  [ ] INFERRED — I inferred from artifact boundaries
-
-If INFERRED → LOG AS HYPOTHESIS:
-  H2: "Verification scope is limited to [description]"
-  evidence_for: "[what suggests this scope]"
-  evidence_against: "[what suggests broader/narrower scope]"
-  confidence: [0.0-1.0]
-  status: UNTESTED
-```
-
-### Step 3: Domain Assumptions
-
-```
-ASSUMPTION_TYPE: domain_knowledge
-Domain knowledge I am assuming:
-  1. [specific domain assumption, e.g., "REST APIs follow HTTP semantics"]
-  2. [specific domain assumption]
-  3. [specific domain assumption]
-
-For each assumption:
-  basis: [ ] WELL_ESTABLISHED  [ ] DOMAIN_CONVENTION  [ ] MY_INFERENCE
-  If MY_INFERENCE → LOG AS HYPOTHESIS with evidence
-```
-
-### Step 4: Context Assumptions
-
-```
-ASSUMPTION_TYPE: context
-What I assume about the artifact's context:
-  - Intended audience: ________________________________
-  - Production environment: ________________________________
-  - Dependencies/prerequisites: ________________________________
-
-Context basis:
-  [ ] EXPLICIT_IN_ARTIFACT
-  [ ] INFERRED
-  [ ] UNKNOWN — will note as limitation
-
-If INFERRED → LOG AS HYPOTHESIS
-```
-
-### Step 5: Compile Assumptions Register
-
-```yaml
-assumptions_declared:
-  count: [total]
-  by_basis:
-    STATED_IN_ARTIFACT: [count]
-    USER_STATED: [count]
-    INFERRED: [count]
-    WELL_ESTABLISHED: [count]
-    DOMAIN_CONVENTION: [count]
-    UNKNOWN: [count]
-
-hypotheses_generated:
-  count: [total]
-  list:
-    - id: H1
-      statement: "________________________________"
-      confidence: [0.0-1.0]
-      status: UNTESTED
-    # ... continue for all hypotheses
-```
-
-> **HALT** — Review assumptions register. Confirm completeness.
-
----
-
-## 0.5 Initialize Frontmatter
-
-**Execute:** Write this exact structure to the working document:
+After completing the sequence above, update the working document frontmatter:
 
 ```yaml
 ---
-workflow: deep-verify-v2
-version: "2.0"
-artifact: "[Path from 0.2]"
-artifact_description: "[Description from 0.2]"
+workflow: deep-verify
+artifact: "[Path from Step 2]"
 started: "[current ISO timestamp]"
 execution_mode: [Quick / Standard / Deep]
 stakes: [LOW / MEDIUM / HIGH]
 bias_mode: [Standard / Blind / ForcedAlternative]
 initial_assessment: [ProbablySound / Uncertain / ProbablyFlawed / BLIND]
+expected_outcome: "[User input or 'Default']"
+change_mind_criteria: "[User input or 'Evidence']"
 
-# Assumptions & Hypotheses
-assumptions_declared:
-  count: [from 0.4]
-  by_basis: {STATED: N, INFERRED: N, ...}
-hypotheses:
-  - id: H1
-    statement: "..."
-    confidence: 0.0
-    status: UNTESTED
-  # ...
-
-# Process State
 stepsCompleted: [0]
 currentStep: 1
 currentScore: 0
 scoreHistory: []
-
-# Extraction (populated in Phase 1)
-claims_extracted: []
-terms_extracted: []
-structure_extracted: null
-
-# Findings (populated in Phase 2+)
 findings: []
 patternsMatched: []
 methodsExecuted: []
-
-# Counter-checks (populated in Phase 2+)
-counter_checks: []
-
-# Gates
-gates_passed: []
-scope_reductions: []
-
-# Results (populated in Phase 4+)
-earlyExit: false  # ALWAYS false in V2
+earlyExit: false
+earlyExitReason: null
 verdict: null
 confidence: null
 ---
@@ -304,29 +136,32 @@ confidence: null
 
 ---
 
-## GATE_0: Setup → Extraction
+## 0.5 Proceed to Pattern Scan
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  GATE_0: SETUP COMPLETE → EXTRACTION                               │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  [ ] execution_mode is set                          Status: ____   │
-│  [ ] artifact is defined and accessible             Status: ____   │
-│  [ ] stakes and bias_mode are set                   Status: ____   │
-│  [ ] ASSUMPTIONS_DECLARED section completed         Status: ____   │
-│  [ ] All INFERRED assumptions logged as HYPOTHESES  Status: ____   │
-│  [ ] Frontmatter initialized                        Status: ____   │
-│                                                                     │
-│  For each item: DONE or SCOPE_REDUCED                              │
-│  If SCOPE_REDUCED: fill SCOPE_REDUCTION_RECORD                     │
-│                                                                     │
-│  GATE_0 passed: [ ] Yes  [ ] No                                    │
-│  Timestamp: ________________________________                       │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
+**Stakes-based guidance for next step:**
 
-**IF GATE_0 PASSED:** Load `steps/step-01-extraction.md`
-**IF GATE_0 FAILED:** Complete missing items. Do NOT proceed.
+| Stakes | Recommendation for Phase 1 |
+|--------|---------------------------|
+| LOW | Standard execution |
+| MEDIUM | Standard execution, be thorough |
+| HIGH | Extra attention to Pattern Library, consider additional Tier 1 scrutiny |
 
+**Next step:** Load `steps/step-01-pattern-scan.md`
+
+Before loading, verify:
+- [ ] Mode selected
+- [ ] Artifact defined
+- [ ] Stakes/Bias set (Default or Custom)
+- [ ] Frontmatter updated
+
+---
+
+## Output Checklist
+
+Before proceeding, confirm:
+
+- [ ] `execution_mode` is set
+- [ ] `artifact` is defined
+- [ ] `stakes` and `bias_mode` are populated
+- [ ] Frontmatter initialized
+- [ ] Ready to load Phase 1 data files
