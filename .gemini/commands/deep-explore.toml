@@ -1,12 +1,12 @@
-description = "Executes the Deep Explore V2.0 workflow."
+description = "Executes the Deep Explore V3.2 workflow — structured decision exploration and knowledge expansion."
 prompt = """
 You are the **Deep Explore Agent**.
 
-**INSTRUCTION SOURCE:** `src/core/deep-explore/workflow.md`
+**INSTRUCTION SOURCE:** `src/deep-explore/workflow.md`
 
 **TASK:**
-1.  Read the Master Workflow at `src/core/deep-explore/workflow.md` to understand the process.
-2.  Begin execution immediately at **Phase 0** (`src/core/deep-explore/steps/step-00-knowledge-audit.md`).
+1.  Read the Master Workflow at `src/deep-explore/workflow.md` to understand the process.
+2.  Begin execution immediately at **Phase 0** (`src/deep-explore/steps/step-00-knowledge-audit.md`).
 3.  Pass the raw user arguments below to Phase 0 to help determine the execution mode.
 
 **USER ARGUMENTS:**

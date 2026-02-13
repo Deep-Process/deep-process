@@ -1,123 +1,111 @@
-# Deep Explore
-![Deep Explore Logo](img/logo_small.png)
+# Deep Process
 
-A structured decision exploration workflow for LLM-assisted thinking.
+A collection of structured workflows that make LLMs actually think instead of just respond.
 
-## The problem
+## Why this exists
 
-When I face important decisions, I often get stuck. Not because I lack options, but because I can't see them clearly.
+LLMs are incredibly capable - until they're not. Ask one to verify your code and it says "looks good." Ask it to assess risks and you get the same five generic risks every time. Ask it to design architecture and you get a clean diagram with hidden contradictions.
 
-I'd think about a career change and spiral into "what ifs." I'd consider a business idea and get blocked by vague fears I couldn't name. I'd try to choose between technologies and realize I didn't even know what questions to ask.
+The problem isn't intelligence. It's that LLMs default to being agreeable and fast. They skip steps, take shortcuts, and produce outputs that *look* thorough but aren't. They summarize instead of synthesize. They list risks instead of tracing cascades. They say "yes, that's feasible" without checking if your timeline is realistic or your team has the right skills.
 
-The usual approaches didn't help. Pro/con lists felt shallow. Talking to friends gave me their biases, not clarity. And when I asked an LLM for help, it would either give me a generic framework or just agree with whatever I was already thinking.
+Deep Process fixes this by giving the LLM a structured protocol to follow - specific steps, quality gates, adversarial checks, and bias corrections. The LLM still does the thinking, but the process ensures it actually *does* the thinking instead of pattern-matching to "what a good answer looks like."
 
-I needed a way to actually explore the decision space - to find out what I don't know, test my assumptions, and see options I wasn't considering.
+## What you get
 
-## What this is
+Each process produces a structured, evidence-based deliverable - not conversation, not hand-waving. Scored assessments, traceable findings, falsifiable conclusions. The kind of output you can actually act on.
 
-Deep Explore is a prompt-based workflow that forces the LLM to systematically explore a decision by:
+## The processes
 
-1. Separating what you know from what you assume (and testing those assumptions)
-2. Discovering dimensions of choice you hadn't considered
-3. Mapping consequences - marking which are verified vs. which are guesses
-4. Challenging your thinking with premortem analysis and bias checks
-5. Turning vague fears into structured, addressable concerns
+### [Deep Verify](src/deep-verify/docs/README.md) - Check if something is correct
 
-The output is understanding, not a recommendation. You still decide - but now you can see clearly.
-
-## How to use it
-
-You need an LLM CLI like Claude Code, Gemini CLI, or similar.
+You wrote code, received a document, or generated something with an LLM. Is it actually correct? Deep Verify traces assumptions, finds contradictions, matches against impossibility patterns, and runs adversarial review on its own findings. Output: a structured report with exact quotes, a numeric score, and a verdict.
 
 ```
-Use the process in src/core/deep-explore/workflow.md to explore [your decision]
+/deep-verify Check this API implementation against the requirements in docs/spec.md
 ```
 
-Or with more context:
+### [Deep Explore](src/deep-explore/docs/README.md) - Think through a decision
+
+You're stuck. You don't know what to do, or you have too many options and can't see clearly. Deep Explore separates facts from assumptions, discovers options you weren't considering, turns vague fears into specific concerns, and tells you when you're ready to decide.
 
 ```
-I'm considering leaving my job to start a company. Use Deep Explore to help me think through this.
+/deep-explore Should we build this in-house or buy an existing solution?
 ```
 
-## What it helped me with
+### [Deep Architect](src/deep-architect/docs/README.md) - Design software architecture
 
-**Seeing options I was blind to.** I was stuck between "stay at job" and "quit to start a company." Deep Explore surfaced a third path: keep the job but reduce hours and test the idea on weekends. Obvious in hindsight, invisible when I was trapped in binary thinking.
-
-**Naming my fears.** "I'm afraid it won't work" became a list of specific concerns: runway length, co-founder availability, market timing. Some were false walls (I had more savings than I thought). Some were real risks I could plan for. The vague dread became a checklist.
-
-**Finding what I didn't know I didn't know.** I assumed I needed VC funding. Research revealed that similar companies had bootstrapped successfully. That changed the whole decision calculus.
-
-**Knowing when I was ready to decide.** Instead of endless deliberation, I got a clear signal: these three things are verified, these two are still assumptions, here's how to test them. Decision readiness, not decision paralysis.
-
-## What it's good at
-
-- Turning "I don't know where to start" into a structured exploration
-- Finding hidden assumptions and testing them
-- Transforming vague fears into specific, addressable concerns
-- Discovering options you weren't considering
-- Showing you what's verified vs. what's still a guess
-
-## Limitations
-
-This isn't magic. Some things to know:
-
-- **It explores, it doesn't decide.** You still have to make the call. Deep Explore gives you clarity, not answers.
-- **Scope matters.** "What should I do with my life?" is too broad. "Should I take this job offer?" is about right.
-- **Garbage in, garbage out.** If you're not honest about your fears and assumptions, the exploration won't help.
-- **LLM limitations apply.** Domain-specific facts should be verified independently. The structure is reliable; the content depends on the model's knowledge.
-
-## Example output
+You need to build something and you need a solid plan. Deep Architect runs 16 operations - 8 that build the design (decomposition, boundaries, dependencies...) and 8 that try to break it (STRIDE, FMEA, anti-patterns, pre-mortem...). The adversarial phase is where the real value is.
 
 ```
-DECISION: Whether to transition from employee to founder
-
-KEY DISCOVERIES:
-• Runway requirement is 18 months, not 12 (verified via market research)
-• Co-founder network stronger than assumed (3 viable candidates identified)
-• Biggest risk is not failure but "zombie startup" - neither succeeding nor failing
-
-STRATEGIC CLUSTERS:
-Cluster A: "Full Leap" - quit, raise funding, build fast
-  Trade-off: Maximum commitment, highest risk, fastest learning
-
-Cluster B: "Staged Transition" - side project → traction → transition
-  Trade-off: Lower risk, slower progress, split attention
-
-FEAR RESOLUTION:
-• "I'll lose everything" → FALSE WALL (savings cover 2 years worst case)
-• "I'm not ready" → COGNITIVE (20+ people with less experience have succeeded)
-• "Market timing" → TRUE UNCERTAINTY (accept and monitor)
-
-READINESS: Ready to decide on timing. Need more research on co-founder fit.
+/deep-architect Design the architecture for a real-time notification service
 ```
 
-## Project structure
+### [Deep Feasibility](src/deep-feasibility/docs/README.md) - Find out if it can be done
+
+Before committing resources, find out if the plan is realistic. Deep Feasibility checks 10 dimensions (technical, resource, knowledge, organizational, temporal, compositional, economic, scale, cognitive, dependency) and gives you a GO / CONDITIONAL GO / NO-GO verdict with confidence levels. Includes planning fallacy detection.
 
 ```
-src/core/deep-explore/
-├── workflow.md              # Main workflow (point the LLM here)
-├── methods.csv              # All methods with descriptions
-├── data/
-│   ├── method-procedures/   # Individual method procedures
-│   ├── exploration-report-template.md
-│   └── research-methods.md
-└── steps/                   # Detailed step documentation
+/deep-feasibility Can we migrate to microservices in 6 months with a team of 4?
 ```
 
-## Works well with
+### [Deep Risk](src/deep-risk/docs/README.md) - Find the risks you're not seeing
 
-- Career decisions (job changes, pivots, entrepreneurship)
-- Business choices (strategy, partnerships, product direction)
-- Technology selection (when "it depends" is the initial answer)
-- Any decision where you feel stuck or overwhelmed
+Standard risk lists are useless. Deep Risk discovers risks through theory-grounded analysis, scores them on 5 dimensions (probability, impact, velocity, detectability, reversibility), and - critically - maps how risks interact, cascade, and amplify each other. Includes Cobra Effect checks on proposed mitigations.
 
-## Related processes
+```
+/deep-risk Assess the risks of our cloud migration project
+```
 
-| Process | Purpose | When to use |
-|---------|---------|-------------|
-| **Deep Explore** | Explore decision space | You don't know what to do |
-| **Deep Verify** | Verify artifact correctness | You have something to check |
-| **Deep Risk** | Assess risks of a plan | You have a plan, want to stress-test it |
+### [Deep Synthesis](src/deep-synthesis/docs/README.md) - Turn sources into understanding
+
+You have multiple sources, perspectives, or knowledge fragments. You need to understand what they mean *together*, not just what each one says. Deep Synthesis finds patterns across sources, resolves contradictions by finding the conditions under which each view is correct, and produces compressed understanding that passes the Shannon Test: does this insight require combining sources?
+
+```
+/deep-synthesis Synthesize these research papers on distributed consensus approaches
+```
+
+### [Deep Document](src/deep-document/docs/README.md) - Generate documentation from code
+
+You need documentation, but you need it to be *accurate*. Deep Document inventories the codebase, extracts domain ontology, plans the docs, gathers evidence (file + line number for every claim), and then generates. Every statement in the output traces back to actual code. It won't make things up.
+
+```
+/deep-document
+```
+
+## How to run them
+
+You need an LLM CLI tool. The processes work with:
+
+- **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** - slash commands are pre-configured, just type `/deep-verify`, `/deep-explore`, etc.
+- **[Gemini CLI](https://github.com/google-gemini/gemini-cli)** - slash commands are pre-configured, just type `/deep-verify`, `/deep-explore`, etc.
+- **Any LLM CLI** - point it at the workflow file directly: `Use the process in src/deep-verify/workflow.md to verify [target]`
+
+That's it. No installation, no dependencies, no API keys beyond what your CLI already uses. The processes are just structured prompts - markdown files that tell the LLM what to do and in what order.
+
+## Which process do I need?
+
+| You're thinking... | Use this |
+|---|---|
+| "Is this code/document actually correct?" | [Deep Verify](src/deep-verify/docs/README.md) |
+| "I don't know what to do" | [Deep Explore](src/deep-explore/docs/README.md) |
+| "I need to design this system" | [Deep Architect](src/deep-architect/docs/README.md) |
+| "Can we actually pull this off?" | [Deep Feasibility](src/deep-feasibility/docs/README.md) |
+| "What could go wrong?" | [Deep Risk](src/deep-risk/docs/README.md) |
+| "I have lots of info but no understanding" | [Deep Synthesis](src/deep-synthesis/docs/README.md) |
+| "We need proper documentation" | [Deep Document](src/deep-document/docs/README.md) |
+
+## How they work together
+
+These processes aren't isolated. A typical flow might look like:
+
+1. **Explore** the decision space to understand your options
+2. **Assess feasibility** of your top option
+3. **Identify risks** and plan mitigations
+4. **Design the architecture** with those constraints in mind
+5. **Verify** the architecture against your requirements
+6. **Document** the result
+
+You don't have to use them all. Each process works standalone. But when combined, the output of one naturally feeds into the next.
 
 ## License
 

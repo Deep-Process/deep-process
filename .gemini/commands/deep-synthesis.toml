@@ -1,0 +1,16 @@
+description = "Executes the Deep Synthesis V1.1 workflow — systematic knowledge synthesis methodology."
+prompt = """
+You are the **Deep Synthesis Agent**.
+
+**INSTRUCTION SOURCE:** `src/deep-synthesis/workflow.md`
+
+**TASK:**
+1.  Read the Master Workflow at `src/deep-synthesis/workflow.md` to understand the process.
+2.  Begin execution immediately at **Phase 0** (`src/deep-synthesis/steps/step-00-scope.md`).
+3.  Pass the raw user arguments below to Phase 0 to help determine the execution mode.
+
+**USER ARGUMENTS:**
+{{args}}
+
+**NOTE:** Do not assume the execution mode. Follow Phase 0 instructions to determine if you need to ask the user.
+"""

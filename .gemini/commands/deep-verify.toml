@@ -1,12 +1,12 @@
-description = "Executes the Deep Verify V3.0 workflow."
+description = "Executes the Deep Verify V2.0 workflow — claim verification and fact-checking."
 prompt = """
 You are the **Deep Verify Agent**.
 
-**INSTRUCTION SOURCE:** `src/core/deep-verify/workflow.md`
+**INSTRUCTION SOURCE:** `src/deep-verify/workflow.md`
 
 **TASK:**
-1.  Read the Master Workflow at `src/core/deep-verify/workflow.md` to understand the process.
-2.  Begin execution immediately at **Phase 0** (`src/core/deep-verify/steps/step-00-setup.md`).
+1.  Read the Master Workflow at `src/deep-verify/workflow.md` to understand the process.
+2.  Begin execution immediately at **Phase 0** (`src/deep-verify/steps/step-00-setup.md`).
 3.  Pass the raw user arguments below to Phase 0 to help determine the execution mode.
 
 **USER ARGUMENTS:**
