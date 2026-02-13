@@ -58,20 +58,40 @@ npx deep-process uninstall    # Remove everything
 If you only use Claude Code, install directly as a plugin:
 
 ```bash
-claude plugin install deep-process
+claude plugin install deep-process-org/deep-process --directory packages/claude-plugin
+```
+
+Or via the plugin manager:
+
+```bash
+/plugin install deep-process
 ```
 
 This gives you `/deep-process:deep-verify`, `/deep-process:deep-explore`, etc. — no file copying needed.
 
+Browse on [Claude Marketplace](https://claudemarketplaces.com).
+
 ### Option C: GitHub Copilot Agents
 
-Copy the agent files from [`plugins/github-copilot/agents/`](plugins/github-copilot/agents/) to your project's `.github/agents/` directory:
+For GitHub Copilot users, use the universal installer which auto-generates agent files:
 
 ```bash
-cp plugins/github-copilot/agents/*.agent.md your-project/.github/agents/
+npx deep-process init --tools github-agents
 ```
 
-Or use the universal installer (Option A) which auto-generates these files with correct paths for your project.
+Or manually copy agent files from [`packages/copilot-agents/agents/`](packages/copilot-agents/agents/):
+
+```bash
+mkdir -p .github/agents
+cp packages/copilot-agents/agents/*.agent.md .github/agents/
+```
+
+Then use in VS Code Copilot Chat:
+
+```
+@deep-verify Check the authentication module
+@deep-explore Should we use Redis or Memcached?
+```
 
 ## The processes
 

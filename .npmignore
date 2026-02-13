@@ -18,8 +18,8 @@ _deep-process/
 *.svg
 
 # Plugins (GitHub-only, not needed in npm package)
-plugins/
-.claude-plugin/
+packages/
+plans/
 
 # Misc
 CHANGELOG.md
