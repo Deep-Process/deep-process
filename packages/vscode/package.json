@@ -1,0 +1,157 @@
+{
+  "name": "deep-process-vscode",
+  "displayName": "Deep Process",
+  "description": "Structured LLM workflows for verification, exploration, architecture, feasibility, synthesis, and documentation",
+  "version": "1.0.0",
+  "publisher": "deep-process",
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "AI",
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "llm",
+    "ai",
+    "workflow",
+    "verification",
+    "architecture",
+    "copilot",
+    "claude",
+    "gemini"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "deep-process.configure",
+        "title": "Configure Deep Process",
+        "category": "Deep Process"
+      },
+      {
+        "command": "deep-process.install",
+        "title": "Install Processes",
+        "category": "Deep Process"
+      },
+      {
+        "command": "deep-process.update",
+        "title": "Update Processes",
+        "category": "Deep Process"
+      },
+      {
+        "command": "deep-process.uninstall",
+        "title": "Uninstall",
+        "category": "Deep Process"
+      },
+      {
+        "command": "deep-process.verify",
+        "title": "Deep Verify",
+        "category": "Deep Process"
+      },
+      {
+        "command": "deep-process.explore",
+        "title": "Deep Explore",
+        "category": "Deep Process"
+      },
+      {
+        "command": "deep-process.document",
+        "title": "Deep Document",
+        "category": "Deep Process"
+      },
+      {
+        "command": "deep-process.feasibility",
+        "title": "Deep Feasibility",
+        "category": "Deep Process"
+      },
+      {
+        "command": "deep-process.synthesis",
+        "title": "Deep Synthesis",
+        "category": "Deep Process"
+      }
+    ],
+    "configuration": {
+      "title": "Deep Process",
+      "properties": {
+        "deep-process.enabledTools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "List of enabled AI tools"
+        },
+        "deep-process.processDir": {
+          "type": "string",
+          "default": "_deep-process",
+          "description": "Directory where process files are stored"
+        },
+        "deep-process.autoDetect": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically detect installed AI tools"
+        }
+      }
+    },
+    "chatParticipants": [
+      {
+        "id": "deep-process.chat",
+        "name": "deep-process",
+        "description": "Structured workflows for verification, exploration, and architecture",
+        "commands": [
+          {
+            "name": "verify",
+            "description": "Structured verification and fact-checking"
+          },
+          {
+            "name": "explore",
+            "description": "Think through decisions systematically"
+          },
+          {
+            "name": "document",
+            "description": "Generate documentation from code"
+          },
+          {
+            "name": "feasibility",
+            "description": "Assess feasibility across 10 dimensions"
+          },
+          {
+            "name": "synthesis",
+            "description": "Synthesize multiple sources"
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "dependencies": {
+    "@deep-process/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.22.0",
+    "typescript": "^5.4.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/deep-process-org/deep-process.git",
+    "directory": "packages/vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/deep-process-org/deep-process/issues"
+  },
+  "homepage": "https://github.com/deep-process-org/deep-process#readme",
+  "license": "MIT"
+}
