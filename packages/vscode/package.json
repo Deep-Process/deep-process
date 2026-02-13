@@ -98,6 +98,24 @@
         }
       }
     },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "deep-process-sidebar",
+          "title": "Deep Process",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "deep-process-sidebar": [
+        {
+          "type": "webview",
+          "id": "deep-process.configView",
+          "name": "Configuration"
+        }
+      ]
+    },
     "chatParticipants": [
       {
         "id": "deep-process.chat",
