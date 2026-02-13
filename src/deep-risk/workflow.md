@@ -84,12 +84,13 @@ If description contains: "urgent", "emergency", "crisis", "incident", "already f
 ```
 1. PRECONDITION: GATE_0 = OPEN OR crisis_mode=on (if not, HALT)
 2. Read tool: steps/step-01-identify-vertical.md
-3. Execute ENFORCED SEQUENCE
-4. Evaluate GATE_1 (file: gates.yaml, gate: GATE_1)
+3. Execute ENFORCED SEQUENCE (includes pattern library detection via data/risk-pattern-libraries/detection-rules.yaml)
+4. Evaluate GATE_1 (file: gates.yaml, gate: GATE_1, conditions G1-01 through G1-07)
 5. IF GATE_1 PASS → proceed to Step 2
 6. IF GATE_1 FAIL → address violations
 ```
 **VIOLATION CHECK:** Agent MUST NOT read step-02 until GATE_1 = OPEN
+**PATTERN CHECK:** Agent MUST execute detection-rules.yaml algorithm to select domain pattern libraries before GATE_1 evaluation
 
 ### Step 2: IDENTIFY_HORIZONTAL (Phase 2)
 ```
@@ -117,11 +118,13 @@ If description contains: "urgent", "emergency", "crisis", "incident", "already f
 1. PRECONDITION: GATE_3 = OPEN
 2. IF depth=quick → skip to Step 5
 3. Read tool: steps/step-04-interact.md
-4. Execute ENFORCED SEQUENCE
-5. Evaluate GATE_4 (file: gates.yaml, gate: GATE_4)
-6. IF GATE_4 PASS → proceed to Step 5
+4. Execute ENFORCED SEQUENCE (includes ADVERSARY mechanism: Devil's Advocate + Missing Risk Hunt + Reconciliation)
+5. Evaluate GATE_4 (file: gates.yaml, gate: GATE_4, conditions G4-01 through G4-10)
+6. IF GATE_4 FAIL (ADVERSARY) → HALT, execute adversarial challenge (CRITICAL SAFETY)
+7. IF GATE_4 PASS → proceed to Step 5
 ```
 **VIOLATION CHECK:** Agent MUST NOT read step-05 until GATE_4 = OPEN OR depth=quick
+**ADVERSARY CHECK:** Agent MUST execute Devil's Advocate (≥10 challenges, 5 angles) before GATE_4 evaluation
 
 ### Step 5: MITIGATE (Phase 5)
 ```
@@ -140,7 +143,8 @@ If description contains: "urgent", "emergency", "crisis", "incident", "already f
 2. Read tool: steps/step-06-monitor.md
 3. Execute ENFORCED SEQUENCE
 4. Evaluate GATE_6 (file: gates.yaml, gate: GATE_6)
-5. IF GATE_6 PASS → proceed to Step 7
+5. IF GATE_6 FAIL (Cobra Monitoring) → HALT, redesign monitoring (CRITICAL SAFETY)
+6. IF GATE_6 PASS → proceed to Step 7
 ```
 **VIOLATION CHECK:** Agent MUST NOT read step-07 until GATE_6 = OPEN
 
@@ -264,7 +268,7 @@ If description contains: "urgent", "emergency", "crisis", "incident", "already f
 
 **Not allowed:**
 - BLOCKER severity conditions (must satisfy)
-- Cobra Effect check (CRITICAL SAFETY — cannot skip)
+- Cobra Effect check (CRITICAL SAFETY — cannot skip in GATE_5 or GATE_6)
 - ASSUMPTIONS_DECLARED (mandatory before all phases)
 
 ---
@@ -284,7 +288,7 @@ If description contains: "urgent", "emergency", "crisis", "incident", "already f
 8. Survivorship Bias — We only learn from visible failures
 9. Lindy Effect — Old = robust, new = fragile
 
-**Used in:** GATE_0 (system characterization), GATE_5 (Cobra check), GATE_7 (META audit)
+**Used in:** GATE_0 (system characterization), GATE_5 (Cobra check), GATE_6 (Cobra monitoring check), GATE_7 (META audit)
 
 ---
 
@@ -307,14 +311,26 @@ If description contains: "urgent", "emergency", "crisis", "incident", "already f
 
 ## VERSION
 
+**V2.2.0** (2026-02-13)
+
+**Changes from V2.1.0:**
+- EXPANDED: Steps 02, 03, 04, 07 from stubs to self-contained (R1/R11 compliance: full EVR, embedded methods, ASSUMPTIONS_DECLARED)
+- ADDED: ADVERSARY mechanism to INTERACT phase (Devil's Advocate + Missing Risk Hunt + Reconciliation)
+- ADDED: G4-08 (BLOCKER), G4-09 (CRITICAL), G4-10 (BLOCKER), CC4-04, CC4-05 to GATE_4
+- ADDED: Pattern detection algorithm (data/risk-pattern-libraries/detection-rules.yaml)
+- ADDED: G1-07 (CRITICAL) pattern libraries detected to GATE_1
+- ADDED: 6 domain pattern libraries (cloud-infrastructure, security-cybersecurity, ai-ml-systems, web-applications, microservices, serverless-realtime — 50 new patterns, 119 total)
+- UPDATED: GATE_1 conditions 6 → 7, checklist 8/8 → 9/9
+- UPDATED: GATE_4 conditions 7 → 10, counter-checks 3 → 5, checklist 8/8 → 10/10
+
+**V2.1.0** (2026-02-13)
+- ADDED: Cobra Monitoring Check (Method #506) + Adversarial Monitoring Test (Method #507) to MONITOR phase
+- ADDED: G6-08 (BLOCKER), G6-09 (CRITICAL), CC6-04 to GATE_6
+- UPDATED: GATE_6 conditions 7 → 9, counter-checks 3 → 4, checklist 8 → 10 items
+- UPDATED: Cobra Effect scope extended to GATE_5 + GATE_6
+
 **V2.0.0** (2026-02-12)
+- SYSTEMATIC REFACTOR: V1.1 → V2.0 for R0-R13 compliance
+- Pure Deep-Verify Pattern, 8 binding gates, 75% token reduction
 
-**Changes from V1.1:**
-- DELETED reference.md (331 lines, violated R0/R11/R13)
-- CREATED process.yaml (metadata + compliance)
-- CREATED gates.yaml (8 binding gates)
-- REFACTORED workflow.md (277L → 150L, routing only)
-- REFACTORED steps/ (embedded methods inline, added frontmatter)
-- COMPLIANCE: R0-R13 13/13 PASS (was 1/13)
-
-**See:** `process.yaml` for full changelog, `BASELINE-AUDIT-V2.md` for migration analysis
+**See:** `process.yaml` for full changelog

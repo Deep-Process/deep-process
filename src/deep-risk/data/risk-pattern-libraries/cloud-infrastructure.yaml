@@ -1,0 +1,330 @@
+# Cloud Infrastructure Risk Pattern Library
+# Patterns specific to cloud platforms (AWS, Azure, GCP) and infrastructure-as-code
+
+library:
+  id: "cloud-infrastructure"
+  name: "Cloud Infrastructure Risk Patterns"
+  version: "1.0.0"
+  description: "Failure patterns observed in cloud platform deployments and IaC management"
+
+patterns:
+  - id: "CLOUD-001"
+    name: "Region/AZ Single Point of Failure"
+    description: |
+      Application deployed to single availability zone or region, creating
+      geographic concentration risk. One AZ outage takes down entire service.
+
+    signature:
+      - "Single-region deployment"
+      - "No cross-AZ load balancing"
+      - "Database in single AZ without read replicas"
+      - "Disaster recovery 'planned but not tested'"
+
+    anti_patterns:
+      - "Cost optimization by skipping multi-AZ"
+      - "Development environment architecture used in production"
+      - "Manual failover procedures"
+      - "No automated health checks across zones"
+
+    indicators:
+      - "All resources in same AZ"
+      - "No cross-region DNS failover"
+      - "RPO/RTO not defined"
+
+    historical_examples:
+      - "AWS us-east-1 2017: Single-AZ S3 outage cascaded to dependent services"
+      - "Azure South Central US 2018: Cooling failure took down entire region"
+
+    mitigation_hints:
+      - "Multi-AZ deployment mandatory for production"
+      - "Automated failover with health checks"
+      - "Regular DR drills"
+
+  - id: "CLOUD-002"
+    name: "IAM Permission Sprawl"
+    description: |
+      Cloud permissions accumulate over time, granting far more access than needed.
+      Service accounts and roles have admin-level permissions "for convenience."
+
+    signature:
+      - "Service accounts with *:* permissions"
+      - "'AdministratorAccess' policy attached to application roles"
+      - "No regular permission audits"
+      - "IAM roles created for debugging never removed"
+
+    anti_patterns:
+      - "Using root/admin credentials in applications"
+      - "Copying permission sets without reviewing"
+      - "No least-privilege enforcement"
+      - "Shared service accounts across environments"
+
+    indicators:
+      - "IAM Access Analyzer findings growing"
+      - "Unused permissions not cleaned up"
+      - "Service accounts with permissions to unrelated services"
+
+    historical_examples:
+      - "Capital One 2019: Over-permissioned WAF role led to S3 data breach"
+      - "CodeSpaces 2014: Compromised AWS console led to complete deletion"
+
+    mitigation_hints:
+      - "Least-privilege principle enforced"
+      - "Regular IAM audit with Access Analyzer"
+      - "Automated permission boundary enforcement"
+
+  - id: "CLOUD-003"
+    name: "IaC Drift Divergence"
+    description: |
+      Infrastructure-as-code definitions diverge from actual cloud state.
+      Manual changes in console create untracked configuration that IaC
+      doesn't know about or will overwrite.
+
+    signature:
+      - "Manual console changes 'just this once'"
+      - "Terraform plan shows unexpected changes"
+      - "IaC state file conflicts"
+      - "Resources exist that aren't in any template"
+
+    anti_patterns:
+      - "Console access for production changes"
+      - "No drift detection automation"
+      - "Multiple people editing state files"
+      - "Skipping IaC for 'quick fixes'"
+
+    indicators:
+      - "Increasing drift detection alerts"
+      - "Deployment failures from state conflicts"
+      - "Unknown resources in cloud accounts"
+
+    historical_examples:
+      - "Common in Terraform: State file corruption from concurrent modifications"
+      - "CloudFormation stack drift causing deployment failures"
+
+    mitigation_hints:
+      - "Enforce console read-only in production"
+      - "Automated drift detection (daily)"
+      - "State file locking and versioning"
+
+  - id: "CLOUD-004"
+    name: "Cost Explosion Bomb"
+    description: |
+      Cloud costs escalate unexpectedly due to misconfigured auto-scaling,
+      data transfer charges, or forgotten resources running indefinitely.
+
+    signature:
+      - "No cost alerts configured"
+      - "Auto-scaling without upper bounds"
+      - "Development resources left running overnight/weekends"
+      - "Data transfer costs not monitored"
+
+    anti_patterns:
+      - "No budget alerts"
+      - "Unlimited auto-scaling policies"
+      - "No resource tagging for cost attribution"
+      - "Cross-region data transfer in hot paths"
+
+    indicators:
+      - "Monthly bill increasing >20% without new features"
+      - "Untagged resources growing"
+      - "Spot/reserved instance coverage declining"
+
+    historical_examples:
+      - "Multiple startups bankrupted by unexpected cloud bills"
+      - "DynamoDB on-demand pricing causing 10x cost spikes under load"
+
+    mitigation_hints:
+      - "Budget alerts at 50%, 80%, 100%"
+      - "Auto-scaling upper bounds mandatory"
+      - "Monthly cost review process"
+
+  - id: "CLOUD-005"
+    name: "Secrets in Plain Text"
+    description: |
+      Credentials, API keys, and secrets stored in code repositories,
+      environment variables, or configuration files without encryption.
+
+    signature:
+      - "API keys in source code"
+      - "Database passwords in environment variables"
+      - "Secrets in CI/CD pipeline logs"
+      - "No secrets manager in use"
+
+    anti_patterns:
+      - "Committing .env files to git"
+      - "Hardcoding credentials in application code"
+      - "Sharing secrets via Slack/email"
+      - "Same secrets across all environments"
+
+    indicators:
+      - "Git secrets scanning finding violations"
+      - "Secrets rotation never performed"
+      - "No audit trail for secret access"
+
+    historical_examples:
+      - "Uber 2016: AWS credentials in GitHub repo led to 57M user data breach"
+      - "Common: Bot scanning GitHub for exposed API keys within minutes"
+
+    mitigation_hints:
+      - "Secrets manager (Vault, AWS Secrets Manager, Azure Key Vault)"
+      - "Pre-commit hooks for secret detection"
+      - "Automated secret rotation"
+
+  - id: "CLOUD-006"
+    name: "Vendor Lock-in Trap"
+    description: |
+      Deep dependency on cloud-provider-specific services makes migration
+      prohibitively expensive. Architecture cannot function outside provider.
+
+    signature:
+      - "Heavy use of proprietary services (DynamoDB, Cosmos DB, Cloud Spanner)"
+      - "No abstraction layer between application and cloud services"
+      - "Custom integrations with provider-specific APIs"
+      - "Data formats tied to provider schemas"
+
+    anti_patterns:
+      - "Choosing proprietary over open-source equivalents without analysis"
+      - "No exit strategy documented"
+      - "Provider-specific SDK calls throughout codebase"
+      - "All data in provider-specific formats"
+
+    indicators:
+      - "Cannot estimate migration cost"
+      - "No portability testing"
+      - "Provider pricing changes directly impact margins"
+
+    historical_examples:
+      - "Multiple enterprises locked into Oracle/SAP with no migration path"
+      - "Companies unable to switch cloud providers despite price increases"
+
+    mitigation_hints:
+      - "Abstraction layers for cloud services"
+      - "Document exit strategy with cost estimates"
+      - "Prefer open standards where feasible"
+
+  - id: "CLOUD-007"
+    name: "Certificate Expiration Surprise"
+    description: |
+      TLS certificates, API tokens, or signing keys expire unexpectedly,
+      causing service outages that are hard to diagnose.
+
+    signature:
+      - "No certificate inventory"
+      - "Manual certificate renewal process"
+      - "No expiration monitoring"
+      - "Self-signed certificates in production"
+
+    anti_patterns:
+      - "Setting certificates and forgetting them"
+      - "No automated renewal (Let's Encrypt, ACM)"
+      - "Certificate management by one person"
+      - "No alerting on approaching expiration"
+
+    indicators:
+      - "Past incidents caused by expired certificates"
+      - "No certificate inventory document"
+      - "Mix of manual and automated certificates"
+
+    historical_examples:
+      - "Microsoft Azure 2019: Expired certificate caused global MFA outage"
+      - "Ericsson 2018: Expired certificate caused O2 network outage for 32M users"
+
+    mitigation_hints:
+      - "Automated certificate management"
+      - "Certificate inventory with expiration alerts (30, 14, 7 days)"
+      - "Automated renewal via ACM/Let's Encrypt"
+
+  - id: "CLOUD-008"
+    name: "Shared Account Anti-Pattern"
+    description: |
+      Multiple environments, teams, or applications share a single cloud
+      account, creating blast radius, billing, and security issues.
+
+    signature:
+      - "Production and development in same account"
+      - "Multiple teams deploying to same account"
+      - "No account-level isolation"
+      - "Resource naming conventions as only separation"
+
+    anti_patterns:
+      - "Single account for all environments"
+      - "No AWS Organizations / Azure Management Groups"
+      - "Shared VPCs between unrelated services"
+      - "No Service Control Policies"
+
+    indicators:
+      - "Cross-environment incidents (dev change breaks prod)"
+      - "Difficulty attributing costs to teams"
+      - "Permission conflicts between teams"
+
+    historical_examples:
+      - "Common: Development load test impacts production in shared account"
+      - "Accidental deletion of production resources by dev team"
+
+    mitigation_hints:
+      - "Account-per-environment strategy"
+      - "AWS Organizations with SCPs"
+      - "Landing zone architecture"
+
+  - id: "CLOUD-009"
+    name: "Backup Illusion"
+    description: |
+      Backups exist but have never been tested for restore. When needed,
+      backups are corrupt, incomplete, or restore process unknown.
+
+    signature:
+      - "Backups configured but never restored"
+      - "No documented restore procedure"
+      - "Backup monitoring only checks 'job completed'"
+      - "'We have backups' but RPO/RTO undefined"
+
+    anti_patterns:
+      - "Backup without restore testing"
+      - "No cross-region backup copies"
+      - "Backup retention too short for compliance"
+      - "Backup credentials same as production"
+
+    indicators:
+      - "No record of successful restore test"
+      - "Backup size not growing with data"
+      - "Backup job failures ignored"
+
+    historical_examples:
+      - "GitLab 2017: 5 backup methods, none worked when needed"
+      - "MySpace 2019: Lost 12 years of music due to failed server migration"
+
+    mitigation_hints:
+      - "Monthly restore testing"
+      - "Automated backup verification"
+      - "Cross-region backup copies"
+
+  - id: "CLOUD-010"
+    name: "Network Misconfiguration Exposure"
+    description: |
+      Security groups, NACLs, or firewall rules allow unintended access.
+      Public-facing resources exposed without proper access controls.
+
+    signature:
+      - "Security groups with 0.0.0.0/0 ingress"
+      - "Public S3 buckets"
+      - "Database ports open to internet"
+      - "No network segmentation"
+
+    anti_patterns:
+      - "Opening all ports for debugging"
+      - "Using default security groups"
+      - "No regular security group audit"
+      - "VPC peering without traffic restrictions"
+
+    indicators:
+      - "Security Hub / Trusted Advisor findings"
+      - "Unexpected external traffic in VPC flow logs"
+      - "Public IP addresses on internal services"
+
+    historical_examples:
+      - "Capital One 2019: SSRF through misconfigured WAF rules"
+      - "Numerous S3 bucket data leaks (Verizon, Pentagon, Dow Jones)"
+
+    mitigation_hints:
+      - "Automated security group compliance checks"
+      - "Default-deny network policies"
+      - "Regular network configuration audits"

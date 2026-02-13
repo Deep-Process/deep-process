@@ -320,6 +320,9 @@ post_phase_checklist:
 
   - item: "Vertical risk inventory consolidated (all risks from 1.1-1.4)"
     status: PASS | FAIL | SCOPE_REDUCED
+
+  - item: "Pattern libraries detected (detection-rules.yaml algorithm executed, domains selected)"
+    status: PASS | FAIL | SCOPE_REDUCED
 ```
 
 ---
@@ -347,7 +350,8 @@ Verify failure modes coherent with system characterization from step-00 (High co
 - G1-03: Threat modeling complete (ERROR)
 - G1-04: Dependencies mapped (CRITICAL)
 - G1-05: ASSUMPTIONS_DECLARED (BLOCKER)
-- G1-06: POST_PHASE_CHECKLIST complete (CRITICAL)
+- G1-06: POST_PHASE_CHECKLIST complete 9/9 (CRITICAL)
+- G1-07: Pattern libraries detected (CRITICAL)
 
 **IF GATE_1 PASS → proceed to step-02-identify-horizontal.**
 

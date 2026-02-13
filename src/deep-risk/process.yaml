@@ -1,5 +1,5 @@
 name: deep-risk
-version: 2.0.0
+version: 2.2.0
 type: risk-assessment
 status: operational
 
@@ -81,8 +81,8 @@ phases:
     name: INTERACT
     gate: GATE_4
     step_file: steps/step-04-interact.md
-    methods: [301, 302, 303, 304, 305, 306, 307]
-    time_estimate: "30-60 min"
+    methods: [301, 302, 303, 304, 305, 306, 307, ADVERSARY-01, ADVERSARY-02, ADVERSARY-03]
+    time_estimate: "45-90 min"
 
   - id: 5
     name: MITIGATE
@@ -95,8 +95,8 @@ phases:
     name: MONITOR
     gate: GATE_6
     step_file: steps/step-06-monitor.md
-    methods: [501, 502, 503, 504, 505]
-    time_estimate: "30-45 min"
+    methods: [501, 502, 503, 504, 505, 506, 507]
+    time_estimate: "45-60 min"
 
   - id: 7
     name: OUTPUT
@@ -156,6 +156,43 @@ theoretical_foundations:
     - Lindy Effect
 
 changelog:
+  - version: 2.2.0
+    date: 2026-02-13
+    changes:
+      - "EXPANDED: step-02-identify-horizontal.md from 100L stub → 354L self-contained (R1/R11 compliance)"
+      - "EXPANDED: step-03-quantify.md from 115L stub → 386L self-contained (R1/R11 compliance)"
+      - "EXPANDED: step-04-interact.md from 104L stub → 484L self-contained + ADVERSARY mechanism (R1/R6/R11 compliance)"
+      - "EXPANDED: step-07-output.md from 260L → ~730L with all 6 META methods embedded inline (R1/R2/R11 compliance)"
+      - "ADDED: ADVERSARY mechanism to INTERACT phase — Devil's Advocate (5 angles, ≥10 challenges), Missing Risk Hunt (5 stakeholder perspectives), Risk Register Reconciliation (delta math)"
+      - "ADDED: ADVERSARY-01 Devil's Advocate, ADVERSARY-02 Missing Risk Hunt, ADVERSARY-03 Reconciliation methods to INTERACT phase"
+      - "ADDED: G4-08 Devil's Advocate (BLOCKER), G4-09 Missing Risk Hunt (CRITICAL), G4-10 Reconciliation (BLOCKER) to GATE_4"
+      - "ADDED: CC4-04 adversary grounding (ERROR), CC4-05 adversary coherence delta math (BLOCKER) to GATE_4"
+      - "ADDED: detection-rules.yaml — weighted multi-condition pattern detection algorithm with confidence thresholds"
+      - "ADDED: G1-07 pattern libraries detected (CRITICAL) to GATE_1"
+      - "ADDED: 6 domain pattern libraries — cloud-infrastructure (10), security-cybersecurity (8), ai-ml-systems (8), web-applications (8), microservices (8), serverless-realtime (8) = 50 new patterns"
+      - "UPDATED: Pattern library total 69 → 119 patterns across 11 domains"
+      - "UPDATED: _manifest.yaml version 1.0.0 → 2.0.0 with detection_rules_file reference"
+      - "UPDATED: GATE_1 conditions 6 → 7, checklist 8/8 → 9/9"
+      - "UPDATED: GATE_4 conditions 7 → 10, counter-checks 3 → 5, checklist 8/8 → 10/10"
+      - "UPDATED: INTERACT time_estimate 30-60 min → 45-90 min"
+      - "UPDATED: workflow.md Step 1 pattern detection reference, Step 4 ADVERSARY reference, version V2.1.0 → V2.2.0"
+      - "MOTIVATION: Deep Verify V2.0 verification identified 7 CRITICAL findings — F-01 (steps 02-04 stubs), F-02 (step-07 META stubs), F-05 (EVR one-liners), F-06 (no ADVERSARY), F-07 (no detection algorithm), F-08 (missing domain libraries). All resolved."
+
+  - version: 2.1.0
+    date: 2026-02-12
+    changes:
+      - "ADDED: Method #506 Cobra Monitoring Check (step-06-monitor.md section 6.6) — 5-question Cobra Effect framework applied to 3 monitoring components (LEADING_INDICATORS, REVIEW_CADENCE, ESCALATION_PROTOCOL)"
+      - "ADDED: Method #507 Adversarial Monitoring Test (step-06-monitor.md section 6.7) — self-adversarial test identifying ≥3 gaming vectors with defenses"
+      - "ADDED: G6-08 Cobra Monitoring Check (BLOCKER) — all monitoring components checked for perverse effects"
+      - "ADDED: G6-09 Adversarial Monitoring Test (CRITICAL) — gaming vectors identified and defended"
+      - "ADDED: CC6-04 Coherence Check — verify Cobra monitoring checks coherent with mitigation Cobra checks (GATE_5 ↔ GATE_6)"
+      - "UPDATED: GATE_6 conditions 7 → 9 (G6-01 through G6-09)"
+      - "UPDATED: GATE_6 counter-checks 3 → 4 (CC6-01 through CC6-04)"
+      - "UPDATED: POST_PHASE_CHECKLIST for MONITOR phase 8 → 10 items"
+      - "UPDATED: MONITOR time_estimate 30-45 min → 45-60 min"
+      - "UPDATED: workflow.md scope to include GATE_6 Cobra check, theoretical foundations 'Used in' to reference GATE_6"
+      - "MOTIVATION: Deep-Explore analysis identified gap — GATE_5 had specific Cobra theorem check (G5-06 BLOCKER) but GATE_6 had only generic unintended consequences check (G6-03) without theoretical grounding. Monitoring systems create second-order effects (alert fatigue, gaming, moral hazard) that need systematic detection."
+
   - version: 2.0.0
     date: 2026-02-12
     changes:

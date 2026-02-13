@@ -1,15 +1,18 @@
 # Risk Pattern Libraries Manifest
 # These libraries contain domain-specific failure patterns for Historical Pattern Matching (#106)
 
-version: "1.0.0"
+version: "2.0.0"
 description: |
   Risk pattern libraries provide survivorship-corrected historical failure patterns.
   Each pattern includes: signature, anti-patterns, and indicators.
 
   Usage:
+  - Run detection-rules.yaml algorithm to select relevant libraries
   - Match current system characteristics against pattern signatures
   - Check for presence of known anti-patterns
   - Monitor for pattern-specific early warning indicators
+
+detection_rules_file: "detection-rules.yaml"
 
 libraries:
   core:
@@ -67,11 +70,80 @@ libraries:
       - stakeholder
       - delivery
 
+  cloud-infrastructure:
+    file: "cloud-infrastructure.yaml"
+    description: "Patterns specific to cloud platforms (AWS, Azure, GCP) and IaC"
+    pattern_count: 10
+    categories:
+      - availability
+      - security
+      - cost
+      - configuration
+      - vendor
+
+  security-cybersecurity:
+    file: "security-cybersecurity.yaml"
+    description: "Patterns specific to application security and cyber threats"
+    pattern_count: 8
+    categories:
+      - authentication
+      - supply-chain
+      - data-protection
+      - incident-response
+      - api-security
+
+  ai-ml-systems:
+    file: "ai-ml-systems.yaml"
+    description: "Patterns specific to ML pipelines, model deployment, and AI systems"
+    pattern_count: 8
+    categories:
+      - model-quality
+      - data-pipeline
+      - fairness
+      - operations
+      - adversarial
+
+  web-applications:
+    file: "web-applications.yaml"
+    description: "Patterns specific to web application development and operations"
+    pattern_count: 8
+    categories:
+      - frontend-backend
+      - performance
+      - security
+      - deployment
+      - accessibility
+
+  microservices:
+    file: "microservices.yaml"
+    description: "Patterns specific to microservice architecture and coordination"
+    pattern_count: 8
+    categories:
+      - decomposition
+      - observability
+      - consistency
+      - testing
+      - configuration
+
+  serverless-realtime:
+    file: "serverless-realtime.yaml"
+    description: "Patterns specific to serverless platforms and real-time systems"
+    pattern_count: 8
+    categories:
+      - latency
+      - events
+      - concurrency
+      - messaging
+      - state-management
+
+total_pattern_count: 119  # 15+12+14+10+12+10+8+8+8+8+8+6 = 119
+
 usage_guidance:
   selection: |
-    1. Start with 'core' library - applies to all projects
-    2. Add domain libraries based on system characteristics
-    3. Prioritize patterns where >2 signature elements match
+    1. Run detection-rules.yaml algorithm (automatic)
+    2. Core library always loaded (auto_apply: true)
+    3. Domain libraries loaded when confidence >= threshold
+    4. Prioritize patterns where >2 signature elements match
 
   matching_threshold:
     high_match: ">= 3 signature elements present"

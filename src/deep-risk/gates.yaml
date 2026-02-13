@@ -1,11 +1,11 @@
-# Deep-Risk V2.0 — Binding Gates
-# Version: 1.0.0
-# Date: 2026-02-12
+# Deep-Risk V2.2.0 — Binding Gates
+# Version: 2.0.0
+# Date: 2026-02-13
 
 metadata:
-  version: 1.0.0
+  version: 2.0.0
   process: deep-risk
-  gate_count: 8
+  gate_count: 8  # 8 gates (GATE_0..7), conditions increased: GATE_1 +1 (G1-07), GATE_4 +3 (G4-08..10), GATE_4 +2 counter-checks (CC4-04..05)
   enforcement: binding
   description: |
     Binding gates prevent agent from proceeding to next phase without satisfying conditions.
@@ -104,10 +104,16 @@ gates:
         failure_action: "HALT → declare assumptions"
 
       - id: G1-06
-        condition: "POST_PHASE_CHECKLIST complete (8 items: extraction, verification, tagging, coverage, phantoms, scope, coherence, counter-checks)"
+        condition: "POST_PHASE_CHECKLIST complete (9 items including pattern detection)"
         severity: CRITICAL
-        verification: "Check POST_PHASE_CHECKLIST has 8/8 items marked [PASS] or [SCOPE_REDUCED]"
+        verification: "Check POST_PHASE_CHECKLIST has 9/9 items marked [PASS] or [SCOPE_REDUCED]"
         failure_action: "Return to incomplete checklist items"
+
+      - id: G1-07
+        condition: "Pattern libraries detected and loaded (detection-rules.yaml algorithm executed)"
+        severity: CRITICAL
+        verification: "Check detection_log exists with ≥1 library activated (core minimum), confidence scores calculated, counter-checks executed"
+        failure_action: "Return to pattern detection, verify project characteristics"
 
     counter_checks:
       - id: CC1-01
@@ -304,8 +310,26 @@ gates:
       - id: G4-07
         condition: "POST_PHASE_CHECKLIST complete"
         severity: CRITICAL
-        verification: "Check 8/8 items [PASS]"
+        verification: "Check 10/10 items [PASS]"
         failure_action: "Return to checklist"
+
+      - id: G4-08
+        condition: "ADVERSARY Devil's Advocate challenge executed (≥10 challenges, ≥3 adjustments)"
+        severity: BLOCKER
+        verification: "Check ADVERSARY_CHALLENGE section has ≥10 challenges across 5 angles, adjustment_rate ≥0.20"
+        failure_action: "HALT → execute Devil's Advocate (critical self-adversarial mechanism)"
+
+      - id: G4-09
+        condition: "Missing Risk Hunt completed (≥5 stakeholder perspectives, pattern library cross-check)"
+        severity: CRITICAL
+        verification: "Check MISSING_RISK_HUNT section has ≥5 perspectives checked, ≥5 new risks identified"
+        failure_action: "IF depth=quick → skip. ELSE → run missing risk hunt"
+
+      - id: G4-10
+        condition: "Risk Register Reconciliation complete (ADVERSARY adjustments + new risks merged, delta math verified)"
+        severity: BLOCKER
+        verification: "Check RISK_REGISTER_RECONCILIATION section has final_count = original_count + new_risks - removed_risks"
+        failure_action: "HALT → reconcile register (counts must match)"
 
     counter_checks:
       - id: CC4-01
@@ -325,6 +349,18 @@ gates:
         action: "Verify cascade graph coherent (no circular dependencies without justification)"
         pass_criteria: "Directed acyclic graph OR cycles documented"
         fail_action: "WARNING → resolve cycles"
+
+      - id: CC4-04
+        method: "#85 Grounding Check"
+        action: "Sample 3 ADVERSARY challenges → verify each has concrete evidence (not generic objections)"
+        pass_criteria: "3/3 challenges cite specific risks, scores, or evidence"
+        fail_action: "ERROR → replace generic challenges with grounded ones"
+
+      - id: CC4-05
+        method: "#84 Coherence Check"
+        action: "Verify reconciliation delta math: final_count = original_count + new_count - removed_count"
+        pass_criteria: "Delta = 0 (math checks out)"
+        fail_action: "BLOCKER → fix reconciliation arithmetic"
 
   GATE_5:
     name: MITIGATE_COMPLETE
@@ -442,8 +478,20 @@ gates:
       - id: G6-07
         condition: "POST_PHASE_CHECKLIST complete"
         severity: CRITICAL
-        verification: "Check 8/8 items [PASS]"
+        verification: "Check 10/10 items [PASS] or [SCOPE_REDUCED]"
         failure_action: "Return to checklist"
+
+      - id: G6-08
+        condition: "Cobra Monitoring Check PASSED (all monitoring components checked for perverse effects)"
+        severity: BLOCKER
+        verification: "Check COBRA_MONITORING_CHECK section exists with check for ALL 3 components (LEADING_INDICATORS, REVIEW_CADENCE, ESCALATION_PROTOCOL)"
+        failure_action: "HALT → redesign monitoring (critical safety mechanism)"
+
+      - id: G6-09
+        condition: "Adversarial monitoring test completed (gaming vectors identified and defended)"
+        severity: CRITICAL
+        verification: "Check ADVERSARIAL_MONITORING_TEST section exists with ≥3 gaming vectors analyzed and verdict not VULNERABLE"
+        failure_action: "IF depth=quick → skip. ELSE → run adversarial test"
 
     counter_checks:
       - id: CC6-01
@@ -463,6 +511,12 @@ gates:
         action: "Verify review cadence coherent with risk velocity (fast risks → frequent review)"
         pass_criteria: "Cadence matches velocity"
         fail_action: "WARNING → adjust cadence"
+
+      - id: CC6-04
+        method: "#84 Coherence Check"
+        action: "Verify Cobra monitoring checks coherent with mitigation Cobra checks (GATE_5 Cobra outcomes don't contradict GATE_6 monitoring design)"
+        pass_criteria: "No contradictions between mitigation design and monitoring design"
+        fail_action: "ERROR → resolve contradictions"
 
   GATE_7:
     name: OUTPUT_COMPLETE
