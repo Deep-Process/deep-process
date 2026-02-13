@@ -1,5 +1,5 @@
-import type { ProcessManifest } from '../core/process-registry.js';
-import type { PathContext } from '../core/path-resolver.js';
+import type { ProcessManifest } from '@deep-process/core';
+import type { PathContext } from '@deep-process/core';
 
 export interface InstalledFile {
   path: string;       // Relative to project root

@@ -1,22 +1,22 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ToolAdapter, InstalledFile } from './base-adapter.js';
-import type { ProcessManifest } from '../core/process-registry.js';
-import type { PathContext } from '../core/path-resolver.js';
-import { buildTemplateVars } from '../core/path-resolver.js';
-import { renderTemplate } from '../core/template-engine.js';
+import type { ProcessManifest } from '@deep-process/core';
+import type { PathContext } from '@deep-process/core';
+import { buildTemplateVars } from '@deep-process/core';
+import { renderTemplate } from '@deep-process/core';
 import { safeWriteFile, safeRemoveFile, toPosixPath } from '../utils/fs-helpers.js';
 
 function loadTemplate(): string {
   return fs.readFileSync(
-    path.resolve(import.meta.dirname, '..', '..', 'templates', 'continue-dev.prompt.tpl'),
+    path.resolve(import.meta.dirname, '..', '..', 'templates', 'cursor.md.tpl'),
     'utf-8'
   );
 }
 
-export const continueDevAdapter: ToolAdapter = {
-  id: 'continue',
-  displayName: 'Continue.dev',
+export const cursorAdapter: ToolAdapter = {
+  id: 'cursor',
+  displayName: 'Cursor',
 
   async install(processes, pathCtx, root) {
     const template = loadTemplate();
@@ -25,7 +25,7 @@ export const continueDevAdapter: ToolAdapter = {
     for (const proc of processes) {
       const vars = buildTemplateVars(proc, pathCtx);
       const content = renderTemplate(template, vars);
-      const relPath = path.join('.continue', 'prompts', `${proc.slashCommand}.prompt`);
+      const relPath = path.join('.cursor', 'commands', `${proc.slashCommand}.md`);
       safeWriteFile(path.join(root, relPath), content);
       files.push({ path: toPosixPath(relPath), type: 'created' });
     }
@@ -40,11 +40,11 @@ export const continueDevAdapter: ToolAdapter = {
   },
 
   async detect(root) {
-    const dir = path.join(root, '.continue');
+    const dir = path.join(root, '.cursor');
     const exists = fs.existsSync(dir);
     return {
       detected: exists,
-      evidence: exists ? ['.continue/ directory exists'] : [],
+      evidence: exists ? ['.cursor/ directory exists'] : [],
     };
   },
 };

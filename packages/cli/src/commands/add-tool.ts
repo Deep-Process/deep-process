@@ -1,9 +1,9 @@
 import os from 'node:os';
 import path from 'node:path';
-import { readConfig, writeConfig } from '../core/config-manager.js';
-import { loadAllManifests } from '../core/process-registry.js';
+import { readConfig, writeConfig } from '@deep-process/core';
+import { loadAllManifests } from '@deep-process/core';
 import { getAdapter, isValidToolId, type ToolId } from '../adapters/index.js';
-import type { PathContext } from '../core/path-resolver.js';
+import type { PathContext } from '@deep-process/core';
 import { log, createSpinner } from '../utils/logger.js';
 
 export async function addToolCommand(tool: string): Promise<void> {

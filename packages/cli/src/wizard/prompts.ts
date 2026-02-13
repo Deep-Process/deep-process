@@ -1,5 +1,5 @@
 import { select, input, checkbox, confirm } from '@inquirer/prompts';
-import type { ProcessManifest } from '../core/process-registry.js';
+import type { ProcessManifest } from '@deep-process/core';
 import type { ToolId } from '../adapters/index.js';
 import { getAllAdapters } from '../adapters/index.js';
 

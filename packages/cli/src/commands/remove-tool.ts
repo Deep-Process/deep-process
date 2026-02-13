@@ -1,4 +1,4 @@
-import { readConfig, writeConfig } from '../core/config-manager.js';
+import { readConfig, writeConfig } from '@deep-process/core';
 import { getAdapter, isValidToolId, type ToolId } from '../adapters/index.js';
 import { log, createSpinner } from '../utils/logger.js';
 import { confirm } from '@inquirer/prompts';

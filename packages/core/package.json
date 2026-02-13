@@ -1,0 +1,25 @@
+{
+  "name": "@deep-process/core",
+  "version": "1.0.0",
+  "description": "Core utilities and loaders for deep-process packages",
+  "type": "module",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "author": "Deep Process Contributors",
+  "license": "MIT",
+  "dependencies": {
+    "yaml": "^2.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.4.0"
+  }
+}

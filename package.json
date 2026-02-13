@@ -1,55 +1,22 @@
 {
-  "name": "deep-process",
+  "name": "deep-process-monorepo",
   "version": "1.1.0",
-  "description": "Structured LLM workflows for verification, exploration, architecture, feasibility, risk, synthesis, and documentation — with interactive installer for 11 AI tools",
+  "description": "Deep Process monorepo — structured LLM workflows for multiple platforms",
+  "private": true,
   "type": "module",
-  "bin": {
-    "deep-process": "bin/deep-process.js"
-  },
-  "main": "./dist/cli.js",
-  "files": [
-    "bin/",
-    "dist/",
-    "processes/**/*.md",
-    "processes/**/*.yaml",
-    "processes/**/*.yml",
-    "processes/**/*.csv",
-    "templates/"
-  ],
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "start": "node bin/deep-process.js"
+    "build": "pnpm -r build",
+    "dev": "pnpm -r --parallel dev",
+    "clean": "pnpm -r exec rm -rf dist node_modules"
   },
-  "keywords": [
-    "llm",
-    "ai",
-    "workflow",
-    "verification",
-    "architecture",
-    "risk",
-    "feasibility",
-    "synthesis",
-    "documentation",
-    "claude",
-    "gemini",
-    "cursor",
-    "copilot"
-  ],
+  "keywords": [],
   "author": "Deep Process Contributors",
   "license": "MIT",
   "engines": {
-    "node": ">=20.0.0"
-  },
-  "dependencies": {
-    "@inquirer/prompts": "^7.0.0",
-    "chalk": "^5.3.0",
-    "commander": "^12.0.0",
-    "ora": "^8.0.0",
-    "yaml": "^2.4.0"
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
     "typescript": "^5.4.0"
   }
 }

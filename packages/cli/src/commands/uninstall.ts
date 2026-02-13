@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { readConfig, getConfigPath } from '../core/config-manager.js';
+import { readConfig, getConfigPath } from '@deep-process/core';
 import { getAdapter, type ToolId } from '../adapters/index.js';
 import { log, createSpinner } from '../utils/logger.js';
 import { safeRemoveDir, safeRemoveFile } from '../utils/fs-helpers.js';

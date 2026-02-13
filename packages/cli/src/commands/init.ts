@@ -1,9 +1,9 @@
 import os from 'node:os';
 import path from 'node:path';
-import { loadAllManifests } from '../core/process-registry.js';
-import { copyProcessFiles } from '../core/file-copier.js';
-import { resolveProcessBaseDir, type PathContext } from '../core/path-resolver.js';
-import { createConfig, writeConfig, configExists } from '../core/config-manager.js';
+import { loadAllManifests } from '@deep-process/core';
+import { copyProcessFiles } from '@deep-process/core';
+import { resolveProcessBaseDir, type PathContext } from '@deep-process/core';
+import { createConfig, writeConfig, configExists } from '@deep-process/core';
 import { getAdapter, detectTools, isValidToolId, type ToolId } from '../adapters/index.js';
 import { runWizard, type WizardAnswers } from '../wizard/prompts.js';
 import { log, createSpinner } from '../utils/logger.js';

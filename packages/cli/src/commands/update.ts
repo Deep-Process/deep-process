@@ -1,10 +1,10 @@
 import os from 'node:os';
 import path from 'node:path';
-import { readConfig, writeConfig } from '../core/config-manager.js';
-import { loadAllManifests } from '../core/process-registry.js';
-import { checkForUpdates } from '../core/version-manager.js';
-import { copyProcessFiles } from '../core/file-copier.js';
-import { resolveProcessBaseDir, type PathContext } from '../core/path-resolver.js';
+import { readConfig, writeConfig } from '@deep-process/core';
+import { loadAllManifests } from '@deep-process/core';
+import { checkForUpdates } from '@deep-process/core';
+import { copyProcessFiles } from '@deep-process/core';
+import { resolveProcessBaseDir, type PathContext } from '@deep-process/core';
 import { getAdapter, type ToolId } from '../adapters/index.js';
 import { log, createSpinner } from '../utils/logger.js';
 

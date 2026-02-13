@@ -1,6 +1,6 @@
-import { readConfig } from '../core/config-manager.js';
-import { loadAllManifests } from '../core/process-registry.js';
-import { checkForUpdates } from '../core/version-manager.js';
+import { readConfig } from '@deep-process/core';
+import { loadAllManifests } from '@deep-process/core';
+import { checkForUpdates } from '@deep-process/core';
 import { log } from '../utils/logger.js';
 import chalk from 'chalk';
 

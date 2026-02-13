@@ -1,22 +1,22 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ToolAdapter, InstalledFile } from './base-adapter.js';
-import type { ProcessManifest } from '../core/process-registry.js';
-import type { PathContext } from '../core/path-resolver.js';
-import { buildTemplateVars } from '../core/path-resolver.js';
-import { renderTemplate } from '../core/template-engine.js';
+import type { ProcessManifest } from '@deep-process/core';
+import type { PathContext } from '@deep-process/core';
+import { buildTemplateVars } from '@deep-process/core';
+import { renderTemplate } from '@deep-process/core';
 import { safeWriteFile, safeRemoveFile, toPosixPath } from '../utils/fs-helpers.js';
 
 function loadTemplate(): string {
   return fs.readFileSync(
-    path.resolve(import.meta.dirname, '..', '..', 'templates', 'roo-code.md.tpl'),
+    path.resolve(import.meta.dirname, '..', '..', 'templates', 'cline.md.tpl'),
     'utf-8'
   );
 }
 
-export const rooCodeAdapter: ToolAdapter = {
-  id: 'roo-code',
-  displayName: 'Roo Code',
+export const clineAdapter: ToolAdapter = {
+  id: 'cline',
+  displayName: 'Cline',
 
   async install(processes, pathCtx, root) {
     const template = loadTemplate();
@@ -25,8 +25,7 @@ export const rooCodeAdapter: ToolAdapter = {
     for (const proc of processes) {
       const vars = buildTemplateVars(proc, pathCtx);
       const content = renderTemplate(template, vars);
-      const slug = proc.slashCommand;
-      const relPath = path.join('.roo', `rules-${slug}`, `${slug}.md`);
+      const relPath = path.join('.clinerules', `${proc.slashCommand}.md`);
       safeWriteFile(path.join(root, relPath), content);
       files.push({ path: toPosixPath(relPath), type: 'created' });
     }
@@ -41,11 +40,11 @@ export const rooCodeAdapter: ToolAdapter = {
   },
 
   async detect(root) {
-    const dir = path.join(root, '.roo');
+    const dir = path.join(root, '.clinerules');
     const exists = fs.existsSync(dir);
     return {
       detected: exists,
-      evidence: exists ? ['.roo/ directory exists'] : [],
+      evidence: exists ? ['.clinerules/ directory exists'] : [],
     };
   },
 };
