@@ -34,15 +34,15 @@ $dryRun -split "`n" | Where-Object { $_ -match "name:|version:|package size:|tot
 }
 
 # 4. Confirm and publish
-$confirm = Read-Host "`nPublish deep-process@$version to npm? (y/N)"
-if ($confirm -ne "y") {
+$otp = Read-Host "`nEnter npm OTP code (or 'n' to cancel)"
+if ($otp -eq "n" -or $otp -eq "") {
     Write-Host "Cancelled." -ForegroundColor Red
     exit 0
 }
 
-Write-Host "`nPublishing..." -ForegroundColor Yellow
+Write-Host "`nPublishing deep-process@$version..." -ForegroundColor Yellow
 $ErrorActionPreference = "SilentlyContinue"
-$pubOutput = npm publish --access public 2>&1 | Out-String
+$pubOutput = npm publish --access public --otp $otp 2>&1 | Out-String
 $pubExit = $LASTEXITCODE
 $ErrorActionPreference = "Stop"
 if ($pubExit -ne 0) {
