@@ -17,9 +17,43 @@ Deep Process fixes this by giving the LLM a structured protocol to follow - spec
 
 Each process produces a structured, evidence-based deliverable - not conversation, not hand-waving. Scored assessments, traceable findings, falsifiable conclusions. The kind of output you can actually act on.
 
+## Quick start
+
+```bash
+npx deep-process init
+```
+
+The interactive installer will:
+1. Copy process files to `_deep-process/` in your project
+2. Detect which AI tools you use (Claude, Gemini, Cursor, etc.)
+3. Generate properly configured commands for each tool
+4. Optionally add `_deep-process/` to `.gitignore`
+
+Then open your AI tool and run:
+
+```
+/deep-verify Check the API in src/api/ against the spec in docs/requirements.md
+```
+
+### Non-interactive mode
+
+```bash
+npx deep-process init --yes --tools claude,gemini
+```
+
+### Other commands
+
+```bash
+npx deep-process status       # Show what's installed
+npx deep-process add-tool cursor   # Add a tool integration
+npx deep-process remove-tool cursor # Remove a tool integration
+npx deep-process update       # Update processes to latest versions
+npx deep-process uninstall    # Remove everything
+```
+
 ## The processes
 
-### [Deep Verify](src/deep-verify/docs/README.md) - Check if something is correct
+### [Deep Verify](processes/deep-verify/docs/README.md) - Check if something is correct
 
 You wrote code, received a document, or generated something with an LLM. Is it actually correct? Deep Verify traces assumptions, finds contradictions, matches against impossibility patterns, and runs adversarial review on its own findings. Output: a structured report with exact quotes, a numeric score, and a verdict.
 
@@ -27,7 +61,7 @@ You wrote code, received a document, or generated something with an LLM. Is it a
 /deep-verify Check this API implementation against the requirements in docs/spec.md
 ```
 
-### [Deep Explore](src/deep-explore/docs/README.md) - Think through a decision
+### [Deep Explore](processes/deep-explore/docs/README.md) - Think through a decision
 
 You're stuck. You don't know what to do, or you have too many options and can't see clearly. Deep Explore separates facts from assumptions, discovers options you weren't considering, turns vague fears into specific concerns, and tells you when you're ready to decide.
 
@@ -35,7 +69,7 @@ You're stuck. You don't know what to do, or you have too many options and can't 
 /deep-explore Should we build this in-house or buy an existing solution?
 ```
 
-### [Deep Architect](src/deep-architect/docs/README.md) - Design software architecture
+### [Deep Architect](processes/deep-architect/docs/README.md) - Design software architecture
 
 You need to build something and you need a solid plan. Deep Architect runs 16 operations - 8 that build the design (decomposition, boundaries, dependencies...) and 8 that try to break it (STRIDE, FMEA, anti-patterns, pre-mortem...). The adversarial phase is where the real value is.
 
@@ -43,7 +77,7 @@ You need to build something and you need a solid plan. Deep Architect runs 16 op
 /deep-architect Design the architecture for a real-time notification service
 ```
 
-### [Deep Feasibility](src/deep-feasibility/docs/README.md) - Find out if it can be done
+### [Deep Feasibility](processes/deep-feasibility/docs/README.md) - Find out if it can be done
 
 Before committing resources, find out if the plan is realistic. Deep Feasibility checks 10 dimensions (technical, resource, knowledge, organizational, temporal, compositional, economic, scale, cognitive, dependency) and gives you a GO / CONDITIONAL GO / NO-GO verdict with confidence levels. Includes planning fallacy detection.
 
@@ -51,7 +85,7 @@ Before committing resources, find out if the plan is realistic. Deep Feasibility
 /deep-feasibility Can we migrate to microservices in 6 months with a team of 4?
 ```
 
-### [Deep Risk](src/deep-risk/docs/README.md) - Find the risks you're not seeing
+### [Deep Risk](processes/deep-risk/docs/README.md) - Find the risks you're not seeing
 
 Standard risk lists are useless. Deep Risk discovers risks through theory-grounded analysis, scores them on 5 dimensions (probability, impact, velocity, detectability, reversibility), and - critically - maps how risks interact, cascade, and amplify each other. Includes Cobra Effect checks on proposed mitigations.
 
@@ -59,7 +93,7 @@ Standard risk lists are useless. Deep Risk discovers risks through theory-ground
 /deep-risk Assess the risks of our cloud migration project
 ```
 
-### [Deep Synthesis](src/deep-synthesis/docs/README.md) - Turn sources into understanding
+### [Deep Synthesis](processes/deep-synthesis/docs/README.md) - Turn sources into understanding
 
 You have multiple sources, perspectives, or knowledge fragments. You need to understand what they mean *together*, not just what each one says. Deep Synthesis finds patterns across sources, resolves contradictions by finding the conditions under which each view is correct, and produces compressed understanding that passes the Shannon Test: does this insight require combining sources?
 
@@ -67,7 +101,7 @@ You have multiple sources, perspectives, or knowledge fragments. You need to und
 /deep-synthesis Synthesize these research papers on distributed consensus approaches
 ```
 
-### [Deep Document](src/deep-document/docs/README.md) - Generate documentation from code
+### [Deep Document](processes/deep-document/docs/README.md) - Generate documentation from code
 
 You need documentation, but you need it to be *accurate*. Deep Document inventories the codebase, extracts domain ontology, plans the docs, gathers evidence (file + line number for every claim), and then generates. Every statement in the output traces back to actual code. It won't make things up.
 
@@ -75,47 +109,37 @@ You need documentation, but you need it to be *accurate*. Deep Document inventor
 /deep-document
 ```
 
-## Getting started
-
-**1. Clone this repo into your project directory:**
-
-```bash
-git clone <repo-url>
-```
-
-**2. Open your LLM tool in the cloned directory and run a slash command:**
-
-```
-/deep-verify Check the API in src/api/ against the spec in docs/requirements.md
-```
-
-That's it. No installation, no configuration, no extra dependencies. The commands are pre-configured and work immediately after cloning.
-
 ## Supported tools
 
-All commands work out of the box - just clone and run:
+The installer generates commands for **11 AI tools**:
 
-| Tool | How to use |
-|------|-----------|
-| **Claude Code** | Type `/deep-verify`, `/deep-explore`, `/deep-architect`, `/deep-feasibility`, `/deep-risk`, `/deep-synthesis`, `/deep-document` followed by what you want to analyze |
-| **Gemini CLI** | Same slash commands as above |
-| **Cursor** | Same slash commands as above |
-| **Continue.dev** | Same slash commands as above |
-| **GitHub Copilot** | Use as agent: `@deep-verify`, `@deep-explore`, `@deep-architect`, `@deep-feasibility`, `@deep-risk`, `@deep-synthesis`, `@deep-document` |
-| **OpenAI Codex, Google Jules, and other AGENTS.md-compatible tools** | Workflows are auto-discovered from `AGENTS.md` at the repo root |
-| **Any other LLM tool** | Point it at the workflow file: `Read and follow the process in src/deep-verify/workflow.md to verify [what you want to check]` |
+| Tool | Format | Generated files |
+|------|--------|----------------|
+| **Claude Code** | Markdown | `.claude/commands/*.md` |
+| **Gemini CLI** | TOML | `.gemini/commands/*.toml` |
+| **Cursor** | Markdown | `.cursor/commands/*.md` |
+| **Continue.dev** | Prompt | `.continue/prompts/*.prompt` |
+| **GitHub Agents** | Markdown | `.github/agents/*.agent.md` |
+| **AGENTS.md** | Markdown | `AGENTS.md` (marker-based) |
+| **Cline** | Markdown | `.clinerules/*.md` |
+| **Windsurf** | Markdown | `.windsurf/rules/*.md` |
+| **Roo Code** | Markdown | `.roo/rules-{slug}/*.md` |
+| **GitHub Copilot** | Markdown | `.github/copilot-instructions.md` (marker-based) |
+| **Aider** | Markdown + YAML | `.aider/conventions/*.md` + `.aider.conf.yml` |
+
+Auto-detection: The installer scans your project for existing tool configurations and pre-selects detected tools.
 
 ## Which process do I need?
 
 | You're thinking... | Use this |
 |---|---|
-| "Is this code/document actually correct?" | [Deep Verify](src/deep-verify/docs/README.md) |
-| "I don't know what to do" | [Deep Explore](src/deep-explore/docs/README.md) |
-| "I need to design this system" | [Deep Architect](src/deep-architect/docs/README.md) |
-| "Can we actually pull this off?" | [Deep Feasibility](src/deep-feasibility/docs/README.md) |
-| "What could go wrong?" | [Deep Risk](src/deep-risk/docs/README.md) |
-| "I have lots of info but no understanding" | [Deep Synthesis](src/deep-synthesis/docs/README.md) |
-| "We need proper documentation" | [Deep Document](src/deep-document/docs/README.md) |
+| "Is this code/document actually correct?" | [Deep Verify](processes/deep-verify/docs/README.md) |
+| "I don't know what to do" | [Deep Explore](processes/deep-explore/docs/README.md) |
+| "I need to design this system" | [Deep Architect](processes/deep-architect/docs/README.md) |
+| "Can we actually pull this off?" | [Deep Feasibility](processes/deep-feasibility/docs/README.md) |
+| "What could go wrong?" | [Deep Risk](processes/deep-risk/docs/README.md) |
+| "I have lots of info but no understanding" | [Deep Synthesis](processes/deep-synthesis/docs/README.md) |
+| "We need proper documentation" | [Deep Document](processes/deep-document/docs/README.md) |
 
 ## How they work together
 
