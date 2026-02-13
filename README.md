@@ -1,5 +1,8 @@
 # Deep Process
 
+![Deep Process Logo](img/logo_small.png)
+
+
 A collection of structured workflows that make LLMs actually think instead of just respond.
 
 ## Why this exists
