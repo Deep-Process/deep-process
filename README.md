@@ -75,15 +75,45 @@ You need documentation, but you need it to be *accurate*. Deep Document inventor
 /deep-document
 ```
 
-## How to run them
+## Getting started
 
-You need an LLM CLI tool. The processes work with:
+**1. Clone or copy this repo into your project:**
 
-- **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** - slash commands are pre-configured, just type `/deep-verify`, `/deep-explore`, etc.
-- **[Gemini CLI](https://github.com/google-gemini/gemini-cli)** - slash commands are pre-configured, just type `/deep-verify`, `/deep-explore`, etc.
-- **Any LLM CLI** - point it at the workflow file directly: `Use the process in src/deep-verify/workflow.md to verify [target]`
+```bash
+git clone https://github.com/anthropics/deep-process.git
+```
 
-That's it. No installation, no dependencies, no API keys beyond what your CLI already uses. The processes are just structured prompts - markdown files that tell the LLM what to do and in what order.
+Or just copy the `src/` folder into your project directory - whatever works for you.
+
+**2. Run with an LLM CLI from the project root:**
+
+**Claude Code** or **Gemini CLI** - slash commands are already configured. Just open the CLI in the directory where you cloned the repo and type:
+
+```
+/deep-verify Check the API in src/api/ against the spec in docs/requirements.md
+```
+
+```
+/deep-risk Assess the risks of migrating our database to PostgreSQL
+```
+
+```
+/deep-explore Should we rewrite this service in Rust or optimize the existing Go code?
+```
+
+**Any other LLM CLI** (Aider, Cursor, etc.) - point the LLM at the workflow file and tell it what you want:
+
+```
+Read and follow the process in src/deep-verify/workflow.md to verify my authentication module in src/auth/
+```
+
+```
+Use src/deep-risk/workflow.md to assess the risks of our cloud migration plan described in docs/migration-plan.md
+```
+
+The key is: point the LLM at the `workflow.md` file for the process you want, and tell it what to analyze. The workflow file contains all the instructions the LLM needs to execute the process step by step.
+
+No installation, no dependencies, no API keys beyond what your CLI already uses. The processes are just structured prompts - markdown files that tell the LLM what to do and in what order.
 
 ## Which process do I need?
 
