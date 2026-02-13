@@ -29,7 +29,7 @@ The output is a structured report with exact quotes and a numeric score, not jus
 You need an LLM CLI like Claude Code, Gemini CLI, or similar.
 
 ```
-Use the process in src/core/deep-verify/workflow.md to verify path/to/file.py
+Use the process in src/deep-verify/workflow.md to verify path/to/file.py
 ```
 
 Or with specific focus:
@@ -71,18 +71,6 @@ IMPORTANT: "Forward secrecy" used inconsistently
   No such standard term exists
 
 Adversarial review: 0/4 challenges weakened these findings
-```
-
-## Project structure
-
-```
-src/core/deep-verify/
-├── workflow.md              # Main workflow (point the LLM here)
-├── data/
-│   ├── pattern-library.yaml # Known impossibility patterns
-│   ├── method-procedures/   # Individual verification methods
-│   └── report-template.md   # Output format
-└── steps/                   # Detailed phase documentation
 ```
 
 ## Works well with

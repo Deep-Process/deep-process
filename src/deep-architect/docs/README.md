@@ -1,123 +1,99 @@
-# Deep Explore
-![Deep Explore Logo](img/logo_small.png)
+# Deep Architect
 
-A structured decision exploration workflow for LLM-assisted thinking.
+A structured architecture design workflow that takes you from a vague idea to a verified, executable architecture plan.
 
 ## The problem
 
-When I face important decisions, I often get stuck. Not because I lack options, but because I can't see them clearly.
+When I asked LLMs to "design the architecture" for a project, I'd get something that looked professional but fell apart under scrutiny. The component diagram would look clean, but responsibilities would overlap. The API design would seem reasonable, but the dependency graph would have hidden cycles. The quality attributes would be listed, but nobody had checked if they actually conflicted with each other.
 
-I'd think about a career change and spiral into "what ifs." I'd consider a business idea and get blocked by vague fears I couldn't name. I'd try to choose between technologies and realize I didn't even know what questions to ask.
-
-The usual approaches didn't help. Pro/con lists felt shallow. Talking to friends gave me their biases, not clarity. And when I asked an LLM for help, it would either give me a generic framework or just agree with whatever I was already thinking.
-
-I needed a way to actually explore the decision space - to find out what I don't know, test my assumptions, and see options I wasn't considering.
+The real issue wasn't that the LLM couldn't think about architecture. It's that architecture requires adversarial thinking - someone needs to try to break the design before it gets built. LLMs default to being helpful and agreeable, which is exactly the wrong mode for finding structural flaws.
 
 ## What this is
 
-Deep Explore is a prompt-based workflow that forces the LLM to systematically explore a decision by:
+Deep Architect is a prompt-based workflow that forces the LLM to design software architecture through 16 operations - 8 that build the design, and 8 that try to break it:
 
-1. Separating what you know from what you assume (and testing those assumptions)
-2. Discovering dimensions of choice you hadn't considered
-3. Mapping consequences - marking which are verified vs. which are guesses
-4. Challenging your thinking with premortem analysis and bias checks
-5. Turning vague fears into structured, addressable concerns
+1. **Build phase (8 canonical operations):** Decomposition, boundary definition, relationship mapping, responsibility assignment, dependency analysis, pattern selection, quality attribute analysis, interface design
+2. **Break phase (8 adversarial operations):** STRIDE threat modeling, FMEA failure analysis, bottleneck detection, anti-pattern scanning, complexity assessment, compliance checking, pre-mortem analysis, trade-off validation
+3. **Validation:** The top 10 critical issues get verified, not just listed
+4. **Verification:** The final architecture is checked against the original requirements
 
-The output is understanding, not a recommendation. You still decide - but now you can see clearly.
+The output is a complete architecture model with artifacts, trade-off analysis, and a verification report - not a hand-wavy diagram.
 
 ## How to use it
 
 You need an LLM CLI like Claude Code, Gemini CLI, or similar.
 
-```
-Use the process in src/core/deep-explore/workflow.md to explore [your decision]
-```
-
-Or with more context:
+**Quickest way** - use the built-in slash command:
 
 ```
-I'm considering leaving my job to start a company. Use Deep Explore to help me think through this.
+/deep-architect I need to design a microservices architecture for an e-commerce platform
 ```
 
-## What it helped me with
+Or point the LLM to the workflow directly:
 
-**Seeing options I was blind to.** I was stuck between "stay at job" and "quit to start a company." Deep Explore surfaced a third path: keep the job but reduce hours and test the idea on weekends. Obvious in hindsight, invisible when I was trapped in binary thinking.
+```
+Use the process in src/deep-architect/workflow.md to design the architecture for my project
+```
 
-**Naming my fears.** "I'm afraid it won't work" became a list of specific concerns: runway length, co-founder availability, market timing. Some were false walls (I had more savings than I thought). Some were real risks I could plan for. The vague dread became a checklist.
-
-**Finding what I didn't know I didn't know.** I assumed I needed VC funding. Research revealed that similar companies had bootstrapped successfully. That changed the whole decision calculus.
-
-**Knowing when I was ready to decide.** Instead of endless deliberation, I got a clear signal: these three things are verified, these two are still assumptions, here's how to test them. Decision readiness, not decision paralysis.
+The process will start by assessing your context (domain, team size, stability requirements) and then walk through each phase interactively.
 
 ## What it's good at
 
-- Turning "I don't know where to start" into a structured exploration
-- Finding hidden assumptions and testing them
-- Transforming vague fears into specific, addressable concerns
-- Discovering options you weren't considering
-- Showing you what's verified vs. what's still a guess
+- Turning a rough idea into a structured, defensible architecture
+- Finding conflicts between quality attributes before they become problems
+- Catching dependency cycles, responsibility overlaps, and boundary violations
+- Stress-testing designs with threat modeling and failure analysis
+- Producing architecture artifacts that can actually guide implementation
 
 ## Limitations
 
 This isn't magic. Some things to know:
 
-- **It explores, it doesn't decide.** You still have to make the call. Deep Explore gives you clarity, not answers.
-- **Scope matters.** "What should I do with my life?" is too broad. "Should I take this job offer?" is about right.
-- **Garbage in, garbage out.** If you're not honest about your fears and assumptions, the exploration won't help.
-- **LLM limitations apply.** Domain-specific facts should be verified independently. The structure is reliable; the content depends on the model's knowledge.
+- **Scope matters.** It works best for a single system or service. Trying to architect an entire enterprise in one pass will hit depth limits.
+- **It needs input.** The better you describe your constraints (team size, timeline, existing tech), the better the output. Vague briefs produce generic architectures.
+- **Adversarial phase takes time.** The 8 adversarial operations are thorough. If you're in a hurry, you might be tempted to skip them - don't. That's where the real value is.
+- **LLM limitations apply.** Domain-specific architectural patterns (e.g., telecom, medical devices) depend on the model's training data. Verify against domain standards.
 
 ## Example output
 
 ```
-DECISION: Whether to transition from employee to founder
+ARCHITECTURE: E-commerce Order Processing Service
 
-KEY DISCOVERIES:
-• Runway requirement is 18 months, not 12 (verified via market research)
-• Co-founder network stronger than assumed (3 viable candidates identified)
-• Biggest risk is not failure but "zombie startup" - neither succeeding nor failing
+CANONICAL OPERATIONS COMPLETED: 8/8
+  Decomposition: 6 bounded contexts identified
+  Boundaries: API gateway, event bus, 3 internal boundaries
+  Dependencies: 14 edges, 0 cycles detected
 
-STRATEGIC CLUSTERS:
-Cluster A: "Full Leap" - quit, raise funding, build fast
-  Trade-off: Maximum commitment, highest risk, fastest learning
+ADVERSARIAL FINDINGS:
+  STRIDE: 3 threats (2 mitigated, 1 accepted with monitoring)
+  FMEA: Payment timeout cascade - RPN 280 (HIGH)
+  Anti-pattern: Distributed monolith risk in inventory-order coupling
 
-Cluster B: "Staged Transition" - side project → traction → transition
-  Trade-off: Lower risk, slower progress, split attention
+TRADE-OFF ANALYSIS:
+  Consistency vs. Availability: Chose eventual consistency for order status
+  Latency vs. Throughput: Async processing for non-critical paths
 
-FEAR RESOLUTION:
-• "I'll lose everything" → FALSE WALL (savings cover 2 years worst case)
-• "I'm not ready" → COGNITIVE (20+ people with less experience have succeeded)
-• "Market timing" → TRUE UNCERTAINTY (accept and monitor)
-
-READINESS: Ready to decide on timing. Need more research on co-founder fit.
-```
-
-## Project structure
-
-```
-src/core/deep-explore/
-├── workflow.md              # Main workflow (point the LLM here)
-├── methods.csv              # All methods with descriptions
-├── data/
-│   ├── method-procedures/   # Individual method procedures
-│   ├── exploration-report-template.md
-│   └── research-methods.md
-└── steps/                   # Detailed step documentation
+VERDICT: ARCHITECTURE VALIDATED (7 of 10 critical issues resolved, 3 accepted)
 ```
 
 ## Works well with
 
-- Career decisions (job changes, pivots, entrepreneurship)
-- Business choices (strategy, partnerships, product direction)
-- Technology selection (when "it depends" is the initial answer)
-- Any decision where you feel stuck or overwhelmed
+- Greenfield projects that need solid foundations
+- Major refactoring efforts (design the target state first)
+- System design reviews (run adversarial phase on existing architecture)
+- Technical proposals that need rigor before presenting to stakeholders
 
 ## Related processes
 
 | Process | Purpose | When to use |
 |---------|---------|-------------|
-| **Deep Explore** | Explore decision space | You don't know what to do |
+| **Deep Architect** | Design architecture | You need to build something |
 | **Deep Verify** | Verify artifact correctness | You have something to check |
+| **Deep Feasibility** | Assess feasibility | You're not sure it can be done |
 | **Deep Risk** | Assess risks of a plan | You have a plan, want to stress-test it |
+| **Deep Explore** | Explore decision space | You don't know what to do |
+| **Deep Synthesis** | Synthesize knowledge | You have many sources, need understanding |
+| **Deep Document** | Generate documentation | You need structured docs from a codebase |
 
 ## License
 

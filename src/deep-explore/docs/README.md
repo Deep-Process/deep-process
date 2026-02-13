@@ -30,7 +30,7 @@ The output is understanding, not a recommendation. You still decide - but now yo
 You need an LLM CLI like Claude Code, Gemini CLI, or similar.
 
 ```
-Use the process in src/core/deep-explore/workflow.md to explore [your decision]
+Use the process in src/deep-explore/workflow.md to explore [your decision]
 ```
 
 Or with more context:
@@ -89,19 +89,6 @@ FEAR RESOLUTION:
 • "Market timing" → TRUE UNCERTAINTY (accept and monitor)
 
 READINESS: Ready to decide on timing. Need more research on co-founder fit.
-```
-
-## Project structure
-
-```
-src/core/deep-explore/
-├── workflow.md              # Main workflow (point the LLM here)
-├── methods.csv              # All methods with descriptions
-├── data/
-│   ├── method-procedures/   # Individual method procedures
-│   ├── exploration-report-template.md
-│   └── research-methods.md
-└── steps/                   # Detailed step documentation
 ```
 
 ## Works well with

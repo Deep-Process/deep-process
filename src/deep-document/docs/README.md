@@ -1,123 +1,102 @@
-# Deep Explore
-![Deep Explore Logo](img/logo_small.png)
+# Deep Document
+![Deep Document Logo](img/logo_small.png)
 
-A structured decision exploration workflow for LLM-assisted thinking.
+A structured documentation generation workflow that produces complete, evidence-based documentation from any codebase.
 
 ## The problem
 
-When I face important decisions, I often get stuck. Not because I lack options, but because I can't see them clearly.
+When I asked LLMs to "write documentation for this project," I'd get something that was either a shallow overview that restated the README, or a hallucinated deep-dive that described code that didn't exist. The LLM would invent API endpoints, make up configuration options, and describe architectural patterns that weren't actually in the codebase.
 
-I'd think about a career change and spiral into "what ifs." I'd consider a business idea and get blocked by vague fears I couldn't name. I'd try to choose between technologies and realize I didn't even know what questions to ask.
+Even when the output was accurate, it was rarely useful. A giant wall of text with no structure, no cross-references, and no way to tell which parts were based on actual code analysis vs. the model guessing.
 
-The usual approaches didn't help. Pro/con lists felt shallow. Talking to friends gave me their biases, not clarity. And when I asked an LLM for help, it would either give me a generic framework or just agree with whatever I was already thinking.
-
-I needed a way to actually explore the decision space - to find out what I don't know, test my assumptions, and see options I wasn't considering.
+I needed documentation that was grounded in evidence - every claim traceable to a specific file and line number.
 
 ## What this is
 
-Deep Explore is a prompt-based workflow that forces the LLM to systematically explore a decision by:
+Deep Document is a prompt-based workflow that forces the LLM to generate documentation through a systematic, evidence-first pipeline:
 
-1. Separating what you know from what you assume (and testing those assumptions)
-2. Discovering dimensions of choice you hadn't considered
-3. Mapping consequences - marking which are verified vs. which are guesses
-4. Challenging your thinking with premortem analysis and bias checks
-5. Turning vague fears into structured, addressable concerns
+1. **Inventory the codebase** - scan files, detect technologies, build a map of what actually exists
+2. **Extract ontology** - identify the domain concepts, their relationships, and the vocabulary the code uses
+3. **Analyze templates** - match the codebase against documentation templates to determine what's relevant
+4. **Plan before writing** - create a documentation plan and get your approval before generating anything
+5. **Gather evidence** - collect specific code references (file, line, quote) for every claim
+6. **Generate with citations** - produce documentation where every statement links back to source code
 
-The output is understanding, not a recommendation. You still decide - but now you can see clearly.
+The output is structured documentation with evidence maps, not prose generated from vibes.
 
 ## How to use it
 
 You need an LLM CLI like Claude Code, Gemini CLI, or similar.
 
-```
-Use the process in src/core/deep-explore/workflow.md to explore [your decision]
-```
-
-Or with more context:
+**Quickest way** - use the built-in slash command:
 
 ```
-I'm considering leaving my job to start a company. Use Deep Explore to help me think through this.
+/deep-document
 ```
 
-## What it helped me with
+It will scan for existing projects or offer to start a new one. Or point it at a specific codebase:
 
-**Seeing options I was blind to.** I was stuck between "stay at job" and "quit to start a company." Deep Explore surfaced a third path: keep the job but reduce hours and test the idea on weekends. Obvious in hindsight, invisible when I was trapped in binary thinking.
+```
+/deep-document Generate documentation for the src/api/ directory
+```
 
-**Naming my fears.** "I'm afraid it won't work" became a list of specific concerns: runway length, co-founder availability, market timing. Some were false walls (I had more savings than I thought). Some were real risks I could plan for. The vague dread became a checklist.
-
-**Finding what I didn't know I didn't know.** I assumed I needed VC funding. Research revealed that similar companies had bootstrapped successfully. That changed the whole decision calculus.
-
-**Knowing when I was ready to decide.** Instead of endless deliberation, I got a clear signal: these three things are verified, these two are still assumptions, here's how to test them. Decision readiness, not decision paralysis.
+The process is interactive - it will show you the documentation plan and ask for approval before generating content.
 
 ## What it's good at
 
-- Turning "I don't know where to start" into a structured exploration
-- Finding hidden assumptions and testing them
-- Transforming vague fears into specific, addressable concerns
-- Discovering options you weren't considering
-- Showing you what's verified vs. what's still a guess
+- Producing documentation that's actually grounded in the code (not hallucinated)
+- Detecting project type automatically (serverless, Terraform, standard app, etc.)
+- Creating cross-referenced docs with evidence trails
+- Resuming interrupted documentation sessions (it saves state)
+- Handling multi-technology projects (detects languages, frameworks, patterns)
 
 ## Limitations
 
 This isn't magic. Some things to know:
 
-- **It explores, it doesn't decide.** You still have to make the call. Deep Explore gives you clarity, not answers.
-- **Scope matters.** "What should I do with my life?" is too broad. "Should I take this job offer?" is about right.
-- **Garbage in, garbage out.** If you're not honest about your fears and assumptions, the exploration won't help.
-- **LLM limitations apply.** Domain-specific facts should be verified independently. The structure is reliable; the content depends on the model's knowledge.
+- **It takes time.** Thorough documentation requires reading a lot of code. For large codebases, expect multiple sessions.
+- **It's conservative.** It won't document what it can't verify. This means some implicit behaviors might be missed, but nothing will be made up.
+- **Template-driven.** The output follows predefined templates (architecture, API reference, deployment guide, etc.). Good for standard docs, less flexible for unusual formats.
+- **Requires reviews.** The process has built-in review checkpoints. Skipping them reduces quality.
 
 ## Example output
 
 ```
-DECISION: Whether to transition from employee to founder
+DEEP DOCUMENT — SESSION STATUS
 
-KEY DISCOVERIES:
-• Runway requirement is 18 months, not 12 (verified via market research)
-• Co-founder network stronger than assumed (3 viable candidates identified)
-• Biggest risk is not failure but "zombie startup" - neither succeeding nor failing
+Repository: my-api-service
+State: EVIDENCE_GATHERING (Step 8 of 15)
+Coverage: 73% of planned sections have evidence
 
-STRATEGIC CLUSTERS:
-Cluster A: "Full Leap" - quit, raise funding, build fast
-  Trade-off: Maximum commitment, highest risk, fastest learning
+DOCUMENTATION PLAN (approved):
+  [1] Project Overview        — 12 evidence items collected
+  [2] Architecture            — 8 evidence items, 2 gaps identified
+  [3] API Reference           — 23 endpoints documented (verified)
+  [4] Data Models             — 7 models with field-level docs
+  [5] Deployment Guide        — 4 evidence items, needs review
 
-Cluster B: "Staged Transition" - side project → traction → transition
-  Trade-off: Lower risk, slower progress, split attention
-
-FEAR RESOLUTION:
-• "I'll lose everything" → FALSE WALL (savings cover 2 years worst case)
-• "I'm not ready" → COGNITIVE (20+ people with less experience have succeeded)
-• "Market timing" → TRUE UNCERTAINTY (accept and monitor)
-
-READINESS: Ready to decide on timing. Need more research on co-founder fit.
-```
-
-## Project structure
-
-```
-src/core/deep-explore/
-├── workflow.md              # Main workflow (point the LLM here)
-├── methods.csv              # All methods with descriptions
-├── data/
-│   ├── method-procedures/   # Individual method procedures
-│   ├── exploration-report-template.md
-│   └── research-methods.md
-└── steps/                   # Detailed step documentation
+EVIDENCE QUALITY:
+  Direct code reference: 87%
+  Config file reference: 9%
+  Inferred (marked):     4%
 ```
 
 ## Works well with
 
-- Career decisions (job changes, pivots, entrepreneurship)
-- Business choices (strategy, partnerships, product direction)
-- Technology selection (when "it depends" is the initial answer)
-- Any decision where you feel stuck or overwhelmed
+- Onboarding new team members (generate project overview + architecture docs)
+- Open source projects that need proper documentation
+- Legacy codebases where knowledge has been lost
+- Pre-audit documentation (everything is evidence-backed)
+- API documentation with verified endpoint listings
 
 ## Related processes
 
 | Process | Purpose | When to use |
 |---------|---------|-------------|
-| **Deep Explore** | Explore decision space | You don't know what to do |
-| **Deep Verify** | Verify artifact correctness | You have something to check |
-| **Deep Risk** | Assess risks of a plan | You have a plan, want to stress-test it |
+| **Deep Document** | Generate documentation | You need structured docs from a codebase |
+| **Deep Verify** | Verify artifact correctness | You have docs to check for accuracy |
+| **Deep Architect** | Design architecture | You need to design before documenting |
+| **Deep Explore** | Explore decision space | You're not sure what to document |
 
 ## License
 
