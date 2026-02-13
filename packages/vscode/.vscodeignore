@@ -8,6 +8,8 @@ vsc-extension-quickstart.md
 **/.eslintrc.json
 **/*.map
 **/*.ts
+esbuild.js
 !dist/**/*.js
 node_modules/**
 pnpm-lock.yaml
+PUBLISHING.md
