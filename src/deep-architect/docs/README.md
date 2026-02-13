@@ -1,5 +1,7 @@
 # Deep Architect
 
+![Deep Architect Logo](img/logo_small.png)
+
 A structured architecture design workflow that takes you from a vague idea to a verified, executable architecture plan.
 
 ## The problem
