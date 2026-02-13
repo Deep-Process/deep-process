@@ -1,4 +1,5 @@
 # Deep Synthesis
+![Deep Synthesis Logo](img/logo_small.png)
 
 A structured knowledge synthesis workflow that turns multiple sources and perspectives into genuine understanding - not just a summary.
 

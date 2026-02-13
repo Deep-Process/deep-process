@@ -1,4 +1,5 @@
 # Deep Risk
+![Deep Risk Logo](img/logo_small.png)
 
 A structured risk assessment workflow that finds the risks you're not thinking about - and the ways they interact.
 

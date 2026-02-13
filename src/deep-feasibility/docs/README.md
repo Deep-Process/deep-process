@@ -1,4 +1,5 @@
 # Deep Feasibility
+![Deep Feasibility Logo](img/logo_small.png)
 
 A structured feasibility assessment workflow that tells you whether something can actually be done - and where the real blockers are.
 
