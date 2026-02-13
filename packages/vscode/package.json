@@ -148,6 +148,7 @@
   },
   "scripts": {
     "vscode:prepublish": "pnpm run build",
+    "prebuild": "node scripts/copy-processes.js",
     "build": "node esbuild.js --production",
     "compile": "tsc -p ./",
     "watch": "node esbuild.js --watch",

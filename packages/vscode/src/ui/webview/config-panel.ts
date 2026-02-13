@@ -30,6 +30,9 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
         case 'saveConfig':
           this._saveConfig(data.enabledTools);
           break;
+        case 'install':
+          this._saveAndInstall(data.enabledTools);
+          break;
       }
     });
 
@@ -56,6 +59,14 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
     vscode.window.showInformationMessage(
       `Saved! ${enabledTools.length} tool(s) enabled. Run "Deep Process: Install" to set up.`
     );
+  }
+
+  private async _saveAndInstall(enabledTools: string[]) {
+    const config = vscode.workspace.getConfiguration('deep-process');
+    await config.update('enabledTools', enabledTools, vscode.ConfigurationTarget.Workspace);
+
+    // Trigger install command
+    vscode.commands.executeCommand('deep-process.install');
   }
 
   private _getHtmlForWebview(webview: vscode.Webview): string {
@@ -255,13 +266,9 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
 
     document.getElementById('install-btn').addEventListener('click', () => {
       vscode.postMessage({
-        type: 'saveConfig',
+        type: 'install',
         enabledTools
       });
-      // Trigger install command
-      setTimeout(() => {
-        vscode.postMessage({ type: 'install' });
-      }, 500);
     });
   </script>
 </body>

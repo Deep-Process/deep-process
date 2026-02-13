@@ -14,14 +14,15 @@ export function detectTools(): DetectedTool[] {
 
   // Detect VS Code extensions
   tools.push(detectExtension('GitHub.copilot', 'GitHub Copilot'));
+  tools.push(detectExtension('GitHub.copilot-chat', 'GitHub Copilot Chat'));
   tools.push(detectExtension('continue.continue', 'Continue.dev'));
   tools.push(detectExtension('saoudrizwan.claude-dev', 'Cline'));
   tools.push(detectExtension('Windsurf.windsurf', 'Windsurf'));
   tools.push(detectExtension('RooVetGit.roo-cline', 'Roo Code'));
 
-  // Detect CLI tools
+  // Detect CLI tools (try multiple command variations)
   tools.push(detectCLI('claude', 'Claude CLI'));
-  tools.push(detectCLI('gemini', 'Gemini CLI'));
+  tools.push(detectCLIMultiple(['gemini', 'gemini-cli', 'gcloud', 'google-gemini'], 'Gemini CLI'));
 
   return tools;
 }
@@ -61,6 +62,36 @@ function detectCLI(command: string, name: string): DetectedTool {
       detected: false
     };
   }
+}
+
+function detectCLIMultiple(commands: string[], name: string): DetectedTool {
+  for (const command of commands) {
+    try {
+      const version = execSync(`${command} --version`, {
+        encoding: 'utf-8',
+        timeout: 3000,
+        stdio: ['pipe', 'pipe', 'ignore']
+      }).trim();
+
+      return {
+        id: command,
+        name,
+        type: 'cli',
+        detected: true,
+        version
+      };
+    } catch {
+      // Try next command
+    }
+  }
+
+  // None worked
+  return {
+    id: commands[0],
+    name,
+    type: 'cli',
+    detected: false
+  };
 }
 
 export function getDetectedToolIds(tools: DetectedTool[]): string[] {

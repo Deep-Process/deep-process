@@ -1,6 +1,7 @@
 .vscode/**
 .vscode-test/**
 src/**
+scripts/**
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md
@@ -10,6 +11,9 @@ vsc-extension-quickstart.md
 **/*.ts
 esbuild.js
 !dist/**/*.js
+!processes/**
 node_modules/**
 pnpm-lock.yaml
 PUBLISHING.md
+TESTING.md
+BUILD.md

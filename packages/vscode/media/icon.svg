@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <!-- Background circle -->
+  <circle cx="12" cy="12" r="11" fill="#007ACC" opacity="0.1"/>
+
+  <!-- Checkmark -->
+  <path
+    d="M6 12 L10 16 L18 8"
+    stroke="#007ACC"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+
+  <!-- Process lines -->
+  <g stroke="#007ACC" stroke-width="1.5" opacity="0.5">
+    <line x1="4" y1="5" x2="10" y2="5"/>
+    <line x1="4" y1="9" x2="8" y2="9"/>
+    <line x1="14" y1="17" x2="20" y2="17"/>
+    <line x1="14" y1="21" x2="18" y2="21"/>
+  </g>
+</svg>
