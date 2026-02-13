@@ -1,0 +1,284 @@
+# Theoretical Foundations for Deep Synthesis V1.0
+# PURPOSE: Document the epistemological and methodological foundations
+
+---
+foundations:
+
+  # EPISTEMOLOGY — How Knowledge Is Created
+  epistemology:
+    - id: "E01"
+      name: "Hegel's Dialectic"
+      year: 1807
+      principle: "Thesis + Antithesis → Synthesis"
+      description: |
+        The foundational model of synthesis. Contradiction is not a problem
+        to eliminate — it is the ENGINE of synthesis. Sources that disagree
+        are more valuable than sources that agree.
+      applied_in:
+        - "#302 Dialectical Tension Mapping"
+        - "#401 Dialectical Integration"
+
+    - id: "E02"
+      name: "Piaget — Assimilation and Accommodation"
+      year: 1952
+      principle: "New knowledge either fits existing models or changes them"
+      description: |
+        Assimilation: Fitting new information into existing mental models.
+        Accommodation: Changing mental models to fit new information.
+        Synthesis requires BOTH. Error: always assimilating without accommodating.
+      applied_in:
+        - "#401 Dialectical Integration"
+        - "#402 Framework Unification"
+
+    - id: "E03"
+      name: "Bloom's Taxonomy — Revised"
+      year: 2001
+      authors: "Anderson & Krathwohl"
+      principle: "Synthesis operates at the highest cognitive level: CREATE"
+      description: |
+        Remember → Understand → Apply → Analyze → Evaluate → CREATE
+        Synthesis is not possible without prior analysis. The process must
+        include analytical decomposition BEFORE integrative synthesis.
+      applied_in:
+        - "Phase sequencing: DECOMPOSE before INTEGRATE"
+
+    - id: "E04"
+      name: "Polanyi — Tacit Knowledge"
+      year: 1966
+      principle: "We know more than we can tell"
+      description: |
+        Some knowledge resists explicit articulation. Sources may contain
+        tacit knowledge not captured in explicit claims. Experts may synthesize
+        intuitively but can't articulate the synthesis.
+      applied_in:
+        - "#104 Tacit Knowledge Elicitation"
+
+  # INFORMATION THEORY
+  information_theory:
+    - id: "I01"
+      name: "Shannon — Information Theory"
+      year: 1948
+      principle: "Information = surprise. Synthesis must produce statements not in any single source."
+      description: |
+        A synthesis that merely repeats what sources say contains ZERO new
+        information. Test: Can insight X be derived from source A alone?
+        If yes, it's extraction, not synthesis.
+      applied_in:
+        - "#403 Emergence Detection"
+        - "#606 Novel Information Test"
+
+    - id: "I02"
+      name: "Kolmogorov Complexity"
+      principle: "Good synthesis is the shortest description capturing essential structure"
+      description: |
+        Synthesis is COMPRESSION — finding the simplest model that explains
+        all the data. Anti-pattern: Synthesis longer than original sources
+        has failed to compress.
+      applied_in:
+        - "#405 Knowledge Compression"
+
+    - id: "I03"
+      name: "Mutual Information"
+      principle: "Value in what sources share vs what's unique"
+      description: |
+        High mutual info → sources agree → synthesis strengthens confidence.
+        Low mutual info → sources cover different territory → synthesis expands.
+        Negative mutual info → sources contradict → synthesis must resolve.
+      applied_in:
+        - "#301 Convergence-Divergence Mapping"
+
+  # COGNITIVE SCIENCE
+  cognitive_science:
+    - id: "C01"
+      name: "Gentner — Structure Mapping Theory"
+      year: 1983
+      principle: "Analogical reasoning maps STRUCTURAL relationships, not surface features"
+      description: |
+        Synthesis between domains requires finding structural parallels —
+        shared relationship patterns even when surface details differ.
+        Enables TRANSFER of solutions between domains.
+      applied_in:
+        - "#303 Analogical Structure Mapping"
+
+    - id: "C02"
+      name: "Fauconnier & Turner — Conceptual Blending"
+      year: 2002
+      principle: "Mental spaces blend to produce emergent properties"
+      description: |
+        Four-space model: Input 1 + Input 2 → Generic Space → Blended Space.
+        The blend produces C that neither A nor B contains alone.
+        This is the cognitive mechanism BEHIND synthesis.
+      applied_in:
+        - "#304 Conceptual Blend Construction"
+
+    - id: "C03"
+      name: "Weick — Sensemaking"
+      year: 1995
+      principle: "Meaning is constructed, not discovered"
+      description: |
+        Sensemaking is retrospective, social, grounded in identity.
+        People don't DISCOVER meaning — they CONSTRUCT it.
+        Synthesizer's frame shapes the synthesis (feature and bug).
+      applied_in:
+        - "#504 Narrative Construction"
+
+    - id: "C04"
+      name: "Peirce — Abductive Reasoning"
+      year: 1903
+      principle: "Inference to best explanation — creative but uncertain"
+      description: |
+        Deduction: certain but no new knowledge.
+        Induction: probable but may be wrong.
+        Abduction: creative, novel, but uncertain.
+        Synthesis primarily uses ABDUCTION.
+      applied_in:
+        - "#404 Abductive Integration"
+
+  # PHILOSOPHY OF SCIENCE
+  philosophy_of_science:
+    - id: "P01"
+      name: "Kuhn — Paradigm Shifts"
+      year: 1962
+      principle: "Sources from different paradigms are incommensurable"
+      description: |
+        Same words may mean fundamentally different things across paradigms.
+        Synthesis across paradigms requires TRANSLATION before integration.
+      applied_in:
+        - "#202 Concept Taxonomy Building"
+        - "#203 Model Inventory"
+
+    - id: "P02"
+      name: "Lakatos — Research Programmes"
+      year: 1978
+      principle: "Hard core vs protective belt disagreements"
+      description: |
+        Hard core: unfalsifiable assumptions.
+        Protective belt: adjustable hypotheses.
+        Protective belt disagreements are easy to synthesize.
+        Hard core conflicts require paradigm-level synthesis.
+      applied_in:
+        - "#302 Dialectical Tension Mapping"
+
+    - id: "P03"
+      name: "Feyerabend — Methodological Pluralism"
+      year: 1975
+      principle: "Diverse methods produce more robust synthesis"
+      description: |
+        No single methodology is universally best.
+        Synthesis from different methodological traditions is MORE robust.
+        Methodological triangulation beats single-method depth.
+      applied_in:
+        - "#103 Diversity Verification"
+
+    - id: "P04"
+      name: "Popper — Falsification"
+      year: 1934
+      principle: "Good theory is falsifiable"
+      description: |
+        A synthesis that explains EVERYTHING explains NOTHING.
+        Good synthesis should generate testable predictions.
+        Test: What would DISPROVE this synthesis?
+      applied_in:
+        - "#503 Principle Extraction"
+        - "#604 Falsifiability Check"
+
+  # RESEARCH METHODOLOGY
+  research_methodology:
+    - id: "R01"
+      name: "Meta-Analysis"
+      year: 1976
+      author: "Glass"
+      principle: "Weight sources by quality and sample size, not just count"
+      description: |
+        Statistical synthesis of multiple quantitative studies.
+        Not all studies are equal — weight by quality.
+        Relevant even for non-statistical synthesis.
+      applied_in:
+        - "#102 Source Quality Assessment"
+        - "#204 Evidence Grading"
+
+    - id: "R02"
+      name: "Grounded Theory"
+      year: 1967
+      authors: "Glaser & Strauss"
+      principle: "Let patterns EMERGE from data, don't impose them"
+      description: |
+        Theory emerges from systematic analysis, not from imposing
+        pre-existing theory. Key method: constant comparison.
+      applied_in:
+        - "#306 Pattern Detection Across Sources"
+
+    - id: "R03"
+      name: "Triangulation"
+      year: 1978
+      author: "Denzin"
+      principle: "Cross-validate through multiple sources/methods"
+      description: |
+        Data triangulation, methodological triangulation, investigator
+        triangulation, theory triangulation. Convergence = high confidence.
+      applied_in:
+        - "#103 Diversity Verification"
+        - "#301 Convergence-Divergence Mapping"
+
+  # KNOWLEDGE MANAGEMENT
+  knowledge_management:
+    - id: "K01"
+      name: "SECI Model"
+      year: 1995
+      authors: "Nonaka & Takeuchi"
+      principle: "Synthesis operates in the COMBINATION quadrant"
+      description: |
+        Socialization (Tacit→Tacit), Externalization (Tacit→Explicit),
+        Combination (Explicit→Explicit = SYNTHESIS), Internalization.
+        Deep-Synthesis operates primarily in Combination but draws on
+        Externalization and should enable Internalization.
+      applied_in:
+        - "#104 Tacit Knowledge Elicitation"
+        - "#402 Framework Unification"
+
+  # PARADOXES & TRAPS
+  paradoxes:
+    - id: "X01"
+      name: "Simpson's Paradox"
+      principle: "Trend reverses when data disaggregated"
+      implication: "Synthesis at wrong level produces wrong conclusion"
+      applied_in: "#307 Level Alignment Check"
+
+    - id: "X02"
+      name: "Ecological Fallacy"
+      principle: "Group pattern doesn't apply to individuals"
+      implication: "Can't synthesize DOWN from aggregate to individual"
+      applied_in: "#307 Level Alignment Check"
+
+    - id: "X03"
+      name: "Atomistic Fallacy"
+      principle: "Individual pattern doesn't apply to group"
+      implication: "Can't synthesize UP from individual to aggregate"
+      applied_in: "#307 Level Alignment Check"
+
+    - id: "X04"
+      name: "Bonini's Paradox"
+      principle: "Model as complex as reality is useless"
+      implication: "Synthesis must be simpler than sources"
+      applied_in: "#405 Knowledge Compression"
+
+    - id: "X05"
+      name: "Narrative Fallacy"
+      author: "Taleb"
+      principle: "Humans impose stories on random data"
+      implication: "Synthesized narrative may be confabulation"
+      applied_in:
+        - "#504 Narrative Construction"
+        - "#601 Apophenia Check"
+
+    - id: "X06"
+      name: "Apophenia"
+      principle: "Seeing patterns in noise"
+      implication: "Synthesis may 'discover' patterns that don't exist"
+      applied_in: "#601 Apophenia Check"
+
+    - id: "X07"
+      name: "Curse of Knowledge"
+      principle: "Can't un-know what you know"
+      implication: "Synthesizer's expertise creates blind spots"
+      applied_in: "#602 Confirmation Bias Audit"

@@ -1,0 +1,267 @@
+# Web Applications Risk Pattern Library
+# Patterns specific to web application development, deployment, and operations
+
+library:
+  id: "web-applications"
+  name: "Web Applications Risk Patterns"
+  version: "1.0.0"
+  description: "Failure patterns from web application development and production operations"
+
+patterns:
+  - id: "WEB-001"
+    name: "Frontend-Backend Contract Drift"
+    description: |
+      Frontend and backend API contracts diverge over time. Changes to API
+      responses break frontend without detection until users encounter errors.
+
+    signature:
+      - "No API contract testing (Pact, contract tests)"
+      - "Frontend and backend developed by different teams"
+      - "API changes deployed without frontend coordination"
+      - "No API versioning strategy"
+
+    anti_patterns:
+      - "API changes without notifying frontend team"
+      - "No shared API schema (OpenAPI/Swagger)"
+      - "Frontend handling unexpected response shapes"
+      - "Testing only happy paths"
+
+    indicators:
+      - "Frontend errors after backend deployments"
+      - "Growing 'undefined' or null reference errors"
+      - "API response shape varies between environments"
+
+    historical_examples:
+      - "Common in microservice frontends: Breaking changes in API responses"
+      - "Mobile apps: Forced updates due to API incompatibility"
+
+    mitigation_hints:
+      - "Contract testing in CI/CD"
+      - "OpenAPI/Swagger shared schema"
+      - "API versioning with deprecation"
+
+  - id: "WEB-002"
+    name: "State Management Spaghetti"
+    description: |
+      Application state scattered across multiple locations (local state,
+      global state, URL, cookies, localStorage, server cache) with no
+      clear source of truth.
+
+    signature:
+      - "Same data in multiple state stores"
+      - "Race conditions between state updates"
+      - "UI showing stale data"
+      - "'Why is this data wrong?' investigations"
+
+    anti_patterns:
+      - "Duplicating server state in client state"
+      - "No cache invalidation strategy"
+      - "Optimistic updates without rollback"
+      - "State synchronized via timing assumptions"
+
+    indicators:
+      - "Data inconsistency bugs"
+      - "State-related bugs hard to reproduce"
+      - "Growing state management complexity"
+
+    historical_examples:
+      - "Common SPA pattern: Cache coherency failures"
+      - "Shopping carts showing different items in different tabs"
+
+    mitigation_hints:
+      - "Single source of truth principle"
+      - "Server state management (React Query, SWR)"
+      - "Explicit cache invalidation strategy"
+
+  - id: "WEB-003"
+    name: "Performance Cliff"
+    description: |
+      Application performs well under normal load but degrades catastrophically
+      at scale. No gradual degradation — it works until it doesn't.
+
+    signature:
+      - "No load testing"
+      - "O(n^2) or worse algorithms in request paths"
+      - "Database queries without pagination"
+      - "Memory leaks under sustained load"
+
+    anti_patterns:
+      - "Loading all records from database"
+      - "No query optimization (N+1 queries)"
+      - "Synchronous processing of large datasets"
+      - "No connection pooling"
+
+    indicators:
+      - "Response times increasing with user growth"
+      - "Periodic outages during peak hours"
+      - "Database CPU spikes"
+
+    historical_examples:
+      - "Twitter fail whale: Original Ruby architecture couldn't scale"
+      - "Black Friday crashes: E-commerce sites overwhelmed by traffic"
+
+    mitigation_hints:
+      - "Regular load testing"
+      - "Performance budgets"
+      - "Pagination and streaming for large datasets"
+
+  - id: "WEB-004"
+    name: "Third-Party Script Risk"
+    description: |
+      Third-party JavaScript (analytics, ads, widgets) loaded in application
+      can execute arbitrary code in user's browser, steal data, or break UX.
+
+    signature:
+      - "Multiple third-party scripts loaded"
+      - "No Content Security Policy"
+      - "Third-party scripts loaded synchronously"
+      - "No Subresource Integrity (SRI) on external scripts"
+
+    anti_patterns:
+      - "Loading third-party scripts without review"
+      - "No CSP headers"
+      - "Third-party scripts with DOM access"
+      - "No monitoring of third-party performance impact"
+
+    indicators:
+      - "Page load time increasing from third-party scripts"
+      - "User data in third-party network requests"
+      - "Third-party script errors in console"
+
+    historical_examples:
+      - "British Airways 2018: Magecart card skimmer via third-party script"
+      - "Ticketmaster 2018: Compromised chatbot script stole payment data"
+
+    mitigation_hints:
+      - "Content Security Policy enforcement"
+      - "Subresource Integrity for external scripts"
+      - "Third-party script audit and sandbox"
+
+  - id: "WEB-005"
+    name: "Session Management Weakness"
+    description: |
+      Session handling has vulnerabilities — predictable tokens, no expiration,
+      no rotation, or session fixation possibilities.
+
+    signature:
+      - "Custom session management instead of framework"
+      - "Sessions without timeout"
+      - "No session rotation on privilege change"
+      - "Session IDs in URL parameters"
+
+    anti_patterns:
+      - "Implementing custom session tokens"
+      - "No session timeout"
+      - "Sharing sessions across domains"
+      - "No logout invalidation"
+
+    indicators:
+      - "Sessions lasting days/weeks"
+      - "Session fixation in security scans"
+      - "No concurrent session limits"
+
+    historical_examples:
+      - "Common: Session hijacking through XSS"
+      - "GitHub 2012: Session token leaked via referer header"
+
+    mitigation_hints:
+      - "Use framework session management"
+      - "Session timeout and rotation"
+      - "HTTPOnly and Secure cookie flags"
+
+  - id: "WEB-006"
+    name: "SEO/Accessibility Technical Debt"
+    description: |
+      Application renders content in ways that search engines and
+      assistive technologies cannot access, limiting reach and
+      creating legal liability.
+
+    signature:
+      - "Client-side rendering only (no SSR/SSG)"
+      - "No semantic HTML"
+      - "Images without alt text"
+      - "No ARIA attributes"
+
+    anti_patterns:
+      - "Treating accessibility as afterthought"
+      - "JavaScript-required for content display"
+      - "No accessibility testing"
+      - "Custom UI components without keyboard support"
+
+    indicators:
+      - "WCAG audit failures"
+      - "Search engine indexing gaps"
+      - "Accessibility complaints or legal threats"
+
+    historical_examples:
+      - "Domino's Pizza: ADA lawsuit for inaccessible website"
+      - "Multiple companies: EU accessibility directive compliance failures"
+
+    mitigation_hints:
+      - "Accessibility testing in CI/CD"
+      - "Semantic HTML first"
+      - "SSR/SSG for critical content"
+
+  - id: "WEB-007"
+    name: "Deployment Rollback Impossibility"
+    description: |
+      Deployments include database migrations or state changes that
+      cannot be reversed. When deployment fails, rollback is impossible.
+
+    signature:
+      - "Destructive database migrations (drop column, rename table)"
+      - "No blue-green or canary deployment"
+      - "Feature flags not used for gradual rollout"
+      - "Deployment and migration coupled"
+
+    anti_patterns:
+      - "Irreversible migrations without backward compatibility"
+      - "Big-bang deployments"
+      - "No rollback testing"
+      - "Manual deployment steps"
+
+    indicators:
+      - "Past rollback failures"
+      - "Migrations that must be 'forward-fixed'"
+      - "Deployment windows requiring downtime"
+
+    historical_examples:
+      - "Common: Database migration breaks API contract, rollback loses data"
+      - "Knight Capital: Deployment failure without rollback, $440M loss"
+
+    mitigation_hints:
+      - "Expand-contract migration pattern"
+      - "Feature flags for gradual rollout"
+      - "Blue-green deployments"
+
+  - id: "WEB-008"
+    name: "CORS/CSP Misconfiguration"
+    description: |
+      Cross-Origin Resource Sharing or Content Security Policy headers
+      either too permissive (security risk) or too restrictive (breaks functionality).
+
+    signature:
+      - "Access-Control-Allow-Origin: *"
+      - "No CSP header"
+      - "CSP in report-only mode indefinitely"
+      - "CORS preflight errors in production"
+
+    anti_patterns:
+      - "Wildcard CORS for convenience"
+      - "Disabling CSP because it 'breaks things'"
+      - "No CORS/CSP testing"
+      - "Different headers per environment"
+
+    indicators:
+      - "Security scan finding permissive CORS"
+      - "Third-party integrations failing due to CSP"
+      - "No header consistency across endpoints"
+
+    historical_examples:
+      - "Multiple data leaks through permissive CORS policies"
+      - "XSS exploits enabled by missing CSP"
+
+    mitigation_hints:
+      - "Explicit CORS allowlist"
+      - "CSP with nonce-based script allowlist"
+      - "Regular header configuration audit"

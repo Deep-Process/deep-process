@@ -1,0 +1,149 @@
+# Deep-Architect V1.2 — Canonical Operations Schema
+# Output of Phase 1: Canonical Operations (8 mandatory)
+# Consumed by: Phase 2 (diagrams), Phase 3 (adversary input), Phase 4 (trade-offs), Phase 6 (verification)
+
+schema:
+  version: "1.2.0"
+  artifact: "canonical-operations.yaml"
+  produced_by: "Phase 1"
+  consumed_by: ["Phase 2", "Phase 3", "Phase 4", "Phase 6"]
+
+structure:
+  metadata:
+    version: "string (required)"
+    timestamp: "ISO-8601 (required)"
+    execution_mode: "enum: iterative|waterfall|hybrid (required)"
+    operations_executed: "integer (required) — MUST be 8"
+
+  assumptions:
+    - id: "string (required) — A-1XX format"
+      assumption: "string (required)"
+      confidence: "float 0.0-1.0 (required)"
+      falsification: "string (required)"
+      impact_if_wrong: "string (required)"
+
+  decomposition:
+    levels: "integer (required) — MUST be >= 2"
+    components:
+      - id: "string (required) — C-XXX format"
+        name: "string (required)"
+        type: "enum: service|module|component|library|database|queue|cache|external (required)"
+        responsibility: "string (required) — single responsibility"
+        dependencies: "string[] — C-XXX references"
+        interfaces: "string[] — I-XXX references"
+
+  boundary_definition:
+    context_map:
+      system_name: "string (required)"
+      external_actors:
+        - id: "string (required) — EA-XXX format"
+          name: "string (required)"
+          type: "enum: user|system|service|database (required)"
+          interaction: "string (required)"
+      bounded_contexts:
+        - id: "string (required) — BC-XXX format"
+          name: "string (required)"
+          components: "string[] — C-XXX references"
+          relationships:
+            - target: "string — BC-XXX reference"
+              type: "enum: partnership|shared_kernel|customer_supplier|conformist|anticorruption_layer|open_host|published_language|separate_ways"
+
+  relationship_mapping:
+    dependencies:
+      - source: "string (required) — C-XXX"
+        target: "string (required) — C-XXX"
+        type: "enum: sync|async|event|shared_data|import (required)"
+        direction: "enum: unidirectional|bidirectional (required)"
+        criticality: "enum: low|medium|high|critical (required)"
+    data_flows:
+      - id: "string (required) — DF-XXX format"
+        source: "string (required)"
+        target: "string (required)"
+        data: "string (required) — what flows"
+        protocol: "string (optional) — REST/gRPC/event/etc"
+
+  responsibility_allocation:
+    srp_compliance:
+      - component: "string (required) — C-XXX"
+        single_responsibility: "string (required)"
+        srp_score: "float 0.0-1.0 (required) — 1.0=perfect SRP"
+        violations: "string[] — identified violations"
+
+  dependency_management:
+    coupling_analysis:
+      - component: "string (required) — C-XXX"
+        afferent_coupling: "integer (required) — incoming dependencies"
+        efferent_coupling: "integer (required) — outgoing dependencies"
+        instability: "float 0.0-1.0 (required) — Ce/(Ca+Ce)"
+    cohesion_analysis:
+      - component: "string (required) — C-XXX"
+        cohesion_score: "float 0.0-1.0 (required)"
+        type: "enum: functional|sequential|communicational|procedural|temporal|logical|coincidental"
+
+  pattern_application:
+    architectural_pattern:
+      pattern_id: "string (required) — AP-XXX from architecture-patterns.yaml"
+      name: "string (required)"
+      source_domains: "string[] (required) — domain_ids that provide this pattern"
+      rationale: "string (required)"
+      trade_offs: "string (required)"
+    supporting_patterns:
+      - pattern_id: "string (required) — AP-XXX, CP-XXX, or DP-XXX"
+        name: "string (required)"
+        source: "string (required) — file and domain providing pattern"
+        applied_to: "string (required) — C-XXX or area"
+        rationale: "string (required)"
+    cloud_patterns:
+      - pattern_id: "string (required) — CP-XXX from cloud-patterns.yaml"
+        name: "string (required)"
+        applied_to: "string (required) — C-XXX or area"
+        rationale: "string (required)"
+    rejected_alternatives:
+      - pattern_id: "string (required) — AP-XXX"
+        name: "string (required)"
+        rejection_rationale: "string (required) — why not selected"
+    design_patterns:
+      - name: "string (required)"
+        applied_to: "string (required) — C-XXX or area"
+        rationale: "string (required)"
+
+  quality_attributes:
+    prioritized:
+      - rank: "integer (required) — 1=highest"
+        attribute: "string (required) — ISO 25010 category"
+        target: "string (required) — measurable target"
+        rationale: "string (required)"
+    minimum_count: 3
+
+  interface_design:
+    interfaces:
+      - id: "string (required) — I-XXX format"
+        name: "string (required)"
+        type: "enum: REST|gRPC|GraphQL|event|message|file|database|SDK (required)"
+        provider: "string (required) — C-XXX"
+        consumers: "string[] — C-XXX references"
+        contract: "string (required) — contract summary"
+        versioning: "string (optional)"
+
+  checklist:
+    - item: "string (required)"
+      status: "enum: PASS|FAIL (required)"
+
+  counter_checks:
+    - method: "string (required)"
+      result: "string (required)"
+      status: "enum: PASS|FAIL|WARNING (required)"
+
+validation_rules:
+  - "metadata.operations_executed MUST equal 8"
+  - "decomposition.levels MUST be >= 2"
+  - "decomposition.components.length >= 2"
+  - "boundary_definition.context_map MUST exist"
+  - "relationship_mapping.dependencies.length >= 1"
+  - "quality_attributes.prioritized.length >= 3"
+  - "interface_design.interfaces.length >= 1"
+  - "assumptions.length >= 3"
+  - "checklist items all PASS or SCOPE_REDUCTION declared"
+  - "pattern_application.architectural_pattern.pattern_id MUST reference valid AP-XXX in library"
+  - "pattern_application.source_domains MUST be subset of context-assessment.architecture_domains.final_domains"
+  - "pattern_application.rejected_alternatives.length >= 1 (at least one alternative considered)"

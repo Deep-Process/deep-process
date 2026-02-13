@@ -1,0 +1,327 @@
+# Deep-Risk Portfolio Thresholds
+# Configurable thresholds for portfolio health metrics
+
+version: "1.0.0"
+description: |
+  Portfolio-level thresholds determine when the aggregate risk picture
+  requires attention, even if individual risks are acceptable.
+
+  These thresholds should be calibrated to organizational risk appetite.
+  Default values are starting points - adjust based on your context.
+
+# ============================================================================
+# TIERING THRESHOLDS
+# ============================================================================
+
+risk_tiers:
+  # Composite score = P × I × max(V, D, R)
+  # Each dimension is 1-5, so max possible = 5 × 5 × 5 = 125
+
+  critical:
+    min_score: 64
+    description: "Immediate action required - potential project/system failure"
+    response_time: "Same day"
+    escalation_required: true
+
+  high:
+    min_score: 27
+    description: "Urgent attention needed - significant impact if materialized"
+    response_time: "Within 1 week"
+    escalation_required: false
+
+  medium:
+    min_score: 8
+    description: "Plan mitigation - manageable but needs tracking"
+    response_time: "Within 1 month"
+    escalation_required: false
+
+  low:
+    min_score: 0
+    description: "Monitor and accept - low concern"
+    response_time: "As capacity allows"
+    escalation_required: false
+
+# Alternative scoring thresholds for organizations preferring different brackets
+alternative_tiers:
+  aggressive:
+    critical: 80
+    high: 40
+    medium: 15
+    low: 0
+
+  conservative:
+    critical: 48
+    high: 20
+    medium: 6
+    low: 0
+
+# ============================================================================
+# PORTFOLIO HEALTH THRESHOLDS
+# ============================================================================
+
+portfolio_metrics:
+  total_expected_loss:
+    description: "Sum of P × I (in monetary terms) for all risks"
+    calculation: "Σ(probability × estimated_impact)"
+    thresholds:
+      green: "< 10% of project/portfolio value"
+      yellow: "10-20% of project/portfolio value"
+      red: "> 20% of project/portfolio value"
+    notes: |
+      Adjust percentages based on margin and risk tolerance.
+      High-margin projects can tolerate higher percentages.
+
+  max_simultaneous_loss:
+    description: "Sum of correlated risk cluster impacts"
+    calculation: "Sum of all risks in largest correlated cluster"
+    thresholds:
+      green: "< survivability limit"
+      yellow: "50-100% of survivability limit"
+      red: "> survivability limit"
+    notes: |
+      Survivability = maximum loss the project/org can absorb and continue.
+      This is existential threshold - red means potential project death.
+
+  risk_concentration:
+    description: "Top 3 risks as percentage of total expected loss"
+    calculation: "(Sum of top 3 risk expected loss) / total expected loss"
+    thresholds:
+      green: "< 50%"
+      yellow: "50-70%"
+      red: "> 70%"
+    notes: |
+      High concentration means portfolio health depends on few risks.
+      Diversification of risk is generally healthier.
+
+  mitigation_coverage:
+    description: "Percentage of CRITICAL/HIGH risks with active mitigation"
+    calculation: "Mitigated CRITICAL/HIGH / Total CRITICAL/HIGH"
+    thresholds:
+      green: "> 90%"
+      yellow: "70-90%"
+      red: "< 70%"
+    notes: |
+      CRITICAL/HIGH risks without mitigation are red flags.
+      Exception: Explicit TOLERATE decision with documented rationale.
+
+  monitoring_coverage:
+    description: "Percentage of risks with leading indicators"
+    calculation: "Risks with indicators / Total risks"
+    thresholds:
+      green: "> 80%"
+      yellow: "60-80%"
+      red: "< 60%"
+    notes: |
+      Risks without indicators are "flying blind".
+      At minimum, CRITICAL/HIGH should all have indicators.
+
+  non_ergodic_unmitigated:
+    description: "Count of unmitigated NON_ERGODIC flagged risks"
+    calculation: "Count where flag=NON_ERGODIC and no mitigation"
+    thresholds:
+      green: "0"
+      yellow: null  # No yellow for existential risks
+      red: "> 0"
+    notes: |
+      NON_ERGODIC = can kill the project/org. Must be addressed.
+      There is no acceptable number of unmitigated existential risks.
+
+  fat_tail_unmitigated:
+    description: "Count of unmitigated FAT_TAIL flagged risks"
+    calculation: "Count where flag=FAT_TAIL and no P99 mitigation"
+    thresholds:
+      green: "0"
+      yellow: "1-2 with documented acceptance"
+      red: "> 2 OR any without documented acceptance"
+    notes: |
+      FAT_TAIL = extreme outcomes more likely than normal distribution.
+      P99 scenarios should be explicitly planned for.
+
+# ============================================================================
+# REVIEW CADENCE THRESHOLDS
+# ============================================================================
+
+review_cadence:
+  # Based on risk velocity score
+  immediate:
+    velocity: 5
+    frequency: "Daily or continuous monitoring"
+    trigger: "Any movement in indicators"
+
+  rapid:
+    velocity: 4
+    frequency: "Every 2-3 days"
+    trigger: "Material indicator change"
+
+  frequent:
+    velocity: 3
+    frequency: "Weekly"
+    trigger: "Weekly review meeting"
+
+  standard:
+    velocity: 2
+    frequency: "Bi-weekly or sprint cadence"
+    trigger: "Sprint retrospective"
+
+  periodic:
+    velocity: 1
+    frequency: "Monthly or quarterly"
+    trigger: "Monthly review"
+
+# ============================================================================
+# ESCALATION THRESHOLDS
+# ============================================================================
+
+escalation_levels:
+  L0_team:
+    description: "Team handles internally"
+    criteria:
+      - "LOW or MEDIUM tier"
+      - "Within team's authority to resolve"
+      - "No budget or timeline impact"
+
+  L1_lead:
+    description: "Tech Lead / Engineering Manager"
+    criteria:
+      - "HIGH tier"
+      - "May affect sprint commitments"
+      - "Requires prioritization decision"
+
+  L2_director:
+    description: "Director / Senior Manager"
+    criteria:
+      - "CRITICAL tier"
+      - "Budget or timeline impact"
+      - "May affect other teams"
+
+  L3_vp:
+    description: "VP / Executive"
+    criteria:
+      - "Multiple CRITICAL risks"
+      - "Client relationship impact"
+      - "Significant financial exposure"
+
+  L4_steering:
+    description: "Steering Committee / Board"
+    criteria:
+      - "Company-level exposure"
+      - "Regulatory implications"
+      - "Existential risk (NON_ERGODIC)"
+
+# ============================================================================
+# INDICATOR THRESHOLDS
+# ============================================================================
+
+indicator_thresholds:
+  # Generic thresholds for common indicator types
+
+  error_rate:
+    green: "< 0.1%"
+    yellow: "0.1% - 1%"
+    red: "> 1%"
+
+  latency_p99:
+    green: "< 2x baseline"
+    yellow: "2-5x baseline"
+    red: "> 5x baseline"
+
+  capacity_utilization:
+    green: "< 70%"
+    yellow: "70-85%"
+    red: "> 85%"
+
+  queue_depth:
+    green: "< 2x normal"
+    yellow: "2-5x normal"
+    red: "> 5x normal"
+
+  budget_burn:
+    green: "< 90% of plan"
+    yellow: "90-110% of plan"
+    red: "> 110% of plan"
+
+  schedule_variance:
+    green: "< 5% behind"
+    yellow: "5-15% behind"
+    red: "> 15% behind"
+
+  defect_rate:
+    green: "Decreasing or stable"
+    yellow: "Slight increase"
+    red: "Significant increase or trend"
+
+  team_velocity:
+    green: "Stable or improving"
+    yellow: "10-20% decline"
+    red: "> 20% decline"
+
+# ============================================================================
+# ACCEPTANCE CRITERIA
+# ============================================================================
+
+acceptance_criteria:
+  portfolio:
+    can_accept:
+      - "Overall status GREEN or YELLOW"
+      - "No unmitigated NON_ERGODIC risks"
+      - "FAT_TAIL risks have P99 plans"
+      - "CRITICAL risks have owner and timeline"
+
+    cannot_accept:
+      - "Overall status RED"
+      - "Any unmitigated NON_ERGODIC"
+      - "Multiple FAT_TAIL without P99 plans"
+      - "CRITICAL risks without owner"
+
+  individual_risk:
+    tolerate_requires:
+      - "Explicit decision by authorized person"
+      - "Documented rationale"
+      - "Monitoring in place"
+      - "Contingency plan if materialized"
+      - "Review date set"
+
+    transfer_requires:
+      - "Transfer mechanism identified (insurance, contract)"
+      - "Transfer cost known"
+      - "Residual risk assessed"
+      - "Counter-party capability verified"
+
+# ============================================================================
+# CUSTOMIZATION GUIDANCE
+# ============================================================================
+
+customization:
+  by_industry:
+    healthcare:
+      notes: "Life safety - conservative thresholds recommended"
+      adjust: "Lower all red thresholds by 20-30%"
+
+    finance:
+      notes: "Regulatory exposure - conservative for compliance risks"
+      adjust: "Add compliance-specific metrics"
+
+    startup:
+      notes: "Higher risk tolerance for growth"
+      adjust: "May use aggressive tier thresholds"
+
+    government:
+      notes: "Public accountability - conservative"
+      adjust: "Lower thresholds, more documentation"
+
+  by_project_phase:
+    exploration:
+      notes: "Higher tolerance during discovery"
+      adjust: "May accept more unmitigated risks temporarily"
+
+    development:
+      notes: "Standard thresholds"
+      adjust: "Use defaults"
+
+    production:
+      notes: "Lower tolerance for live systems"
+      adjust: "Tighter thresholds, faster escalation"
+
+    sunsetting:
+      notes: "Depends on remaining lifespan"
+      adjust: "May accept higher risk for short-lived systems"

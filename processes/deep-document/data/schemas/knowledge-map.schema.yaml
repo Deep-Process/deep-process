@@ -1,0 +1,404 @@
+---
+schema_version: "8.0.0"
+artifact: "knowledge-map.yaml"
+description: "Schema for Phase 1 knowledge extraction output (5 knowledge types)"
+
+structure:
+  version:
+    type: "string"
+    required: true
+
+  phase:
+    type: "integer"
+    required: true
+    description: "Phase number (1)"
+
+  phase_name:
+    type: "string"
+    required: true
+    description: "'KNOWLEDGE EXTRACTION'"
+
+  generated_at:
+    type: "string"
+    format: "ISO 8601 timestamp"
+    required: true
+
+  execution_flows:
+    type: "array"
+    required: true
+    minItems: 2
+    description: "How code executes - call sequences, patterns"
+    items:
+      type: "object"
+      properties:
+        flow_id:
+          type: "string"
+          required: true
+          description: "Flow ID (e.g., 'F-001')"
+
+        entry_point:
+          type: "string"
+          required: true
+          description: "File where flow starts"
+
+        trigger:
+          type: "string"
+          required: true
+          description: "What triggers this flow"
+
+        purpose:
+          type: "string"
+          required: true
+          description: "What this flow achieves"
+
+        call_sequence:
+          type: "array"
+          required: true
+          items:
+            type: "object"
+            properties:
+              step:
+                type: "integer"
+              function:
+                type: "string"
+              file:
+                type: "string"
+              line:
+                type: "integer"
+
+        path_type:
+          type: "string"
+          enum: ["happy_path", "error_path", "edge_case"]
+          required: true
+
+        error_handling:
+          type: "array"
+          required: false
+          items:
+            type: "object"
+            properties:
+              condition:
+                type: "string"
+              handler:
+                type: "string"
+
+  data_flows:
+    type: "array"
+    required: true
+    minItems: 1
+    description: "How information flows - transformations, schemas"
+    items:
+      type: "object"
+      properties:
+        flow_id:
+          type: "string"
+          required: true
+          description: "Data flow ID (e.g., 'D-001')"
+
+        data_entity:
+          type: "string"
+          required: true
+          description: "Entity name (e.g., 'User')"
+
+        entry_point:
+          type: "string"
+          required: true
+          description: "Where data enters"
+
+        stages:
+          type: "array"
+          required: true
+          items:
+            type: "object"
+            properties:
+              stage:
+                type: "string"
+                enum: ["input", "validation", "domain", "persistence", "output"]
+              format:
+                type: "string"
+              schema:
+                type: "object"
+              location:
+                type: "string"
+              transformer:
+                type: "string"
+                required: false
+              rules:
+                type: "array"
+                required: false
+              omitted:
+                type: "array"
+                required: false
+
+        transformations:
+          type: "array"
+          required: false
+          items:
+            type: "object"
+            properties:
+              from:
+                type: "string"
+              to:
+                type: "string"
+              operation:
+                type: "string"
+              location:
+                type: "string"
+
+  control_flows:
+    type: "array"
+    required: true
+    minItems: 3
+    description: "Decision points - conditionals, business rules"
+    items:
+      type: "object"
+      properties:
+        decision_id:
+          type: "string"
+          required: true
+          description: "Decision ID (e.g., 'C-001')"
+
+        location:
+          type: "string"
+          required: true
+          description: "File:line where decision made"
+
+        execution_flow:
+          type: "string"
+          required: false
+          description: "Links to execution flow ID"
+
+        condition:
+          type: "string"
+          required: true
+          description: "What's being checked"
+
+        branches:
+          type: "array"
+          required: true
+          items:
+            type: "object"
+            properties:
+              condition_result:
+                type: "boolean"
+              action:
+                type: "string"
+              code:
+                type: "string"
+                required: false
+
+        business_rule:
+          type: "string"
+          required: true
+          description: "Why this condition matters"
+
+        category:
+          type: "string"
+          enum: ["authorization", "validation", "business_logic", "error_handling"]
+          required: true
+
+  test_coverage:
+    type: "array"
+    required: true
+    description: "What's tested vs untested"
+    items:
+      type: "object"
+      properties:
+        source_file:
+          type: "string"
+          required: true
+
+        test_file:
+          type: "string"
+          required: true
+
+        coverage_summary:
+          type: "object"
+          required: true
+          properties:
+            total_functions:
+              type: "integer"
+            tested_functions:
+              type: "integer"
+            untested_functions:
+              type: "integer"
+            coverage_percentage:
+              type: "number"
+
+        tested_scenarios:
+          type: "array"
+          required: false
+          items:
+            type: "object"
+            properties:
+              function:
+                type: "string"
+              scenarios:
+                type: "array"
+                items:
+                  type: "string"
+              test_type:
+                type: "string"
+                enum: ["unit", "integration", "e2e"]
+              test_location:
+                type: "string"
+
+        untested_functions:
+          type: "array"
+          required: false
+          items:
+            type: "object"
+            properties:
+              function:
+                type: "string"
+              reason:
+                type: "string"
+              risk:
+                type: "string"
+                enum: ["high", "medium", "low"]
+
+  configuration_impact:
+    type: "array"
+    required: true
+    description: "How config changes behavior across environments"
+    items:
+      type: "object"
+      properties:
+        config_file:
+          type: "string"
+          required: true
+
+        variables:
+          type: "array"
+          required: true
+          items:
+            type: "object"
+            properties:
+              name:
+                type: "string"
+                required: true
+              values:
+                type: "object"
+                required: true
+                description: "Environment-specific values"
+              impact:
+                type: "string"
+                required: true
+              affected_files:
+                type: "array"
+                items:
+                  type: "string"
+              behavior_change:
+                type: "string"
+                required: false
+
+  entity_census:
+    type: "object"
+    required: true
+    description: "Exhaustive entity count from STEP 0 Baseline Census (Method #167)"
+    properties:
+      entities:
+        type: "object"
+        required: true
+        properties:
+          classes:
+            type: "object"
+            properties:
+              total: {type: "integer", required: true}
+              locations: {type: "array", items: {type: "string"}}
+          functions:
+            type: "object"
+            properties:
+              total: {type: "integer", required: true}
+              locations: {type: "array", items: {type: "string"}}
+          tables:
+            type: "object"
+            properties:
+              total: {type: "integer", required: true}
+              locations: {type: "array", items: {type: "string"}}
+          api_endpoints:
+            type: "object"
+            properties:
+              total: {type: "integer", required: true}
+              locations: {type: "array", items: {type: "string"}}
+      extraction_targets:
+        type: "object"
+        required: true
+        properties:
+          execution_flows_target: {type: "integer", description: "N_functions × 0.80"}
+          data_flows_target: {type: "integer", description: "N_tables × 0.80"}
+      scanned_at:
+        type: "string"
+        format: "ISO 8601 timestamp"
+        required: true
+
+  priority_entities:
+    type: "object"
+    required: true
+    description: "Entity priority classification for anti-gaming (Method #59 CUI BONO)"
+    properties:
+      priority:
+        type: "array"
+        required: true
+        description: "100% required, no exceptions. Entry points, auth, error handlers, core domain."
+        items:
+          type: "object"
+          properties:
+            type: {type: "string", required: true}
+            pattern: {type: "string", description: "Grep pattern for detection"}
+            entities: {type: "array", items: {type: "string"}}
+      standard:
+        type: "array"
+        required: true
+        description: "80% target. All entities not in priority or skipped."
+        items:
+          type: "object"
+          properties:
+            type: {type: "string", required: true}
+            entities: {type: "array", items: {type: "string"}}
+      skipped:
+        type: "array"
+        required: true
+        description: "Must have reason + impact for each. G1-09 verifies justification."
+        items:
+          type: "object"
+          properties:
+            entity: {type: "string", required: true}
+            reason: {type: "string", required: true}
+            impact: {type: "string", required: true}
+
+  gate_evaluation:
+    type: "object"
+    required: true
+    description: "GATE_1 evaluation results"
+    properties:
+      gate:
+        type: "string"
+        required: true
+      status:
+        type: "string"
+        enum: ["OPEN", "LOCKED"]
+        required: true
+      conditions:
+        type: "array"
+        required: true
+      counter_checks:
+        type: "array"
+        required: true
+      evaluated_at:
+        type: "string"
+        format: "ISO 8601 timestamp"
+        required: true
+
+validation_rules:
+  - rule: "entity_census must exist with all 4 entity types counted"
+  - rule: "entity_census.scanned_at must be set (proves census was executed)"
+  - rule: "priority_entities must exist with priority[] non-empty"
+  - rule: "priority_entities.skipped[] entries must each have reason + impact"
+  - rule: "execution_flows.count / entity_census.entities.functions.total ≥ 0.80"
+  - rule: "data_flows.count / entity_census.entities.tables.total ≥ 0.80"
+  - rule: "control_flows must have ≥3 decisions"
+  - rule: "test_coverage must exist"
+  - rule: "configuration_impact must exist"
+  - rule: "ALL priority_entities.priority[] must be extracted (G1-08 BLOCKER)"
+  - rule: "gate_evaluation.status must be OPEN to proceed to Phase 2"

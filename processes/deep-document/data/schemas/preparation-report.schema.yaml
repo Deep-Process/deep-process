@@ -1,0 +1,390 @@
+---
+schema_version: "8.1.0"
+artifact: "preparation-report.yaml"
+description: "Schema for Phase 0 preparation report output (V8.1.0 adds domain_detection)"
+
+structure:
+  version:
+    type: "string"
+    required: true
+    description: "Process version (e.g., '8.0.0')"
+
+  phase:
+    type: "integer"
+    required: true
+    description: "Phase number (0)"
+
+  phase_name:
+    type: "string"
+    required: true
+    description: "Phase name ('PREPARATION')"
+
+  generated_at:
+    type: "string"
+    format: "ISO 8601 timestamp"
+    required: true
+    description: "When this report was generated"
+
+  repository_scan:
+    type: "object"
+    required: true
+    description: "Results of repository file enumeration"
+    properties:
+      total_files:
+        type: "integer"
+        required: true
+        description: "Total files found in repository"
+
+      source_files:
+        type: "integer"
+        required: true
+        description: "Count of source code files"
+
+      test_files:
+        type: "integer"
+        required: true
+        description: "Count of test files"
+
+      config_files:
+        type: "integer"
+        required: true
+        description: "Count of configuration files"
+
+      documentation_files:
+        type: "integer"
+        required: true
+        description: "Count of documentation files"
+
+      build_files:
+        type: "integer"
+        required: true
+        description: "Count of build/deploy files"
+
+      primary_language:
+        type: "string"
+        required: true
+        description: "Primary programming language"
+
+      entry_points:
+        type: "array"
+        items:
+          type: "string"
+        required: true
+        description: "Main entry point files"
+
+      scanned_at:
+        type: "string"
+        format: "ISO 8601 timestamp"
+        required: true
+        description: "When scan was performed"
+
+  template_analysis:
+    type: "object"
+    required: true
+    description: "Results of documentation template parsing"
+    properties:
+      template_path:
+        type: "string"
+        required: true
+        description: "Path to template file"
+
+      total_sections:
+        type: "integer"
+        required: true
+        description: "Total sections in template"
+
+      required_sections:
+        type: "integer"
+        required: true
+        description: "Count of required sections"
+
+      optional_sections:
+        type: "integer"
+        required: true
+        description: "Count of optional sections"
+
+      section_structure:
+        type: "array"
+        required: true
+        description: "Parsed template structure"
+        items:
+          type: "object"
+          properties:
+            level:
+              type: "integer"
+              description: "Heading level (1, 2, 3, 4)"
+            title:
+              type: "string"
+              description: "Section title"
+            type:
+              type: "string"
+              description: "Section type (overview, architecture, api, etc.)"
+            required:
+              type: "boolean"
+              description: "Whether section is required"
+
+      semantic_intent:
+        type: "object"
+        required: true
+        description: "Semantic analysis of section (drives Phase 2 mapping)"
+        properties:
+          purpose:
+            type: "string"
+            enum: ["explain", "reference", "guide", "catalog", "analyze"]
+            required: true
+          depth:
+            type: "string"
+            enum: ["overview", "standard", "detailed", "deep-dive"]
+            required: true
+          audience:
+            type: "string"
+            required: true
+          entity_expectation:
+            type: "string"
+            enum: ["all", "primary", "selective", "none"]
+            required: true
+
+      special_instructions:
+        type: "array"
+        items:
+          type: "string"
+        required: false
+        description: "Special instructions from template"
+
+      analyzed_at:
+        type: "string"
+        format: "ISO 8601 timestamp"
+        required: true
+        description: "When analysis was performed"
+
+  domain_detection:
+    type: "object"
+    required: true
+    description: "Multi-domain detection results (V8.1.0 Phase A)"
+    properties:
+      base_domains_included:
+        type: "array"
+        required: true
+        description: "Base domains auto-applied to project"
+        items:
+          type: "object"
+          properties:
+            id:
+              type: "string"
+              required: true
+              description: "Domain ID (e.g., 'iac-agnostic')"
+            reason:
+              type: "string"
+              required: true
+              description: "Why included (e.g., 'auto_apply=true')"
+
+      domains_detected:
+        type: "array"
+        required: true
+        description: "Specific domains detected via confidence scoring"
+        items:
+          type: "object"
+          properties:
+            id:
+              type: "string"
+              required: true
+              description: "Domain ID (e.g., 'aws-cdk')"
+            confidence:
+              type: "number"
+              required: true
+              description: "Confidence score (0.0-1.0)"
+            confidence_breakdown:
+              type: "object"
+              required: true
+              description: "Per-condition contribution to confidence"
+            evidence:
+              type: "array"
+              items:
+                type: "string"
+              required: true
+              description: "Files/patterns that matched detection conditions"
+
+      domains_below_threshold:
+        type: "array"
+        required: false
+        description: "Domains evaluated but below confidence threshold"
+        items:
+          type: "object"
+          properties:
+            id:
+              type: "string"
+            confidence:
+              type: "number"
+            reason:
+              type: "string"
+
+      domains_auto_included:
+        type: "array"
+        required: true
+        description: "Domains included via dependency resolution (requires[])"
+        items:
+          type: "string"
+
+      final_domains:
+        type: "array"
+        required: true
+        description: "All active domains (base + detected + auto-included)"
+        minItems: 3
+        items:
+          type: "string"
+        validation: "Must include at minimum: iac-agnostic, testing-patterns, typescript-library (if applicable)"
+
+      active_patterns:
+        type: "object"
+        required: true
+        description: "Union of provides[] from all final_domains"
+        properties:
+          quality:
+            type: "array"
+            items:
+              type: "string"
+            required: true
+            description: "Quality pattern IDs (QP-*) available for Phase 3"
+          diagram_triggers:
+            type: "array"
+            items:
+              type: "string"
+            required: true
+            description: "Diagram trigger IDs (DT-*) available for Phase 2 (consumed by deep-diagram process)"
+
+      detected_at:
+        type: "string"
+        format: "ISO 8601 timestamp"
+        required: true
+        description: "When domain detection was performed"
+
+  assumptions:
+    type: "array"
+    required: true
+    description: "Declared assumptions (3 layers)"
+    minItems: 3
+    items:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          required: true
+          description: "Assumption ID (e.g., 'A-001')"
+
+        layer:
+          type: "string"
+          enum: ["surface", "inherited", "invisible"]
+          required: true
+          description: "Assumption layer"
+
+        assumption:
+          type: "string"
+          required: true
+          description: "The assumption statement"
+
+        justification:
+          type: "string"
+          required: true
+          description: "Why making this assumption"
+
+        falsification:
+          type: "string"
+          required: true
+          description: "What evidence would prove it wrong"
+
+        confidence:
+          type: "string"
+          enum: ["high", "medium", "low"]
+          required: true
+          description: "Confidence level"
+
+  knowledge_areas:
+    type: "array"
+    required: true
+    description: "Knowledge areas to extract in Phase 1"
+    minItems: 3
+    items:
+      type: "object"
+      properties:
+        area:
+          type: "string"
+          enum: ["execution_flows", "data_flows", "control_flows", "test_coverage", "configuration"]
+          required: true
+          description: "Knowledge area type"
+
+        priority:
+          type: "string"
+          enum: ["critical", "important", "optional"]
+          required: true
+          description: "Priority level"
+
+        justification:
+          type: "string"
+          required: true
+          description: "Why this area needed"
+
+        template_sections:
+          type: "array"
+          items:
+            type: "string"
+          required: true
+          description: "Template sections requiring this knowledge"
+
+  gate_evaluation:
+    type: "object"
+    required: true
+    description: "GATE_0 evaluation results"
+    properties:
+      gate:
+        type: "string"
+        required: true
+        description: "Gate ID ('GATE_0')"
+
+      status:
+        type: "string"
+        enum: ["OPEN", "LOCKED"]
+        required: true
+        description: "Gate status"
+
+      conditions:
+        type: "array"
+        required: true
+        items:
+          type: "object"
+          properties:
+            id:
+              type: "string"
+            status:
+              type: "string"
+              enum: ["PASS", "FAIL"]
+            evidence:
+              type: "string"
+
+      counter_checks:
+        type: "array"
+        required: true
+        items:
+          type: "object"
+          properties:
+            check:
+              type: "string"
+            status:
+              type: "string"
+              enum: ["PASS", "FAIL"]
+            evidence:
+              type: "string"
+
+      evaluated_at:
+        type: "string"
+        format: "ISO 8601 timestamp"
+        required: true
+        description: "When gate was evaluated"
+
+validation_rules:
+  - rule: "total_files must be > 0"
+  - rule: "assumptions must have all 3 layers (surface, inherited, invisible)"
+  - rule: "knowledge_areas must have ≥3 entries"
+  - rule: "final_domains must have ≥3 entries (minimum: 3 base domains)"
+  - rule: "active_patterns.quality and active_patterns.diagram_triggers must exist"
+  - rule: "No domain in final_domains has unmet requires[] dependencies"
+  - rule: "gate_evaluation.status must be OPEN to proceed to Phase 1"

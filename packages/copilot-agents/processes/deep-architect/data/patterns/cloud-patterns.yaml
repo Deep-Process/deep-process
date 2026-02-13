@@ -1,0 +1,436 @@
+# Cloud Platform Patterns — Deep-Architect V1.3.0
+# 29 platform-specific patterns (12 AWS + 9 Azure + 4 K8s + 4 GCP)
+# Loaded ONLY when corresponding platform domain detected (R12)
+# Version: 1.1.0
+# Date: 2026-02-12
+
+metadata:
+  version: "1.1.0"
+  total_patterns: 29
+  platforms: 4
+
+# ═══════════════════════════════════════════
+# AWS PATTERNS (12)
+# ═══════════════════════════════════════════
+
+aws:
+  - pattern_id: "CP-AWS-001"
+    name: "Lambda + API Gateway"
+    category: "compute"
+    description: "Serverless REST/WebSocket API using Lambda functions behind API Gateway."
+    when_to_use:
+      - "Variable/unpredictable traffic"
+      - "Pay-per-request cost model needed"
+      - "Simple request-response APIs"
+    trade_offs: "Zero idle cost vs cold start latency (100ms-3s). Simple scaling vs 15-min execution limit."
+    implementation_hints:
+      - "Use provisioned concurrency for latency-sensitive endpoints"
+      - "Lambda Powertools for structured logging, tracing, metrics"
+      - "API Gateway REST for full features, HTTP for cost"
+
+  - pattern_id: "CP-AWS-002"
+    name: "DynamoDB Single-Table Design"
+    category: "data"
+    description: "Store multiple entity types in one DynamoDB table using composite keys and GSIs."
+    when_to_use:
+      - "Known access patterns at design time"
+      - "Need single-digit millisecond latency"
+      - "Serverless architecture (pay-per-request)"
+    trade_offs: "Performance vs query flexibility. Cost-efficient vs complex data modeling."
+    implementation_hints:
+      - "Design access patterns BEFORE table schema"
+      - "PK/SK overloading for entity co-location"
+      - "GSIs for alternative access patterns (max 20)"
+
+  - pattern_id: "CP-AWS-003"
+    name: "SQS/SNS Fan-out"
+    category: "messaging"
+    description: "SNS topic for pub/sub fan-out, SQS queues for reliable point-to-point with retry and DLQ."
+    when_to_use:
+      - "Multiple consumers need same event"
+      - "Guaranteed delivery with retry"
+      - "Decoupling producers from consumers"
+    trade_offs: "Reliability vs at-least-once semantics (need idempotent consumers)."
+    implementation_hints:
+      - "SNS → SQS subscription for fan-out"
+      - "DLQ on every SQS queue"
+      - "Message deduplication for FIFO queues"
+
+  - pattern_id: "CP-AWS-004"
+    name: "Step Functions Orchestration"
+    category: "orchestration"
+    description: "Visual workflow orchestration for multi-step serverless processes with error handling and retry."
+    when_to_use:
+      - "Multi-step business processes"
+      - "Need visual flow monitoring"
+      - "Complex error handling and compensation"
+    trade_offs: "Visual clarity vs state transition cost ($0.025 per 1000 transitions). Built-in retry vs vendor lock-in."
+    implementation_hints:
+      - "Express Workflows for high-volume, short-duration"
+      - "Standard Workflows for long-running (up to 1 year)"
+      - "Map state for parallel processing"
+
+  - pattern_id: "CP-AWS-005"
+    name: "CDK Construct Patterns"
+    category: "infrastructure"
+    description: "AWS CDK L2/L3 constructs for infrastructure-as-code with type-safe composition."
+    when_to_use:
+      - "AWS infrastructure provisioning"
+      - "Team comfortable with TypeScript/Python"
+      - "Need reusable infrastructure components"
+    trade_offs: "Type safety vs CDK learning curve. Reusable constructs vs CloudFormation complexity underneath."
+    implementation_hints:
+      - "L3 constructs for common patterns (API + Lambda + DynamoDB)"
+      - "Separate stacks for independent lifecycle"
+      - "CDK Aspects for compliance enforcement"
+
+  - pattern_id: "CP-AWS-006"
+    name: "Multi-Account Strategy"
+    category: "governance"
+    description: "AWS Organizations with separate accounts for security boundary, billing, and blast radius isolation."
+    when_to_use:
+      - "Production workloads"
+      - "Multiple environments (dev/staging/prod)"
+      - "Multiple teams or business units"
+    trade_offs: "Strong isolation vs cross-account complexity."
+    implementation_hints:
+      - "Minimum: management, security, log archive, dev, staging, prod accounts"
+      - "AWS Control Tower for governance"
+      - "Cross-account roles for access"
+
+  - pattern_id: "CP-AWS-007"
+    name: "EventBridge Event Bus"
+    category: "messaging"
+    description: "Serverless event bus for event-driven architectures with schema registry and content-based routing."
+    when_to_use:
+      - "Cross-service event routing"
+      - "Event schema enforcement"
+      - "SaaS integration events"
+    trade_offs: "Flexible routing vs eventual consistency. Schema enforcement vs schema management overhead."
+    implementation_hints:
+      - "Custom event bus (not default) for isolation"
+      - "Schema registry for event documentation"
+      - "Archive and replay for debugging"
+
+  - pattern_id: "CP-AWS-008"
+    name: "S3 Data Lake Foundation"
+    category: "data"
+    description: "S3-based data lake with zones (raw/curated/refined), lifecycle policies, and access control."
+    when_to_use:
+      - "Large-scale data storage and analytics"
+      - "Multiple data sources/formats"
+      - "Data science workloads"
+    trade_offs: "Cheap storage vs query performance (need compute layer). Flexibility vs governance complexity."
+    implementation_hints:
+      - "Zone structure: raw/ (landing), curated/ (cleaned), refined/ (analytics-ready)"
+      - "Lifecycle policies for cost optimization"
+      - "Lake Formation for fine-grained access control"
+
+  - pattern_id: "CP-AWS-009"
+    name: "ECS/Fargate Container Platform"
+    category: "compute"
+    description: "Container orchestration on AWS using ECS with Fargate (serverless) or EC2 (managed instances)."
+    when_to_use:
+      - "Long-running services (not suitable for Lambda)"
+      - "Container-based workloads"
+      - "Need more control than Lambda allows"
+    trade_offs: "More control vs more operational overhead than Lambda. Fargate simplicity vs EC2 cost savings."
+    implementation_hints:
+      - "Fargate for simplicity, EC2 for cost optimization"
+      - "Service mesh with App Mesh or Cloud Map"
+      - "Task definitions as infrastructure-as-code"
+
+  - pattern_id: "CP-AWS-010"
+    name: "Aurora Serverless v2"
+    category: "data"
+    description: "Auto-scaling relational database that scales capacity based on application demand."
+    when_to_use:
+      - "Variable database workload"
+      - "Need relational database with serverless scaling"
+      - "Multiple applications sharing database cluster"
+    trade_offs: "Auto-scaling vs higher per-ACU cost than provisioned. Serverless flexibility vs Aurora-specific features."
+    implementation_hints:
+      - "Set min/max ACU based on baseline and peak"
+      - "Data API for HTTP-based access from Lambda"
+      - "Global database for multi-region"
+
+  - pattern_id: "CP-AWS-011"
+    name: "CloudFront + S3 SPA Hosting"
+    category: "frontend"
+    description: "Static SPA hosting on S3 with CloudFront CDN for global distribution and HTTPS."
+    when_to_use:
+      - "Single-page applications (React, Angular, Vue)"
+      - "Static site hosting"
+      - "Global user base"
+    trade_offs: "Low cost vs cache invalidation delay. Global distribution vs origin access complexity."
+    implementation_hints:
+      - "Origin Access Identity for S3 private access"
+      - "CloudFront Functions for header manipulation"
+      - "Custom error pages for SPA routing"
+
+  - pattern_id: "CP-AWS-012"
+    name: "Cognito Authentication"
+    category: "security"
+    description: "Managed user authentication and authorization with user pools, identity pools, and social login."
+    when_to_use:
+      - "User authentication for web/mobile apps"
+      - "Social login (Google, Facebook, Apple)"
+      - "Serverless architecture (Lambda authorizer)"
+    trade_offs: "Managed service vs limited customization. Free tier vs cost at scale."
+    implementation_hints:
+      - "User Pool for authentication, Identity Pool for AWS credentials"
+      - "Custom Lambda triggers for auth flows"
+      - "JWT validation at API Gateway"
+
+# ═══════════════════════════════════════════
+# AZURE PATTERNS (8)
+# ═══════════════════════════════════════════
+
+azure:
+  - pattern_id: "CP-AZ-001"
+    name: "Azure Functions + APIM"
+    category: "compute"
+    description: "Serverless functions behind API Management for managed API gateway with policies."
+    when_to_use:
+      - "Enterprise API management needs"
+      - "Multiple API consumers with different SLAs"
+      - "Rate limiting, caching, transformation"
+    trade_offs: "Full-featured API management vs APIM cost. Policy engine vs complexity."
+    implementation_hints:
+      - "APIM policies for auth, throttling, transformation"
+      - "Consumption tier for cost, Standard for features"
+      - "Named values for configuration"
+
+  - pattern_id: "CP-AZ-002"
+    name: "Cosmos DB Multi-Model"
+    category: "data"
+    description: "Globally distributed, multi-model database with tunable consistency and partitioning."
+    when_to_use:
+      - "Global distribution requirements"
+      - "Multi-model needs (document, graph, key-value)"
+      - "Tunable consistency (5 levels)"
+    trade_offs: "Global distribution vs RU-based pricing complexity. Multi-model vs cost at scale."
+    implementation_hints:
+      - "Choose partition key carefully (high cardinality)"
+      - "Start with Session consistency, tune as needed"
+      - "Analytical store for HTAP workloads"
+
+  - pattern_id: "CP-AZ-003"
+    name: "Service Bus Messaging"
+    category: "messaging"
+    description: "Enterprise messaging with queues, topics, sessions, and transactions for reliable communication."
+    when_to_use:
+      - "Enterprise messaging with ordering guarantees"
+      - "Transaction support needed"
+      - "Session-based message processing"
+    trade_offs: "Rich features vs cost. Ordering guarantees vs throughput."
+    implementation_hints:
+      - "Topics/subscriptions for pub/sub"
+      - "Sessions for ordered processing"
+      - "Dead-letter queue monitoring"
+
+  - pattern_id: "CP-AZ-004"
+    name: "Event Grid Event Routing"
+    category: "messaging"
+    description: "Fully managed event routing service for reactive programming with Azure-native integration."
+    when_to_use:
+      - "Azure resource events (blob created, etc.)"
+      - "Reactive event-driven patterns"
+      - "Serverless event handling"
+    trade_offs: "Native Azure integration vs Azure lock-in."
+    implementation_hints:
+      - "System topics for Azure resource events"
+      - "Custom topics for application events"
+      - "Event filtering at subscription level"
+
+  - pattern_id: "CP-AZ-005"
+    name: "AKS Kubernetes"
+    category: "compute"
+    description: "Managed Kubernetes with Azure-integrated networking, identity, monitoring, and auto-scaling."
+    when_to_use:
+      - "Container orchestration at scale"
+      - "Multi-cloud portability"
+      - "Complex workloads requiring K8s flexibility"
+    trade_offs: "Portability vs Azure-specific integrations. Flexibility vs K8s operational complexity."
+    implementation_hints:
+      - "Azure CNI for network integration"
+      - "Managed identity for Azure resource access"
+      - "KEDA for event-driven autoscaling"
+
+  - pattern_id: "CP-AZ-006"
+    name: "App Service Web Apps"
+    category: "compute"
+    description: "Managed PaaS for web applications with built-in CI/CD, scaling, and SSL."
+    when_to_use:
+      - "Traditional web applications"
+      - "Team prefers PaaS over containers"
+      - "Quick deployment without infrastructure management"
+    trade_offs: "Simplicity vs limited customization. Managed vs less control."
+    implementation_hints:
+      - "Deployment slots for zero-downtime deployments"
+      - "App Service Environment for network isolation"
+      - "Managed certificates for HTTPS"
+
+  - pattern_id: "CP-AZ-007"
+    name: "Front Door Global Load Balancing"
+    category: "networking"
+    description: "Global load balancer with WAF, SSL offloading, and URL-based routing across regions."
+    when_to_use:
+      - "Multi-region deployment"
+      - "Global user base"
+      - "WAF and DDoS protection needed"
+    trade_offs: "Global reach vs configuration complexity."
+    implementation_hints:
+      - "Health probes for backend monitoring"
+      - "Rules engine for routing policies"
+      - "WAF policies for OWASP protection"
+
+  - pattern_id: "CP-AZ-008"
+    name: "Entra ID (Azure AD) Authentication"
+    category: "security"
+    description: "Enterprise identity management with SSO, MFA, conditional access, and B2C for customer apps."
+    when_to_use:
+      - "Enterprise applications"
+      - "Microsoft 365 integration"
+      - "B2C customer authentication"
+    trade_offs: "Enterprise features vs Microsoft ecosystem dependency."
+    implementation_hints:
+      - "MSAL library for token acquisition"
+      - "App registrations for service identity"
+      - "Conditional Access policies for security"
+
+  - pattern_id: "CP-AZ-009"
+    name: "Synapse Analytics"
+    category: "data"
+    description: "Unified analytics platform combining serverless SQL pools, dedicated SQL pools (DWH), Spark pools, and Data Explorer for integrated data engineering and BI."
+    when_to_use:
+      - "Enterprise data warehouse with T-SQL expertise"
+      - "Combined batch + interactive analytics"
+      - "Power BI integration for BI layer"
+    trade_offs: "Unified platform vs DWU-based pricing complexity. T-SQL familiarity vs auto-pause/resume latency."
+    implementation_hints:
+      - "Serverless SQL pool for ad-hoc exploration (pay-per-query)"
+      - "Dedicated SQL pool for predictable workloads (DWU-based)"
+      - "Workload Management groups to prevent concurrency slot exhaustion"
+
+# ═══════════════════════════════════════════
+# KUBERNETES PATTERNS (4)
+# ═══════════════════════════════════════════
+
+kubernetes:
+  - pattern_id: "CP-K8S-001"
+    name: "Helm Chart Templating"
+    category: "deployment"
+    description: "Package Kubernetes manifests as reusable Helm charts with values-based configuration for multi-environment deployment."
+    when_to_use:
+      - "Multi-environment deployment (dev/staging/prod)"
+      - "Reusable application packaging"
+      - "Team managing multiple K8s services"
+    trade_offs: "Reusable packaging vs Helm template complexity. Multi-env vs values.yaml management."
+    implementation_hints:
+      - "One chart per microservice, shared library chart for common patterns"
+      - "values-dev.yaml, values-staging.yaml, values-prod.yaml"
+      - "Helmfile or ArgoCD for multi-chart orchestration"
+
+  - pattern_id: "CP-K8S-002"
+    name: "Service Mesh (Istio/Linkerd)"
+    category: "networking"
+    description: "Sidecar proxy mesh for transparent mTLS, traffic management, observability, and circuit breaking between services."
+    when_to_use:
+      - ">10 microservices needing mutual TLS"
+      - "Advanced traffic management (canary, A/B, mirroring)"
+      - "Unified observability without code changes"
+    trade_offs: "Zero-code security/observability vs sidecar resource overhead (50-100MB per pod). Feature-rich vs operational complexity."
+    implementation_hints:
+      - "Istio for features, Linkerd for simplicity"
+      - "Start with mTLS + observability, add traffic rules later"
+      - "Resource requests/limits on sidecar containers"
+
+  - pattern_id: "CP-K8S-003"
+    name: "KEDA Event-Driven Autoscaling"
+    category: "scaling"
+    description: "Scale pods to zero and up based on external event sources (queue depth, Kafka lag, cron, metrics)."
+    when_to_use:
+      - "Event-driven workloads with variable load"
+      - "Scale-to-zero for cost savings"
+      - "Queue-based processing (SQS, Kafka, Service Bus)"
+    trade_offs: "Cost savings vs cold-start latency on scale-from-zero. Event-aware vs KEDA operator dependency."
+    implementation_hints:
+      - "ScaledObject per deployment with trigger type"
+      - "Kafka trigger: scale by consumer group lag"
+      - "Cooldown period to prevent flapping (300s default)"
+
+  - pattern_id: "CP-K8S-004"
+    name: "Operator Pattern"
+    category: "automation"
+    description: "Custom Kubernetes controller that encodes operational knowledge for managing complex stateful applications (databases, message brokers, ML pipelines)."
+    when_to_use:
+      - "Stateful applications requiring lifecycle management"
+      - "Complex operational procedures (backup, failover, upgrade)"
+      - "Self-healing infrastructure automation"
+    trade_offs: "Automated operations vs operator development/maintenance cost. Self-healing vs debugging complexity."
+    implementation_hints:
+      - "Operator SDK (Go) or Kopf (Python) for implementation"
+      - "Custom Resource Definitions (CRDs) for domain objects"
+      - "Reconciliation loop: observe → diff → act"
+
+# ═══════════════════════════════════════════
+# GCP PATTERNS (4)
+# ═══════════════════════════════════════════
+
+gcp:
+  - pattern_id: "CP-GCP-001"
+    name: "Cloud Run Serverless Containers"
+    category: "compute"
+    description: "Fully managed serverless container platform with auto-scaling, scale-to-zero, and request-based billing."
+    when_to_use:
+      - "Container workloads with variable traffic"
+      - "Migration from Docker without K8s overhead"
+      - "Stateless HTTP services"
+    trade_offs: "Zero-ops vs limited customization. Scale-to-zero vs cold start."
+    implementation_hints:
+      - "Use min-instances=1 for latency-sensitive services"
+      - "Concurrency setting per container (default 80)"
+      - "Cloud Run Jobs for batch processing"
+
+  - pattern_id: "CP-GCP-002"
+    name: "BigQuery Serverless Analytics"
+    category: "data"
+    description: "Serverless data warehouse with automatic scaling, built-in ML, and separation of storage and compute."
+    when_to_use:
+      - "Large-scale analytics (TB-PB range)"
+      - "Ad-hoc SQL queries without infrastructure"
+      - "ML predictions via SQL (BigQuery ML)"
+    trade_offs: "Serverless simplicity vs per-query pricing at scale. Fast setup vs vendor lock-in."
+    implementation_hints:
+      - "Partitioned tables by date for cost control"
+      - "Materialized views for repeated queries"
+      - "Slots reservation for predictable workloads"
+
+  - pattern_id: "CP-GCP-003"
+    name: "Pub/Sub Event Streaming"
+    category: "messaging"
+    description: "Global-scale event streaming with at-least-once delivery, exactly-once processing, and dead-letter topics."
+    when_to_use:
+      - "Global event distribution"
+      - "High-throughput streaming (millions/sec)"
+      - "GCP-native event-driven architecture"
+    trade_offs: "Global scale vs GCP dependency. High throughput vs at-least-once semantics."
+    implementation_hints:
+      - "Subscription filters for content-based routing"
+      - "Dead-letter topics for failed messages"
+      - "Exactly-once with Dataflow (not standalone Pub/Sub)"
+
+  - pattern_id: "CP-GCP-004"
+    name: "Dataflow Stream/Batch Processing"
+    category: "data"
+    description: "Unified stream and batch data processing based on Apache Beam, with auto-scaling and exactly-once semantics."
+    when_to_use:
+      - "Unified stream + batch pipeline"
+      - "Exactly-once processing needed"
+      - "Complex event processing (windowing, triggers)"
+    trade_offs: "Unified model vs Beam abstraction overhead. Exactly-once vs higher latency."
+    implementation_hints:
+      - "Apache Beam SDK (Java/Python) for portability"
+      - "Streaming engine for low-latency mode"
+      - "FlexRS for cost-optimized batch"

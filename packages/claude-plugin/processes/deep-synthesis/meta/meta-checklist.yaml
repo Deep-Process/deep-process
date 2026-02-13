@@ -1,0 +1,287 @@
+# META Methods Checklist for Deep Synthesis V1.0
+# PURPOSE: Continuous quality assurance throughout synthesis process
+# Apply after each major phase, not just at the end
+
+---
+meta_methods:
+
+  - id: "601"
+    name: "Apophenia Check"
+    purpose: "Verify detected patterns are real, not imposed by pattern-seeking brain"
+    when_to_apply:
+      - "After RELATE phase"
+      - "After OUTPUT phase"
+      - "When patterns feel 'too clean'"
+
+    checks:
+      - name: "Base Rate Test"
+        question: "What's the probability of this pattern appearing by CHANCE?"
+        red_flag: "High probability of chance occurrence"
+
+      - name: "Prediction Test"
+        question: "If pattern is real, what ELSE should be true? Can we verify?"
+        red_flag: "Predictions not verified or not verifiable"
+
+      - name: "Alternative Explanation Test"
+        question: "Is there a simpler explanation that doesn't require the pattern?"
+        red_flag: "Simpler explanation exists"
+
+      - name: "Independent Observer Test"
+        question: "Would someone with different expertise see the same pattern?"
+        red_flag: "Pattern only visible to synthesizer"
+
+      - name: "Removal Test"
+        question: "Remove one source — does pattern survive?"
+        red_flag: "Pattern depends on single source"
+
+    red_flags:
+      - "Pattern only visible after extensive 'massaging' of data"
+      - "Pattern depends on specific framing or ordering"
+      - "Pattern conveniently confirms synthesizer's prior beliefs"
+      - "No one outside synthesis team sees the pattern"
+
+  - id: "602"
+    name: "Confirmation Bias Audit"
+    purpose: "Check whether synthesis selectively weighted confirming evidence"
+    when_to_apply:
+      - "After INTEGRATE phase"
+      - "When conclusion aligns with prior view"
+
+    checks:
+      - name: "Prior View Documentation"
+        question: "What was the synthesizer's view BEFORE starting?"
+        red_flag: "Prior view not documented"
+
+      - name: "Alignment Check"
+        question: "Does synthesis conclusion ALIGN with prior view?"
+        red_flag: "Strong alignment without investigation"
+
+      - name: "Counter-Source Weight"
+        question: "Were counter-sources (#105) given adequate weight?"
+        red_flag: "Counter-sources dismissed or ignored"
+
+      - name: "Inversion Test"
+        question: "Would someone with OPPOSITE prior view reach same conclusion?"
+        red_flag: "Answer is NO → bias likely present"
+
+      - name: "Source Selection Check"
+        question: "Were sources chosen to CONFIRM or to INVESTIGATE?"
+        red_flag: "Sources selected for confirmation"
+
+  - id: "603"
+    name: "Completeness Assessment"
+    purpose: "Evaluate whether synthesis adequately covers the synthesis question"
+    when_to_apply:
+      - "After CRYSTALLIZE phase"
+      - "Before OUTPUT"
+
+    dimensions:
+      - name: "Question Coverage"
+        question: "Does synthesis address ALL aspects of the question?"
+        scale: "1-5"
+
+      - name: "Source Utilization"
+        question: "Were all collected sources actually used?"
+        scale: "1-5"
+
+      - name: "Contradiction Resolution"
+        question: "Were all divergences addressed?"
+        scale: "1-5"
+
+      - name: "Gap Acknowledgment"
+        question: "Are known gaps documented?"
+        scale: "1-5"
+
+      - name: "Level Coverage"
+        question: "Are all relevant levels of analysis included?"
+        scale: "1-5"
+
+    bonini_paradox: |
+      If achieving completeness would require a synthesis as complex as
+      reality itself, accept meaningful incompleteness. Document what's
+      missing and why it's acceptable.
+
+  - id: "604"
+    name: "Falsifiability Check"
+    purpose: "Verify synthesis produces claims that could be proven wrong"
+    reference: "Popper (1934)"
+    when_to_apply:
+      - "After INTEGRATE phase"
+      - "For each major conclusion"
+
+    process:
+      - step: "For each conclusion: what evidence would DISPROVE it?"
+      - step: "Is that evidence obtainable (in principle? practically?)?"
+      - step: "If unfalsifiable: downgrade to 'perspective' or 'narrative'"
+      - step: "For falsifiable: what's the cheapest/fastest way to test?"
+      - step: "Set timeline for time-delayed falsification tests"
+
+    red_flags:
+      - "Conclusion has no conceivable disproof evidence"
+      - "Disproof evidence is impossible to obtain"
+      - "Conclusion is structured to be unfalsifiable"
+
+    target: "At least 70% of conclusions should be falsifiable"
+
+  - id: "605"
+    name: "Source Bias Propagation Check"
+    purpose: "Assess whether biases in sources propagated into synthesis"
+    when_to_apply:
+      - "After INTEGRATE phase"
+      - "When sources are homogeneous"
+
+    bias_types:
+      - name: "Survivorship Bias"
+        check: "Are failure cases represented?"
+        mechanism: "Only successful cases reported"
+
+      - name: "Publication Bias"
+        check: "Are null results included?"
+        mechanism: "Only positive results published"
+
+      - name: "Selection Bias"
+        check: "Were sources gathered systematically?"
+        mechanism: "Sources selected to confirm hypothesis"
+
+      - name: "Recency Bias"
+        check: "Are historical perspectives included?"
+        mechanism: "Recent sources overweighted"
+
+      - name: "Authority Bias"
+        check: "Are practitioner perspectives included?"
+        mechanism: "High-status sources overweighted"
+
+      - name: "Cultural Bias"
+        check: "Are diverse cultural perspectives represented?"
+        mechanism: "Dominant culture assumed universal"
+
+      - name: "Methodological Bias"
+        check: "Are multiple methods represented?"
+        mechanism: "One method dominates"
+
+    process:
+      - "For each bias type: check if source set is affected"
+      - "If bias detected: assess impact on synthesis conclusions"
+      - "Adjust synthesis to acknowledge or correct for propagated bias"
+
+  - id: "606"
+    name: "Novel Information Test"
+    purpose: "Rigorously test whether synthesis contains genuine new information"
+    reference: "Shannon (1948)"
+    when_to_apply:
+      - "After CRYSTALLIZE phase"
+      - "For each claimed insight"
+
+    test:
+      - "For each insight:"
+      - "  - Is it present in Source A alone? → EXTRACTION from A"
+      - "  - Is it present in Source B alone? → EXTRACTION from B"
+      - "  - Does it require COMBINING A and B? → GENUINE SYNTHESIS"
+      - "  - Does it come from synthesizer's knowledge? → ADDED (label it)"
+
+    classification:
+      extraction: "Present in single source (not synthesis)"
+      synthesis: "Requires combining sources (genuine)"
+      added: "From synthesizer's expertise, not sources (must label)"
+
+    targets:
+      minimum_novelty: "30%"
+      warning: "0% novelty = this is a SUMMARY, not a synthesis"
+
+    red_flags:
+      - "All insights traceable to single sources"
+      - "No emergent properties from combination"
+      - "Synthesis is just reorganization of existing content"
+
+  - id: "607"
+    name: "Synthesis Decay Monitoring"
+    purpose: "Define what changes would invalidate synthesis and require reassessment"
+    when_to_apply:
+      - "During OUTPUT phase"
+      - "At synthesis completion"
+
+    decay_triggers:
+      - trigger: "New contradicting source"
+        impact: "May invalidate core conclusions"
+        action: "Re-evaluate affected conclusions"
+
+      - trigger: "Source quality revision"
+        impact: "Changes evidence weights"
+        action: "Re-weight and potentially revise"
+
+      - trigger: "Context change"
+        impact: "May violate boundary conditions (#406)"
+        action: "Check if synthesis still applies"
+
+      - trigger: "Time passage"
+        impact: "Temporal assumptions may expire"
+        action: "Review time-dependent conclusions"
+
+      - trigger: "Failed prediction"
+        impact: "Synthesis model is wrong in some way"
+        action: "Investigate and revise model"
+
+      - trigger: "Paradigm shift in domain"
+        impact: "May invalidate framework assumptions"
+        action: "Full reassessment required"
+
+    process:
+      - "For each core conclusion: what would change it?"
+      - "Set monitoring cadence: when to re-evaluate?"
+      - "Define KILL criteria: what evidence would completely invalidate?"
+      - "Version synthesis if living document"
+
+---
+# Application schedule by phase
+application_schedule:
+  after_scope:
+    methods: []
+    notes: "No META needed yet"
+
+  after_acquire:
+    methods: ["605"]
+    notes: "Check source bias early"
+
+  after_decompose:
+    methods: []
+    notes: "Continue to RELATE"
+
+  after_relate:
+    methods: ["601"]
+    notes: "Check patterns before integration"
+
+  after_integrate:
+    methods: ["601", "602", "604", "605"]
+    notes: "Full bias and quality checks"
+
+  after_crystallize:
+    methods: ["603", "606"]
+    notes: "Completeness and novelty"
+
+  during_output:
+    methods: ["607"]
+    notes: "Set up decay monitoring"
+
+---
+# Depth level requirements
+depth_requirements:
+  quick:
+    required: []
+    recommended: ["606"]
+    notes: "Minimal META for speed"
+
+  standard:
+    required: ["601", "602", "606"]
+    recommended: ["603", "604"]
+    notes: "Core META methods"
+
+  rigorous:
+    required: ["601", "602", "603", "604", "605", "606", "607"]
+    recommended: []
+    notes: "All META methods"
+
+  comprehensive:
+    required: ["601", "602", "603", "604", "605", "606", "607"]
+    recommended: []
+    notes: "All META methods with stakeholder review"
+    additional: "Multiple iterations with META between each"

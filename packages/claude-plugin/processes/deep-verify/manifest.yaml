@@ -1,0 +1,16 @@
+id: deep-verify
+name: "Deep Verify"
+version: "2.0.0"
+description: "Structured verification and fact-checking of code and documents"
+shortDescription: "Verify claims, check facts, find contradictions"
+workflowFile: "workflow.md"
+firstStepFile: "steps/step-00-setup.md"
+firstStepLabel: "Phase 0"
+agentName: "Deep Verify Agent"
+agentInstruction: "Do not pre-judge the verification mode. Follow the logic in step-00-setup.md to interactively select the mode if it is not explicitly provided."
+githubAgentTools:
+  - read
+  - search
+slashCommand: "deep-verify"
+excludeFromInstall:
+  - "docs/**"

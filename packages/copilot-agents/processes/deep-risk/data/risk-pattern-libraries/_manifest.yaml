@@ -1,0 +1,176 @@
+# Risk Pattern Libraries Manifest
+# These libraries contain domain-specific failure patterns for Historical Pattern Matching (#106)
+
+version: "2.0.0"
+description: |
+  Risk pattern libraries provide survivorship-corrected historical failure patterns.
+  Each pattern includes: signature, anti-patterns, and indicators.
+
+  Usage:
+  - Run detection-rules.yaml algorithm to select relevant libraries
+  - Match current system characteristics against pattern signatures
+  - Check for presence of known anti-patterns
+  - Monitor for pattern-specific early warning indicators
+
+detection_rules_file: "detection-rules.yaml"
+
+libraries:
+  core:
+    file: "core.yaml"
+    description: "Universal risk patterns that apply across all domains"
+    pattern_count: 15
+    categories:
+      - complexity
+      - communication
+      - estimation
+      - process
+      - human-factors
+
+  distributed-systems:
+    file: "distributed-systems.yaml"
+    description: "Patterns specific to distributed and networked systems"
+    pattern_count: 12
+    categories:
+      - consensus
+      - networking
+      - state-management
+      - scaling
+      - resilience
+
+  data-engineering:
+    file: "data-engineering.yaml"
+    description: "Patterns specific to data pipelines, warehouses, and analytics"
+    pattern_count: 14
+    categories:
+      - data-quality
+      - pipeline-reliability
+      - schema-management
+      - performance
+      - governance
+
+  enterprise:
+    file: "enterprise.yaml"
+    description: "Patterns specific to enterprise IT and organizational systems"
+    pattern_count: 10
+    categories:
+      - integration
+      - vendor-management
+      - security
+      - compliance
+      - legacy
+
+  project-management:
+    file: "project-management.yaml"
+    description: "Patterns specific to project delivery and team dynamics"
+    pattern_count: 12
+    categories:
+      - estimation
+      - scope
+      - resources
+      - stakeholder
+      - delivery
+
+  cloud-infrastructure:
+    file: "cloud-infrastructure.yaml"
+    description: "Patterns specific to cloud platforms (AWS, Azure, GCP) and IaC"
+    pattern_count: 10
+    categories:
+      - availability
+      - security
+      - cost
+      - configuration
+      - vendor
+
+  security-cybersecurity:
+    file: "security-cybersecurity.yaml"
+    description: "Patterns specific to application security and cyber threats"
+    pattern_count: 8
+    categories:
+      - authentication
+      - supply-chain
+      - data-protection
+      - incident-response
+      - api-security
+
+  ai-ml-systems:
+    file: "ai-ml-systems.yaml"
+    description: "Patterns specific to ML pipelines, model deployment, and AI systems"
+    pattern_count: 8
+    categories:
+      - model-quality
+      - data-pipeline
+      - fairness
+      - operations
+      - adversarial
+
+  web-applications:
+    file: "web-applications.yaml"
+    description: "Patterns specific to web application development and operations"
+    pattern_count: 8
+    categories:
+      - frontend-backend
+      - performance
+      - security
+      - deployment
+      - accessibility
+
+  microservices:
+    file: "microservices.yaml"
+    description: "Patterns specific to microservice architecture and coordination"
+    pattern_count: 8
+    categories:
+      - decomposition
+      - observability
+      - consistency
+      - testing
+      - configuration
+
+  serverless-realtime:
+    file: "serverless-realtime.yaml"
+    description: "Patterns specific to serverless platforms and real-time systems"
+    pattern_count: 8
+    categories:
+      - latency
+      - events
+      - concurrency
+      - messaging
+      - state-management
+
+total_pattern_count: 119  # 15+12+14+10+12+10+8+8+8+8+8+6 = 119
+
+usage_guidance:
+  selection: |
+    1. Run detection-rules.yaml algorithm (automatic)
+    2. Core library always loaded (auto_apply: true)
+    3. Domain libraries loaded when confidence >= threshold
+    4. Prioritize patterns where >2 signature elements match
+
+  matching_threshold:
+    high_match: ">= 3 signature elements present"
+    moderate_match: "2 signature elements present"
+    low_match: "1 signature element present"
+
+  survivorship_note: |
+    These patterns are collected from FAILED projects and incidents.
+    Successful projects that had these patterns but succeeded are NOT included.
+    This is intentional - we want to flag risk, not guarantee failure.
+
+    The presence of a pattern means "this has caused failure before"
+    not "this will definitely cause failure."
+
+pattern_schema:
+  required_fields:
+    - id: "Unique pattern identifier (DOMAIN-NNN)"
+    - name: "Human-readable pattern name"
+    - description: "What this pattern represents"
+    - signature: "List of observable characteristics"
+    - anti_patterns: "Specific practices that trigger this pattern"
+    - indicators: "Early warning signs"
+    - historical_examples: "Real incidents (anonymized)"
+    - mitigation_hints: "Starting points for response"
+
+  optional_fields:
+    - aliases: "Other names for this pattern"
+    - related_patterns: "Connected patterns"
+    - severity_range: "Typical impact range"
+    - detection_difficulty: "How hard to spot early"

@@ -1,0 +1,307 @@
+# Architecture Domains — Deep-Architect V1.2.0
+# Domain hierarchy with transitive dependencies for architecture design
+# Detection: brief-based (keywords + requirements), NOT code-scanning
+# Version: 1.0.0
+# Date: 2026-02-12
+
+metadata:
+  version: "1.0.0"
+  total_domains: 17
+  layers: 4
+  auto_apply_count: 3
+
+# ─────────────────────────────────────────────
+# LAYER HIERARCHY
+# ─────────────────────────────────────────────
+# Layer 1 (BASE): Always applied, foundational principles
+# Layer 2 (PARADIGM): Architectural style, detected from brief
+# Layer 3 (PLATFORM): Cloud/infrastructure target, detected from brief
+# Layer 4 (INTEGRATION): Cross-cutting concerns, detected from brief
+#
+# Resolution order: BASE (auto) → PARADIGM (detect) → PLATFORM (detect) → INTEGRATION (detect)
+# Transitive dependencies resolved via closure algorithm (topological sort)
+
+layers:
+  - layer: 1
+    name: "BASE"
+    description: "Foundational principles applied to ALL architectures"
+    auto_apply: true
+
+  - layer: 2
+    name: "PARADIGM"
+    description: "Primary architectural style"
+    auto_apply: false
+    detection_source: "user_brief"
+
+  - layer: 3
+    name: "PLATFORM"
+    description: "Target cloud/infrastructure platform"
+    auto_apply: false
+    detection_source: "user_brief"
+
+  - layer: 4
+    name: "INTEGRATION"
+    description: "Cross-cutting integration concerns"
+    auto_apply: false
+    detection_source: "user_brief"
+
+# ─────────────────────────────────────────────
+# DOMAIN DEFINITIONS
+# ─────────────────────────────────────────────
+
+domains:
+  # ── LAYER 1: BASE (auto-apply) ──
+
+  - domain_id: "DOM-BASE-SOLID"
+    name: "SOLID Principles"
+    layer: 1
+    auto_apply: true
+    requires: []
+    provides:
+      patterns: ["AP-DEC-004"]  # Hexagonal
+      guidance: ["single-responsibility", "dependency-inversion", "interface-segregation"]
+    description: "SOLID principles applicable to all architectural decisions"
+
+  - domain_id: "DOM-BASE-SEC"
+    name: "Security Baseline"
+    layer: 1
+    auto_apply: true
+    requires: []
+    provides:
+      patterns: ["AP-SEC-001", "AP-SEC-004"]  # Zero Trust, Secrets Mgmt
+      guidance: ["defense-in-depth", "least-privilege", "secure-defaults"]
+    description: "Baseline security principles for any architecture"
+
+  - domain_id: "DOM-BASE-OBS"
+    name: "Observability Baseline"
+    layer: 1
+    auto_apply: true
+    requires: []
+    provides:
+      patterns: ["AP-OBS-001", "AP-OBS-002", "AP-OBS-003"]  # Tracing, Logging, Health
+      guidance: ["structured-logging", "health-endpoints", "metrics-collection"]
+    description: "Baseline observability for any production system"
+
+  # ── LAYER 2: PARADIGM (detected) ──
+
+  - domain_id: "DOM-PAR-MICRO"
+    name: "Microservices"
+    layer: 2
+    auto_apply: false
+    requires: ["DOM-PAR-EVENT"]  # Microservices requires event-driven communication
+    provides:
+      patterns: ["AP-DEC-001", "AP-COM-005", "AP-DAT-001", "AP-INT-001", "AP-INT-002", "AP-RES-001"]
+      domain_file: "domain-microservices.yaml"
+    detection_threshold: 0.65
+    description: "Distributed services with independent deployment"
+
+  - domain_id: "DOM-PAR-EVENT"
+    name: "Event-Driven"
+    layer: 2
+    auto_apply: false
+    requires: []
+    provides:
+      patterns: ["AP-COM-001", "AP-COM-002", "AP-COM-003", "AP-COM-004", "AP-DAT-002"]
+      guidance: ["event-sourcing", "eventual-consistency", "pub-sub", "choreography"]
+    detection_threshold: 0.65
+    description: "Asynchronous event-based communication"
+
+  - domain_id: "DOM-PAR-SERVER"
+    name: "Serverless"
+    layer: 2
+    auto_apply: false
+    requires: ["DOM-PAR-EVENT"]  # Serverless requires event-driven
+    provides:
+      patterns: ["AP-DEC-007"]
+      guidance: ["function-granularity", "cold-start", "stateless-design"]
+    detection_threshold: 0.65
+    description: "Function-as-a-service, managed infrastructure"
+
+  - domain_id: "DOM-PAR-DATA"
+    name: "Data Engineering"
+    layer: 2
+    auto_apply: false
+    requires: []
+    provides:
+      patterns: ["AP-DAT-004", "AP-DAT-005"]
+      domain_file: "domain-data-engineering.yaml"
+    detection_threshold: 0.65
+    description: "Data pipelines, lakes, warehouses, streaming"
+
+  - domain_id: "DOM-PAR-AI"
+    name: "AI/ML & RAG"
+    layer: 2
+    auto_apply: false
+    requires: ["DOM-PAR-DATA"]  # AI/ML requires data engineering fundamentals
+    provides:
+      patterns: []
+      domain_file: "domain-rag-ai.yaml"
+    detection_threshold: 0.65
+    description: "Machine learning, RAG pipelines, model serving"
+
+  - domain_id: "DOM-PAR-RT"
+    name: "Real-Time Processing"
+    layer: 2
+    auto_apply: false
+    requires: ["DOM-PAR-EVENT"]  # Real-time requires event-driven communication
+    provides:
+      patterns: ["AP-COM-007", "AP-COM-008", "AP-RES-006"]
+      domain_file: "domain-real-time.yaml"
+    detection_threshold: 0.65
+    description: "Low-latency streaming, live data feeds, real-time signal processing"
+
+  - domain_id: "DOM-PAR-MONO"
+    name: "Monolithic"
+    layer: 2
+    auto_apply: false
+    requires: []
+    provides:
+      patterns: ["AP-DEC-002", "AP-DEC-003", "AP-DEC-005"]
+      guidance: ["modular-boundaries", "layered-architecture", "vertical-slices"]
+    detection_threshold: 0.65
+    description: "Single deployment unit with modular internal structure"
+
+  # ── LAYER 3: PLATFORM (detected) ──
+
+  - domain_id: "DOM-PLT-AWS"
+    name: "AWS"
+    layer: 3
+    auto_apply: false
+    requires: []
+    provides:
+      patterns: []
+      cloud_file: "cloud-patterns.yaml"
+      cloud_section: "aws"
+    detection_threshold: 0.60
+    description: "Amazon Web Services platform patterns"
+
+  - domain_id: "DOM-PLT-AZURE"
+    name: "Azure"
+    layer: 3
+    auto_apply: false
+    requires: []
+    provides:
+      patterns: []
+      cloud_file: "cloud-patterns.yaml"
+      cloud_section: "azure"
+    detection_threshold: 0.60
+    description: "Microsoft Azure platform patterns"
+
+  - domain_id: "DOM-PLT-GCP"
+    name: "GCP"
+    layer: 3
+    auto_apply: false
+    requires: []
+    provides:
+      patterns: []
+      cloud_file: "cloud-patterns.yaml"
+      cloud_section: "gcp"
+    detection_threshold: 0.60
+    description: "Google Cloud Platform patterns"
+
+  - domain_id: "DOM-PLT-K8S"
+    name: "Kubernetes"
+    layer: 3
+    auto_apply: false
+    requires: []
+    provides:
+      patterns: []
+      guidance: ["pod-design", "service-mesh", "helm-charts", "operators"]
+    detection_threshold: 0.60
+    description: "Container orchestration platform patterns"
+
+  # ── LAYER 4: INTEGRATION (detected) ──
+
+  - domain_id: "DOM-INT-POLY"
+    name: "Polyglot"
+    layer: 4
+    auto_apply: false
+    requires: []
+    provides:
+      patterns: ["AP-INT-003"]  # Anti-Corruption Layer
+      guidance: ["language-boundary", "shared-contracts", "api-first"]
+    detection_threshold: 0.60
+    description: "Multiple programming languages/runtimes in one system"
+
+  - domain_id: "DOM-INT-MULTI"
+    name: "Multi-Tenant"
+    layer: 4
+    auto_apply: false
+    requires: []
+    provides:
+      patterns: []
+      guidance: ["tenant-isolation", "data-partitioning", "noisy-neighbor"]
+    detection_threshold: 0.65
+    description: "Shared infrastructure serving multiple tenants"
+
+  - domain_id: "DOM-INT-LEGACY"
+    name: "Legacy Integration"
+    layer: 4
+    auto_apply: false
+    requires: []
+    provides:
+      patterns: ["AP-INT-004"]  # Strangler Fig
+      guidance: ["strangler-pattern", "anti-corruption-layer", "data-sync"]
+    detection_threshold: 0.60
+    description: "Integration with existing legacy systems"
+
+# ─────────────────────────────────────────────
+# TRANSITIVE DEPENDENCY RESOLUTION
+# ─────────────────────────────────────────────
+# Algorithm (7 steps):
+#   1. Collect BASE domains (auto_apply: true) → base_set
+#   2. Run detection on brief → detected_set (domains with confidence ≥ threshold)
+#   3. For each domain in detected_set: collect requires[] → dependency_set
+#   4. Compute transitive closure: repeat step 3 for dependency_set until stable
+#   5. auto_included = closure - detected_set - base_set
+#   6. final_domains = base_set ∪ detected_set ∪ auto_included
+#   7. Log evidence for each domain: source (auto/detected/transitive), confidence, keywords matched
+#
+# Example: Brief mentions "microservices on AWS"
+#   base_set = {SOLID, SEC, OBS}
+#   detected_set = {MICRO(0.82), AWS(0.90)}
+#   MICRO requires EVENT → auto_included = {EVENT}
+#   final_domains = {SOLID, SEC, OBS, MICRO, EVENT, AWS}
+
+dependency_resolution:
+  algorithm: "transitive_closure"
+  max_depth: 3
+  circular_dependency_action: "ERROR — halt and log"
+  missing_dependency_action: "WARNING — proceed without, log in assumptions"
+
+# ─────────────────────────────────────────────
+# GATE ENFORCEMENT
+# ─────────────────────────────────────────────
+# G0-07: Architecture domains detected and resolved
+#   - Severity: CRITICAL
+#   - Condition: final_domains contains ≥3 BASE + ≥1 detected (unless monolith-only)
+#   - Evidence: architecture_domains{} in context-assessment.yaml
+#   - Failure: GATE_0 = LOCKED → cannot proceed to Phase 1
+
+gate_enforcement:
+  gate_id: "G0-07"
+  condition: "final_domains.base_count >= 3 AND (final_domains.detected_count >= 1 OR brief_type == 'exploratory')"
+  severity: "CRITICAL"
+  failure_action: "GATE_0 = LOCKED"
+
+# ─────────────────────────────────────────────
+# COUNTER-CHECKS
+# ─────────────────────────────────────────────
+counter_checks:
+  - id: "CC-DOM-01"
+    method: "#85 Grounding Check"
+    action: "Sample 3 detected domains, verify keywords exist in brief"
+    severity: "BLOCKER"
+    failure: "IF >1 domain ungrounded → remove from final_domains, re-resolve"
+
+  - id: "CC-DOM-02"
+    method: "#168 Phantom Hunt"
+    action: "Re-scan brief for domains with confidence 0.50-0.65 (borderline)"
+    severity: "ERROR"
+    failure: "IF borderline domain has strong secondary evidence → add to detected_set"
+
+  - id: "CC-DOM-03"
+    method: "#84 Coherence Check"
+    action: "Verify final_domains is internally consistent (no conflicting paradigms without rationale)"
+    severity: "ERROR"
+    failure: "IF conflict detected (e.g., monolithic + microservices) → log as ASSUMPTION, require rationale"

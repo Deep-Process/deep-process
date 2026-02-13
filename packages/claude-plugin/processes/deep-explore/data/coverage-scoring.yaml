@@ -1,0 +1,206 @@
+# Coverage Scoring Rules for Deep Explore V3.0
+# Enhanced: Enforcement bonuses, process integrity scoring
+# Based on: V2.1.1 (Quality over Quantity)
+
+# =============================================================================
+# DESIGN PRINCIPLES
+# =============================================================================
+# 1. Verification is more valuable than enumeration
+# 2. Minimum requirements must be met (quality gates)
+# 3. Diminishing returns prevent gaming
+# 4. Verification ratio matters
+# 5. Challenge phase is mandatory and scored
+# 6. V3.0: Enforcement compliance earns bonuses
+# 7. V3.0: Process integrity is tracked and scored
+
+# =============================================================================
+# SCORING WEIGHTS
+# =============================================================================
+scoring:
+  # Core exploration metrics (unchanged from V2.1.1)
+  core:
+    # DISCOVERY (diminishing returns after threshold)
+    dimension_discovered: 1.5
+    dimension_discovered_cap: 8
+    option_enumerated: 0.5
+    option_enumerated_cap: 20
+
+    # VERIFICATION (high value - this is the hard work)
+    consequence_verified: 2.0
+    consequence_assumed: 0.2
+    assumption_tested: 1.5
+    assumption_falsified: 2.0
+
+    # ANALYSIS (medium value)
+    unknown_unknown_surfaced: 1.5
+    boundary_identified: 1.0
+    causal_relationship_mapped: 1.0
+
+    # CHALLENGE (medium value - mandatory phase)
+    premortem_cause_found: 0.5
+    black_swan_identified: 0.5
+    bias_checked: 0.3
+    belief_stress_tested: 0.5
+
+  # V3.0 enforcement bonuses
+  enforcement:
+    gate_passed_clean: 1.0          # per gate passed without SCOPE_REDUCTION
+    counter_check_performed: 0.5    # per counter-check
+    assumed_to_verified_upgrade: 1.5 # per item upgraded from ASSUMED to VERIFIED
+
+  # Fear analysis metrics (when fear_analysis = on)
+  fear_analysis:
+    fear_classified: 0.5
+    false_wall_identified: 1.5
+    true_wall_confirmed: 1.5
+    controllable_concern_found: 0.5
+    success_path_discovered: 2.0
+    comparable_analyzed: 0.5
+
+# =============================================================================
+# MINIMUM REQUIREMENTS (Quality Gates)
+# =============================================================================
+minimum_requirements:
+  quick:
+    dimensions_min: 3
+    options_min: 6
+    verified_consequences_min: 2
+    assumptions_tested_min: 1
+    counter_checks_total_min: 6      # V3.0: 1 per phase × 6 phases (excl Step 0)
+
+  standard:
+    dimensions_min: 4
+    options_min: 12
+    verified_consequences_min: 5
+    assumptions_tested_min: 3
+    verification_ratio_min: 0.3
+    premortem_causes_min: 3
+    counter_checks_total_min: 12     # V3.0: 2 per phase × 6 phases
+
+  deep:
+    dimensions_min: 5
+    options_min: 15
+    verified_consequences_min: 10
+    assumptions_tested_min: 5
+    verification_ratio_min: 0.5
+    premortem_causes_min: 5
+    biases_checked_min: 5
+    counter_checks_total_min: 18     # V3.0: 3 per phase × 6 phases
+    gates_passed_clean_min: 7        # V3.0: all 7 gates must pass clean
+
+# =============================================================================
+# THRESHOLDS
+# =============================================================================
+thresholds:
+  quick:
+    comprehensive: 15
+    adequate: 10
+    partial: 5
+    insufficient: 0
+    max_iterations: 1
+
+  standard:
+    comprehensive: 35
+    adequate: 22
+    partial: 12
+    insufficient: 0
+    max_iterations: 3
+
+  deep:
+    comprehensive: 50
+    adequate: 35
+    partial: 20
+    insufficient: 0
+    max_iterations: 10
+
+fear_analysis_threshold_bonus: 5
+
+# =============================================================================
+# CALCULATION FORMULA
+# =============================================================================
+calculation: |
+  # STEP 1: Calculate raw score with caps
+
+  dimensions_score = min(dimensions, dimension_discovered_cap) × 1.5
+  options_score = min(options, option_enumerated_cap) × 0.5
+
+  verification_score =
+      (verified_consequences × 2.0)
+    + (assumed_consequences × 0.2)
+    + (assumptions_tested × 1.5)
+    + (assumptions_falsified × 2.0)
+
+  analysis_score =
+      (unknown_unknowns × 1.5)
+    + (boundaries × 1.0)
+    + (causal_relationships × 1.0)
+
+  challenge_score =
+      (premortem_causes × 0.5)
+    + (black_swans × 0.5)
+    + (biases_checked × 0.3)
+    + (beliefs_stress_tested × 0.5)
+
+  # V3.0: Enforcement bonuses
+  enforcement_score =
+      (gates_passed_clean × 1.0)
+    + (counter_checks × 0.5)
+    + (assumed_to_verified × 1.5)
+
+  RAW_SCORE = dimensions_score + options_score + verification_score
+            + analysis_score + challenge_score + enforcement_score
+
+  # STEP 2: Verification ratio
+  total_consequences = verified_consequences + assumed_consequences
+  IF total_consequences > 0:
+    verification_ratio = verified_consequences / total_consequences
+  ELSE:
+    verification_ratio = 0
+
+  # STEP 3: Quality gate check
+  QUALITY_GATE = check_minimum_requirements(depth_level)
+
+  IF QUALITY_GATE.failed:
+    FINAL_LEVEL = min(calculated_level, QUALITY_GATE.max_level)
+    FLAG: "Quality gate failed: {QUALITY_GATE.reason}"
+
+  # STEP 4: Fear analysis bonus
+  IF fear_analysis = on:
+    fear_score =
+        (fears_classified × 0.5)
+      + (false_walls_identified × 1.5)
+      + (true_walls_confirmed × 1.5)
+      + (controllable_concerns × 0.5)
+      + (success_paths_discovered × 2.0)
+      + (comparables_analyzed × 0.5)
+
+    FINAL_SCORE = RAW_SCORE + fear_score
+    thresholds += fear_analysis_threshold_bonus
+
+# =============================================================================
+# OUTPUT FORMAT
+# =============================================================================
+output_format: |
+  ╔═══════════════════════════════════════════════════════════════╗
+  ║  COVERAGE SCORE                                                ║
+  ╠═══════════════════════════════════════════════════════════════╣
+  ║                                                                ║
+  ║  RAW SCORE: [X] points                                         ║
+  ║  LEVEL: [COMPREHENSIVE/ADEQUATE/PARTIAL/INSUFFICIENT]          ║
+  ║                                                                ║
+  ║  QUALITY METRICS:                                              ║
+  ║  ├── Verification ratio: [X]% (min: [Y]%)  [✓/✗]              ║
+  ║  ├── Verified consequences: [N] (min: [M]) [✓/✗]              ║
+  ║  ├── Assumptions tested: [N] (min: [M])    [✓/✗]              ║
+  ║  ├── Biases checked: [N] (min: [M])        [✓/✗]              ║
+  ║  └── Counter-checks: [N] (min: [M])        [✓/✗]              ║
+  ║                                                                ║
+  ║  ENFORCEMENT METRICS:                                          ║
+  ║  ├── Gates passed clean: [N]/7                                 ║
+  ║  ├── Scope reductions: [N]                                     ║
+  ║  └── EVR compliance: [N]/7 phases                              ║
+  ║                                                                ║
+  ║  QUALITY GATE: [PASSED/FAILED]                                 ║
+  ║  [If failed: reason and recommendation]                        ║
+  ║                                                                ║
+  ╚═══════════════════════════════════════════════════════════════╝

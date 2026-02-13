@@ -1,0 +1,124 @@
+# Microservices Domain Patterns — Deep-Architect V1.2.0
+# 8 deep patterns specific to microservices architecture
+# Loaded ONLY when DOM-PAR-MICRO detected (R12)
+# Version: 1.0.0
+# Date: 2026-02-12
+
+metadata:
+  version: "1.0.0"
+  domain_id: "DOM-PAR-MICRO"
+  total_patterns: 8
+
+patterns:
+
+  - pattern_id: "DP-MS-001"
+    name: "Saga — State Machine Variant"
+    category: "coordination"
+    description: "Saga orchestrator implemented as explicit state machine for long-running business processes with compensation."
+    when_to_use:
+      - "Multi-step business transaction (>3 services)"
+      - "Each step has clear compensating action"
+      - "Need process visibility and monitoring"
+    trade_offs: "Clear state tracking vs orchestrator complexity. Visual debugging vs state machine maintenance."
+    implementation_hints:
+      - "State per transaction step (PENDING, PROCESSING, COMPLETED, COMPENSATING, FAILED)"
+      - "Persist saga state for crash recovery"
+      - "Timeout per step with automatic compensation"
+
+  - pattern_id: "DP-MS-002"
+    name: "Saga — Event-Sourced Variant"
+    category: "coordination"
+    description: "Saga state derived from event stream, enabling replay and temporal debugging."
+    when_to_use:
+      - "Event sourcing already adopted"
+      - "Need audit trail of saga execution"
+      - "Temporal debugging required"
+    trade_offs: "Complete history vs event store complexity. Replay capability vs storage growth."
+    implementation_hints:
+      - "Saga events: StepStarted, StepCompleted, StepFailed, CompensationStarted"
+      - "Replay from events for debugging"
+      - "Snapshot for performance optimization"
+
+  - pattern_id: "DP-MS-003"
+    name: "Service Mesh"
+    category: "infrastructure"
+    description: "Dedicated infrastructure layer for service-to-service communication handling mTLS, load balancing, observability."
+    when_to_use:
+      - ">10 microservices"
+      - "Need consistent mTLS, retry, circuit breaker across all services"
+      - "Language-agnostic communication policies"
+    trade_offs: "Consistent policies vs sidecar overhead (CPU/memory). Language-agnostic vs operational complexity."
+    implementation_hints:
+      - "Istio for full features, Linkerd for simplicity"
+      - "Start with mTLS and observability, add traffic management later"
+      - "Canary deployments via traffic splitting"
+
+  - pattern_id: "DP-MS-004"
+    name: "Sidecar Pattern"
+    category: "infrastructure"
+    description: "Co-located helper process providing cross-cutting functionality (logging, proxy, config) alongside main service."
+    when_to_use:
+      - "Cross-cutting concerns for polyglot services"
+      - "Consistent behavior across different language runtimes"
+      - "Service mesh proxy deployment"
+    trade_offs: "Language-agnostic vs resource overhead per instance."
+    implementation_hints:
+      - "Shared process lifecycle (start/stop together)"
+      - "Localhost communication for minimal latency"
+      - "Resource limits for sidecar containers"
+
+  - pattern_id: "DP-MS-005"
+    name: "Ambassador Pattern"
+    category: "infrastructure"
+    description: "Proxy sidecar handling outbound connectivity: retries, circuit breaking, TLS termination."
+    when_to_use:
+      - "Legacy services needing resilience patterns"
+      - "Offload connectivity concerns from application code"
+      - "Consistent outbound policies across services"
+    trade_offs: "Clean application code vs additional network hop."
+    implementation_hints:
+      - "Envoy proxy as ambassador container"
+      - "Configure retry, timeout, circuit breaker in proxy"
+      - "Health check endpoints for proxy monitoring"
+
+  - pattern_id: "DP-MS-006"
+    name: "Database-per-Service Migration"
+    category: "data"
+    description: "Incremental strategy to migrate from shared database to database-per-service ownership."
+    when_to_use:
+      - "Transitioning from monolith to microservices"
+      - "Current shared database between services"
+      - "Need gradual, low-risk data separation"
+    trade_offs: "Safe migration vs dual-write complexity during transition."
+    implementation_hints:
+      - "Phase 1: Read from own DB, write to both (sync period)"
+      - "Phase 2: Read/write from own DB, deprecate shared access"
+      - "Phase 3: Remove shared DB access, clean up"
+
+  - pattern_id: "DP-MS-007"
+    name: "Event-Driven Communication Blueprint"
+    category: "communication"
+    description: "Standard event communication setup: event catalog, naming conventions, schema registry, DLQ strategy."
+    when_to_use:
+      - "Establishing event-driven communication between services"
+      - "Multiple teams need consistent event patterns"
+      - "Event governance required"
+    trade_offs: "Standardization vs initial setup overhead."
+    implementation_hints:
+      - "Event naming: {domain}.{entity}.{action} (e.g., orders.order.created)"
+      - "Schema registry with backward compatibility enforcement"
+      - "DLQ per consumer with monitoring and alerting"
+
+  - pattern_id: "DP-MS-008"
+    name: "Contract Testing Strategy"
+    category: "testing"
+    description: "Consumer-driven contract tests verifying API compatibility between services without integration environment."
+    when_to_use:
+      - "Multiple teams developing services independently"
+      - "Need to detect breaking changes early"
+      - "Integration testing is too slow or unreliable"
+    trade_offs: "Fast feedback vs contract maintenance overhead."
+    implementation_hints:
+      - "Pact or Spring Cloud Contract for implementation"
+      - "Consumer writes contract, provider verifies"
+      - "Run contract tests in CI pipeline per service"

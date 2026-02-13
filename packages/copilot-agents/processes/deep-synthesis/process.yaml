@@ -1,0 +1,202 @@
+# Deep Synthesis V1.1 — Process Definition for Deep-Process Framework
+# Version: 1.1.0
+# Architecture: Single-agent sequential pipeline (7 phases + META)
+
+id: "proc-deep-synthesis"
+name: "Deep Synthesis (Systematic Knowledge Synthesis)"
+version: "1.1.0"
+description: |
+  Systematic knowledge synthesis methodology: transforms multiple sources,
+  diverse perspectives, and knowledge fragments into genuine understanding
+  through integration, emergence, compression, and validation.
+
+  7-phase pipeline: SCOPE -> ACQUIRE -> DECOMPOSE -> RELATE -> INTEGRATE ->
+  CRYSTALLIZE -> OUTPUT, with continuous META quality methods.
+
+  40 methods across 7 phases. 4 depth levels (quick/standard/rigorous/comprehensive).
+  19 theoretical foundations (Hegel, Shannon, Gentner, Peirce, Popper, etc.).
+
+inherits:
+  framework: "deep-process"
+  version: "3.7"
+
+# Architecture
+architecture:
+  type: "single-agent"
+  orchestrator: "workflow.md"
+  reference: "reference.md"
+
+# Configuration
+config_files:
+  scoring: "data/synthesis-scoring.yaml"
+  coverage: "data/coverage-scoring.yaml"
+  foundations: "data/theoretical-foundations.yaml"
+  meta_checklist: "meta/meta-checklist.yaml"
+  method_index: "methods.csv"
+
+# Templates
+templates:
+  synthesis_record: "data/synthesis-record-template.md"
+  synthesis_report: "data/synthesis-report-template.md"
+
+# Methods (40 methods across 7 phases)
+methods:
+  scope: [1, 2, 3]
+  acquire: [101, 102, 103, 104, 105]
+  decompose: [201, 202, 203, 204, 205, 206]
+  relate: [301, 302, 303, 304, 305, 306, 307, 308]
+  integrate: [401, 402, 403, 404, 405, 406, 407]
+  crystallize: [501, 502, 503, 504, 505]
+  meta: [601, 602, 603, 604, 605, 606, 607]
+
+# Depth levels
+depth_levels:
+  - id: "quick"
+    time: "1-2 hours"
+    sources: "2-5"
+    methods_count: 12
+    iterations: 1
+    coverage_target: 15
+  - id: "standard"
+    time: "half day"
+    sources: "5-15"
+    methods_count: 24
+    iterations: 3
+    coverage_target: 35
+  - id: "rigorous"
+    time: "2-3 days"
+    sources: "10-30"
+    methods_count: 38
+    iterations: 5
+    coverage_target: 50
+  - id: "comprehensive"
+    time: "1-2 weeks"
+    sources: "comprehensive"
+    methods_count: 40
+    iterations: "unlimited"
+    coverage_target: 65
+
+# Process phases
+phases:
+  - id: "scope"
+    name: "SCOPE"
+    steps: ["step-00"]
+    description: "Define synthesis question, level of analysis, source landscape"
+
+  - id: "acquire"
+    name: "ACQUIRE"
+    steps: ["step-01"]
+    description: "Collect diverse, quality-assessed sources"
+
+  - id: "decompose"
+    name: "DECOMPOSE"
+    steps: ["step-02"]
+    description: "Extract claims, concepts, models, evidence, assumptions, gaps"
+
+  - id: "relate"
+    name: "RELATE"
+    steps: ["step-03"]
+    description: "Map convergence, divergence, tensions, analogies, patterns"
+
+  - id: "integrate"
+    name: "INTEGRATE"
+    steps: ["step-04"]
+    description: "Dialectical integration, framework unification, emergence detection"
+
+  - id: "crystallize"
+    name: "CRYSTALLIZE"
+    steps: ["step-05"]
+    description: "Distill insights, design mental models, extract principles"
+
+  - id: "output"
+    name: "OUTPUT"
+    steps: ["step-06"]
+    description: "META audit, generate synthesis record and report"
+
+# Step definitions
+steps:
+  - id: "step-00"
+    name: "Scope"
+    file: "steps/step-00-scope.md"
+    time_estimate: "10-30 min"
+    inputs: ["synthesis_request", "context"]
+    outputs: ["synthesis_question", "level_selection", "source_landscape_map"]
+
+  - id: "step-01"
+    name: "Acquire"
+    file: "steps/step-01-acquire.md"
+    time_estimate: "30-120 min"
+    inputs: ["scope_definition"]
+    outputs: ["source_inventory", "quality_grades", "diversity_map"]
+
+  - id: "step-02"
+    name: "Decompose"
+    file: "steps/step-02-decompose.md"
+    time_estimate: "30-120 min"
+    inputs: ["source_inventory"]
+    outputs: ["claims", "concepts", "models", "evidence_grades", "assumptions", "gaps"]
+
+  - id: "step-03"
+    name: "Relate"
+    file: "steps/step-03-relate.md"
+    time_estimate: "30-120 min"
+    inputs: ["decomposed_elements"]
+    outputs: ["relationship_graph", "dialectical_tensions", "patterns", "analogies"]
+
+  - id: "step-04"
+    name: "Integrate"
+    file: "steps/step-04-integrate.md"
+    time_estimate: "30-120 min"
+    inputs: ["relationship_graph", "tensions"]
+    outputs: ["integrated_framework", "emergent_insights", "compressed_synthesis"]
+
+  - id: "step-05"
+    name: "Crystallize"
+    file: "steps/step-05-crystallize.md"
+    time_estimate: "30-60 min"
+    inputs: ["integrated_framework"]
+    outputs: ["core_insights", "mental_models", "principles", "narrative", "actions"]
+
+  - id: "step-06"
+    name: "Output"
+    file: "steps/step-06-output.md"
+    time_estimate: "30-60 min"
+    inputs: ["all_phase_outputs"]
+    outputs: ["synthesis_record", "synthesis_report"]
+
+# Artifacts produced
+artifacts:
+  process_artifacts:
+    - { id: "scope-definition", name: "Scope Definition", step: "step-00" }
+    - { id: "source-inventory", name: "Source Inventory", step: "step-01" }
+    - { id: "decomposition", name: "Decomposed Elements", step: "step-02" }
+    - { id: "relationship-map", name: "Relationship Map", step: "step-03" }
+    - { id: "integrated-framework", name: "Integrated Framework", step: "step-04" }
+    - { id: "crystallized-insights", name: "Crystallized Insights", step: "step-05" }
+  output_artifacts:
+    - { id: "synthesis-record", name: "Synthesis Record", template: "data/synthesis-record-template.md", step: "step-06" }
+    - { id: "synthesis-report", name: "Synthesis Report", template: "data/synthesis-report-template.md", step: "step-06" }
+
+# Decision points
+decision_points:
+  - id: "dp-depth-selection"
+    step: "step-00"
+    question: "Select synthesis depth"
+    options: ["Quick", "Standard", "Rigorous", "Comprehensive"]
+  - id: "dp-scope-proceed"
+    step: "step-00"
+    question: "Proceed to acquisition or refine scope?"
+    options: ["Proceed", "Refine"]
+
+# Integration with other Deep Processes
+integrates_with:
+  consumes:
+    - { process: "deep-explore", outputs: ["option_map", "assumptions", "consequence_map", "knowledge_gaps"] }
+    - { process: "deep-verify", outputs: ["validated_claims", "contradictions", "ungrounded_claims"] }
+    - { process: "deep-risk", outputs: ["risk_register", "interaction_map", "mitigation_portfolio"] }
+    - { process: "deep-feasibility", outputs: ["constraint_map", "feasibility_conditions", "decision_rationale"] }
+  produces_for:
+    - { process: "deep-explore", outputs: ["unified_framework"] }
+    - { process: "deep-verify", outputs: ["core_insights"] }
+    - { process: "deep-risk", outputs: ["principles"] }
+    - { process: "all", outputs: ["mental_models"] }

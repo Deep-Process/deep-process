@@ -1,0 +1,74 @@
+---
+schema_version: "8.0.1"
+artifact: "entity-log.yaml"
+producer: "Phase 3 (DOCUMENTATION)"
+consumers: ["Phase 4 (VERIFICATION — STEP 3.5 entity completeness check)"]
+
+structure:
+  version:
+    type: "string"
+    required: true
+
+  phase:
+    type: "integer"
+    required: true
+    value: 3
+
+  generated_at:
+    type: "string"
+    format: "ISO 8601 timestamp"
+    required: true
+
+  sections:
+    type: "array"
+    required: true
+    items:
+      type: "object"
+      properties:
+        section_id:
+          type: "string"
+          required: true
+
+        section_title:
+          type: "string"
+          required: true
+
+        entity_expectation:
+          type: "string"
+          enum: ["all", "primary", "selective", "none"]
+          required: true
+
+        entity_type:
+          type: "string"
+          required: true
+
+        census_expected:
+          type: "integer"
+          required: true
+
+        documented_entities:
+          type: "array"
+          required: true
+          items:
+            type: "string"
+
+        documented_count:
+          type: "integer"
+          required: true
+
+        coverage:
+          type: "string"
+          required: true
+
+        missing:
+          type: "array"
+          required: true
+          items:
+            type: "string"
+
+validation_rules:
+  - rule: "documented_count must equal len(documented_entities)"
+  - rule: "documented_count + len(missing) must equal census_expected"
+  - rule: "coverage must be calculated as documented_count / census_expected"
+  - rule: "sections with entity_expectation='all' must have census_expected > 0"
+  - rule: "sections with entity_expectation='none' are excluded from entity_log"

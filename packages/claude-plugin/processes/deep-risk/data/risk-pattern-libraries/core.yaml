@@ -1,0 +1,514 @@
+# Core Risk Pattern Library
+# Universal patterns that apply across all domains
+
+library:
+  id: "core"
+  name: "Core Risk Patterns"
+  version: "1.0.0"
+  description: "Universal failure patterns observed across industries and domains"
+
+patterns:
+  # ============================================================================
+  # COMPLEXITY PATTERNS
+  # ============================================================================
+
+  - id: "CORE-001"
+    name: "Accidental Complexity Accumulation"
+    description: |
+      System complexity grows incrementally through "small" additions until
+      the system becomes unmaintainable. No single change seems dangerous,
+      but the cumulative effect is catastrophic.
+
+    signature:
+      - "Each change is 'small' and 'low risk'"
+      - "No one person understands the whole system"
+      - "Documentation is always 'slightly out of date'"
+      - "New team members take months to be productive"
+      - "'Technical debt' discussions keep getting deferred"
+
+    anti_patterns:
+      - "Adding features without removing old ones"
+      - "Multiple ways to do the same thing"
+      - "Configuration that no one remembers setting"
+      - "'Temporary' workarounds that become permanent"
+      - "Copy-paste code to 'avoid breaking things'"
+
+    indicators:
+      - "Increasing time to implement 'simple' changes"
+      - "Rising defect rate per feature"
+      - "Growing onboarding time"
+      - "Increasing 'afraid to touch' code areas"
+
+    historical_examples:
+      - "Healthcare.gov launch: System of systems with no unified understanding"
+      - "Knight Capital: Accumulated old code led to $440M loss in 45 minutes"
+
+    mitigation_hints:
+      - "Regular complexity audits"
+      - "Mandatory removal before addition"
+      - "Architecture decision records"
+
+  - id: "CORE-002"
+    name: "Tight Coupling Cascade"
+    description: |
+      Components become so interdependent that changes ripple unpredictably.
+      A change in A requires changes in B, C, D... which require changes back in A.
+
+    signature:
+      - "Cannot deploy one component without deploying others"
+      - "Cannot test one component without full environment"
+      - "Database is shared between multiple applications"
+      - "Changes require coordinated releases"
+      - "'Integration testing' takes longer than development"
+
+    anti_patterns:
+      - "Shared databases between services"
+      - "Direct service-to-service calls in tight loops"
+      - "Shared libraries with frequent changes"
+      - "Circular dependencies"
+      - "Global state accessible from multiple components"
+
+    indicators:
+      - "Deployment failures in 'unrelated' components"
+      - "Increasing deployment coordination overhead"
+      - "Rising 'it worked in my environment' incidents"
+
+    historical_examples:
+      - "Facebook 2021 outage: DNS, BGP, and internal tools all interdependent"
+      - "British Airways 2017: Power surge cascaded through tightly coupled systems"
+
+    mitigation_hints:
+      - "Define clear service boundaries"
+      - "Use async communication patterns"
+      - "Implement circuit breakers"
+
+  - id: "CORE-003"
+    name: "Hidden Dependency Web"
+    description: |
+      Dependencies exist that are not documented or visible in architecture diagrams.
+      The system has connections that only become apparent when they fail.
+
+    signature:
+      - "No complete dependency map exists"
+      - "Surprises during outages: 'I didn't know we depended on that'"
+      - "Services that 'shouldn't' be affected go down together"
+      - "Recovery takes longer than expected due to unknown deps"
+
+    anti_patterns:
+      - "Not documenting external service calls"
+      - "Implicit dependencies through shared infrastructure"
+      - "Dependencies hidden in configuration files"
+      - "DNS/certificate dependencies not tracked"
+
+    indicators:
+      - "Incident post-mortems reveal unknown dependencies"
+      - "Capacity planning misses dependencies"
+      - "Outages spread to 'unrelated' systems"
+
+    historical_examples:
+      - "AWS S3 2017: Dashboard depended on S3, couldn't see S3 was down"
+      - "Cloudflare 2019: Regex change crashed sites due to hidden coupling"
+
+    mitigation_hints:
+      - "Automated dependency discovery"
+      - "Service mesh observability"
+      - "Chaos engineering to find hidden deps"
+
+  # ============================================================================
+  # COMMUNICATION PATTERNS
+  # ============================================================================
+
+  - id: "CORE-004"
+    name: "Information Silo Failure"
+    description: |
+      Critical information is known to one team but not shared with others
+      who need it. Failures occur because the right people didn't know.
+
+    signature:
+      - "Teams work on related things without coordination"
+      - "Important decisions made in hallway conversations"
+      - "Documentation is team-specific and inaccessible"
+      - "'I assumed they knew' is a common post-incident phrase"
+
+    anti_patterns:
+      - "Tribal knowledge not documented"
+      - "No cross-team communication channels"
+      - "Decisions not recorded or shared"
+      - "Information hoarding for 'job security'"
+
+    indicators:
+      - "Duplicate work discovered late"
+      - "Conflicting decisions across teams"
+      - "Post-incident reveals information gaps"
+
+    historical_examples:
+      - "NASA Mars Climate Orbiter: Units mismatch between teams"
+      - "Challenger: Engineers' concerns didn't reach decision makers"
+
+    mitigation_hints:
+      - "Cross-functional standups"
+      - "Shared documentation platform"
+      - "Explicit handoff protocols"
+
+  - id: "CORE-005"
+    name: "Assumption Divergence"
+    description: |
+      Different parties operate on different assumptions without realizing it.
+      Each party thinks the other understands what they understand.
+
+    signature:
+      - "Specifications are 'obvious' but interpreted differently"
+      - "Requirements met but user disappointed"
+      - "'That's not what I meant' at delivery"
+      - "Successful tests, failed acceptance"
+
+    anti_patterns:
+      - "Not writing down assumptions"
+      - "Assuming shared context"
+      - "Using ambiguous terms without definition"
+      - "Skipping clarification conversations"
+
+    indicators:
+      - "Late-stage requirement changes"
+      - "Rework after 'complete' work"
+      - "Stakeholder surprise at demos"
+
+    historical_examples:
+      - "Boeing 737 MAX: Assumptions about pilot reaction time"
+      - "Therac-25: Assumptions about software reliability"
+
+    mitigation_hints:
+      - "Explicit assumption documentation"
+      - "Regular stakeholder reviews"
+      - "Written acceptance criteria"
+
+  # ============================================================================
+  # ESTIMATION PATTERNS
+  # ============================================================================
+
+  - id: "CORE-006"
+    name: "Planning Fallacy"
+    description: |
+      Systematic underestimation of time, cost, and risk despite historical
+      evidence of similar tasks taking longer. Optimism bias prevails.
+
+    signature:
+      - "Estimates consistently miss by similar percentages"
+      - "'This time will be different'"
+      - "Best-case scenarios used as plans"
+      - "Historical data ignored or dismissed"
+
+    anti_patterns:
+      - "Estimating based on how long it 'should' take"
+      - "Not tracking actual vs estimated"
+      - "Pressure to provide optimistic estimates"
+      - "Ignoring similar past projects"
+
+    indicators:
+      - "Consistent overruns (>20%)"
+      - "Scope reduction needed to hit dates"
+      - "Crunch time at end of every project"
+
+    historical_examples:
+      - "Sydney Opera House: 4 years estimated, 14 years actual"
+      - "Denver Airport baggage: 2 years estimated, never fully worked"
+
+    mitigation_hints:
+      - "Reference class forecasting"
+      - "Track and learn from actuals"
+      - "Build in buffers based on history"
+
+  - id: "CORE-007"
+    name: "90% Complete Trap"
+    description: |
+      Work is reported as 90% complete but the final 10% takes as long as
+      the first 90%. Progress reporting masks actual state.
+
+    signature:
+      - "Progress reports show 90% for extended periods"
+      - "The 'last few items' keep appearing"
+      - "Integration, testing, polish always underestimated"
+      - "'Technically complete' but not usable"
+
+    anti_patterns:
+      - "Counting tasks done vs value delivered"
+      - "Not including integration in estimates"
+      - "Testing treated as afterthought"
+      - "Definition of 'done' is fuzzy"
+
+    indicators:
+      - "Long time at high percentage complete"
+      - "Growing 'cleanup' backlog"
+      - "Deadline extensions for 'polish'"
+
+    historical_examples:
+      - "Common in software: 'First 90% takes 90% of time, last 10% takes other 90%'"
+
+    mitigation_hints:
+      - "Definition of done includes integration"
+      - "Working software as progress measure"
+      - "Include hardening time in estimates"
+
+  # ============================================================================
+  # PROCESS PATTERNS
+  # ============================================================================
+
+  - id: "CORE-008"
+    name: "Process Ritualization"
+    description: |
+      Processes that once served a purpose become rituals performed without
+      understanding. The form continues but the intent is lost.
+
+    signature:
+      - "'We've always done it this way'"
+      - "No one remembers why a process exists"
+      - "Process steps skipped because 'they don't matter'"
+      - "Checkbox compliance without actual checking"
+
+    anti_patterns:
+      - "Processes without documented rationale"
+      - "No periodic process review"
+      - "Punishing deviation regardless of outcome"
+      - "Process compliance as performance metric"
+
+    indicators:
+      - "Processes that take time but add no value"
+      - "Workarounds that everyone knows about"
+      - "Audit findings despite 'following process'"
+
+    historical_examples:
+      - "Common in regulated industries: Compliance theater"
+      - "NASA foam strikes: Known issue, process didn't flag it"
+
+    mitigation_hints:
+      - "Document process rationale"
+      - "Regular process effectiveness reviews"
+      - "Empower deviation when warranted"
+
+  - id: "CORE-009"
+    name: "Normalization of Deviance"
+    description: |
+      Small deviations from proper procedure become accepted over time
+      because they don't immediately cause problems. Until they do.
+
+    signature:
+      - "Known deviations that 'everyone does'"
+      - "'It's not a problem in practice'"
+      - "Warnings dismissed because nothing bad happened"
+      - "Gradual erosion of safety margins"
+
+    anti_patterns:
+      - "Ignoring warnings that don't immediately cause failure"
+      - "Success used as evidence of safety"
+      - "Pressure to meet targets overrides procedures"
+      - "No consequence for deviation"
+
+    indicators:
+      - "Increasing frequency of warning signs"
+      - "Erosion of buffer/margin usage"
+      - "Near-misses not reported or investigated"
+
+    historical_examples:
+      - "Challenger: Foam strikes normalized over multiple launches"
+      - "Boeing 737 MAX: MCAS behavior normalized during development"
+
+    mitigation_hints:
+      - "Zero tolerance for safety deviations"
+      - "Near-miss reporting culture"
+      - "Regular margin/buffer reviews"
+
+  - id: "CORE-010"
+    name: "Alert Fatigue Blindness"
+    description: |
+      So many alerts fire that important ones are lost in noise.
+      Teams learn to ignore alerts, including critical ones.
+
+    signature:
+      - "Hundreds of alerts per day"
+      - "Alerts routinely ignored or auto-closed"
+      - "Critical alerts have same priority as noise"
+      - "On-call responds to pages by checking if 'real'"
+
+    anti_patterns:
+      - "Alerting on everything 'just in case'"
+      - "Never tuning or removing alerts"
+      - "No alert severity differentiation"
+      - "Alerts without clear action"
+
+    indicators:
+      - "Alert-to-incident ratio very low"
+      - "Mean time to acknowledge growing"
+      - "Incidents where alerts fired but were ignored"
+
+    historical_examples:
+      - "Common in monitoring: 99% of alerts are noise"
+      - "Hospital alarm fatigue: Critical alarms ignored"
+
+    mitigation_hints:
+      - "Alert hygiene program"
+      - "Alert should require action"
+      - "Regular alert review and pruning"
+
+  # ============================================================================
+  # HUMAN FACTORS PATTERNS
+  # ============================================================================
+
+  - id: "CORE-011"
+    name: "Single Point of Knowledge"
+    description: |
+      Critical information exists only in one person's head.
+      When they're unavailable, operations are at risk.
+
+    signature:
+      - "'Only Bob knows how that works'"
+      - "Vacation/illness causes delays"
+      - "Knowledge transfer keeps getting postponed"
+      - "Documentation 'in progress' for years"
+
+    anti_patterns:
+      - "Hero culture rewarding individual expertise"
+      - "No documentation requirement"
+      - "No cross-training program"
+      - "Single person on critical systems"
+
+    indicators:
+      - "Delays correlated with specific people's availability"
+      - "Questions queued for specific person"
+      - "Growing list of 'when X gets back' items"
+
+    historical_examples:
+      - "Bus factor of 1 across many projects"
+      - "Company-critical code written by departed employee"
+
+    mitigation_hints:
+      - "Documentation as deliverable"
+      - "Mandatory cross-training"
+      - "Pair programming/shadowing"
+
+  - id: "CORE-012"
+    name: "Expert Overconfidence"
+    description: |
+      Experts are confident in domains where their expertise doesn't fully
+      apply, or where novel conditions invalidate their experience.
+
+    signature:
+      - "'I've seen this a hundred times'"
+      - "Quick diagnosis without investigation"
+      - "Dismissal of data contradicting intuition"
+      - "Experience from different context applied incorrectly"
+
+    anti_patterns:
+      - "Seniority equals authority"
+      - "No challenge culture"
+      - "Speed valued over thoroughness"
+      - "Experience assumed to transfer fully"
+
+    indicators:
+      - "Expert wrong despite confidence"
+      - "Repeated mistakes in 'new' situations"
+      - "Junior concerns dismissed incorrectly"
+
+    historical_examples:
+      - "Medical misdiagnosis: Pattern matching failure"
+      - "Financial crises: 'This time is different' was correct"
+
+    mitigation_hints:
+      - "Encourage challenge regardless of rank"
+      - "Checklists even for experts"
+      - "Explicit novelty assessment"
+
+  - id: "CORE-013"
+    name: "Stress-Induced Tunnel Vision"
+    description: |
+      Under pressure, focus narrows to immediate problem, missing bigger
+      picture or better solutions. Cognitive load reduces effectiveness.
+
+    signature:
+      - "Fixation on first hypothesis"
+      - "Missing obvious information"
+      - "Solutions that create new problems"
+      - "Post-incident: 'I can't believe I missed that'"
+
+    anti_patterns:
+      - "Incident response without checklists"
+      - "Single responder for complex issues"
+      - "Pressure to resolve quickly at any cost"
+      - "No structured troubleshooting"
+
+    indicators:
+      - "Incident MTTR highly variable"
+      - "Solutions that cause additional incidents"
+      - "Missed obvious fixes in retrospect"
+
+    historical_examples:
+      - "Aircraft incidents: Fixation errors"
+      - "Three Mile Island: Focus on one indicator"
+
+    mitigation_hints:
+      - "Incident response checklists"
+      - "Required second pair of eyes"
+      - "Time-boxed hypothesis testing"
+
+  - id: "CORE-014"
+    name: "Bystander Effect in Teams"
+    description: |
+      When responsibility is diffuse, everyone assumes someone else will act.
+      Critical issues go unaddressed because everyone thinks someone else owns it.
+
+    signature:
+      - "'I thought someone else was handling it'"
+      - "Issues sit in 'team' queue with no owner"
+      - "Warnings noted but not escalated"
+      - "Everyone aware, no one acting"
+
+    anti_patterns:
+      - "Shared ownership = no ownership"
+      - "Unclear escalation paths"
+      - "No single point of responsibility"
+      - "Diffuse accountability"
+
+    indicators:
+      - "Issues aging in shared queues"
+      - "Multiple people 'monitoring' but not acting"
+      - "Post-incident reveals everyone knew"
+
+    historical_examples:
+      - "Enron: Many knew, no one acted"
+      - "Common in open-source: Bug known, no one fixes"
+
+    mitigation_hints:
+      - "Explicit ownership assignment"
+      - "DRI (Directly Responsible Individual)"
+      - "Clear escalation protocols"
+
+  - id: "CORE-015"
+    name: "Success Breeds Complacency"
+    description: |
+      Extended period without incidents leads to reduced vigilance.
+      Safety measures decay because they seem unnecessary.
+
+    signature:
+      - "'We haven't had an incident in years'"
+      - "Safety budget reduced since 'nothing happens'"
+      - "Monitoring deprecated as 'unnecessary'"
+      - "Near-misses not investigated"
+
+    anti_patterns:
+      - "Cutting 'unnecessary' safety measures"
+      - "Using incident-free time as evidence"
+      - "Reducing redundancy that 'never activates'"
+      - "Eliminating disaster recovery tests"
+
+    indicators:
+      - "Declining investment in safety"
+      - "Atrophied emergency procedures"
+      - "Team unfamiliar with incident response"
+
+    historical_examples:
+      - "Texas power grid 2021: Rare cold, preparation cut"
+      - "Fukushima: Seawall 'adequate' based on history"
+
+    mitigation_hints:
+      - "Regular chaos engineering"
+      - "Maintain safety investment regardless"
+      - "Practice incident response"

@@ -1,0 +1,111 @@
+# Deep-Architect V1.0 — Validation Report Schema
+# Output of Phase 5: Validation (bounded top 10)
+# Consumed by: Phase 6 (verification, traceability)
+
+schema:
+  version: "1.0.0"
+  artifact: "validation-report.yaml"
+  produced_by: "Phase 5"
+  consumed_by: ["Phase 6"]
+
+structure:
+  metadata:
+    version: "string (required)"
+    timestamp: "ISO-8601 (required)"
+    bounded_count: "integer (required) — MUST be 10"
+    sources:
+      - "adversary-findings.yaml"
+      - "tradeoff-analysis.yaml"
+      - "architecture-model.yaml"
+
+  assumptions:
+    - id: "string (required) — A-5XX format"
+      assumption: "string (required)"
+      confidence: "float 0.0-1.0 (required)"
+      falsification: "string (required)"
+      impact_if_wrong: "string (required)"
+
+  # --- Issue Ranking ---
+  issue_ranking:
+    all_identified:
+      count: "integer (required) — total issues found across phases"
+      sources:
+        adversary: "integer — from Phase 3"
+        tradeoffs: "integer — from Phase 4"
+        other: "integer — from other phases"
+
+    ranking_method:
+      formula: "severity × impact × likelihood"
+      severity_scale: "1-5"
+      impact_scale: "1-5"
+      likelihood_scale: "1-5"
+
+  # --- Top 10 Validated Issues (BOUNDED) ---
+  issues_validated:
+    - rank: "integer 1-10 (required)"
+      id: "string (required) — VI-XXX format"
+      source_finding: "string (required) — reference to original finding (T-XXX, FM-XXX, BN-XXX, etc)"
+      title: "string (required)"
+      description: "string (required)"
+      severity: "integer 1-5 (required)"
+      impact: "integer 1-5 (required)"
+      likelihood: "integer 1-5 (required)"
+      composite_score: "integer (required) — severity × impact × likelihood"
+      validation_test:
+        test_id: "string (required) — VT-XXX format"
+        test_type: "string (required) — walkthrough/scenario/stress_test/etc"
+        procedure: "string (required) — how to validate"
+        expected_result: "string (required)"
+        actual_result: "string (required)"
+        status: "enum: PASS|FAIL|PARTIAL (required)"
+      mitigation:
+        description: "string (required)"
+        adequate: "boolean (required)"
+        residual_risk: "string (required)"
+        owner: "string (optional)"
+      recommendation: "string (required) — what to do"
+
+  bounded_count_enforcement:
+    expected: 10
+    actual: "integer (required) — MUST be 10"
+    ranking_cutoff: "integer — composite score of 10th item"
+    items_below_cutoff: "integer — how many issues not validated"
+
+  # --- Unknown-Unknown Detection ---
+  unknown_unknowns:
+    scan_executed: "boolean (required)"
+    method: "string (required) — how detection performed"
+    findings:
+      - area: "string (required) — where uncertainty exists"
+        nature: "string (required) — type of unknown"
+        risk_level: "enum: low|medium|high (required)"
+        recommendation: "string (required)"
+    blind_spots_acknowledged: "string[] (required) — what we know we don't know"
+
+  # --- Mitigation Adequacy ---
+  mitigation_summary:
+    total_issues: 10
+    mitigations_adequate: "integer (required)"
+    mitigations_partial: "integer (required)"
+    mitigations_inadequate: "integer (required)"
+    overall_assessment: "enum: adequate|partially_adequate|inadequate (required)"
+    remaining_risks: "string[] — issues with inadequate mitigation"
+
+  checklist:
+    - item: "string (required)"
+      status: "enum: PASS|FAIL (required)"
+
+  counter_checks:
+    - method: "string (required)"
+      result: "string (required)"
+      status: "enum: PASS|FAIL|WARNING (required)"
+
+validation_rules:
+  - "issues_validated.length MUST equal 10"
+  - "bounded_count_enforcement.actual MUST equal 10"
+  - "issues_validated sorted by composite_score descending"
+  - "unknown_unknowns.scan_executed MUST be true"
+  - "mitigation_summary totals MUST sum to 10"
+  - "assumptions.length >= 2"
+  - "checklist items present"
+  - "counter_checks.length >= depth_counter_check_minimum"

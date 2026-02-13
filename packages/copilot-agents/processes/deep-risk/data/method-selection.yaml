@@ -1,0 +1,331 @@
+# Deep-Risk Method Selection Guide
+# Defines which methods to use at each depth level
+
+version: "1.1.0"
+description: |
+  Not every risk assessment needs every method.
+  Select depth based on project criticality, timeline, and resources.
+
+depth_levels:
+  quick:
+    name: "Quick Assessment"
+    duration: "1-2 hours"
+    use_when:
+      - "Low-stakes internal project"
+      - "Early exploration phase"
+      - "Time-constrained situations"
+      - "Frequent lightweight checks"
+
+    methods:
+      GROUND:
+        - "001_Risk_Genesis_Model"          # 6 risk sources
+        - "002_Uncertainty_Classification"  # Knight's distinction
+        - "003_System_Characterization"     # Perrow matrix
+
+      IDENTIFY:
+        # Vertical only (#101-104), skip horizontal entirely
+        - "101_Risk_Taxonomy_Scan"          # Category sweep
+        - "102_Failure_Mode_Enumeration"    # Per-component failures
+        - "103_Threat_Modeling_STRIDE"      # Adversarial analysis
+        - "104_Dependency_Risk_Discovery"   # External dependencies
+
+      QUANTIFY:
+        - "201_Five_Dimension_Scoring"      # Basic scoring only
+
+      INTERACT: []  # Skip for quick
+
+      MITIGATE:
+        - "401_Four_T_Classification"       # Basic strategy
+        - "406_Contingency_Trigger_Design"  # Escalation triggers
+
+      MONITOR:
+        - "501_Leading_Indicator_Identification"  # Key indicators
+
+      META: []  # Skip for quick
+
+    output: "Risk register with top 10 prioritized risks"
+
+  standard:
+    name: "Standard Assessment"
+    duration: "4-8 hours"
+    use_when:
+      - "Typical projects"
+      - "Medium stakes"
+      - "Normal delivery timelines"
+      - "Client-facing work"
+
+    methods:
+      GROUND:
+        - "001_Risk_Genesis_Model"
+        - "002_Uncertainty_Classification"
+        - "003_System_Characterization"
+
+      IDENTIFY:
+        # Vertical: all (#101-107)
+        - "101_Risk_Taxonomy_Scan"
+        - "102_Failure_Mode_Enumeration"
+        - "103_Threat_Modeling_STRIDE"
+        - "104_Dependency_Risk_Discovery"
+        - "105_Assumption_Torture"
+        - "106_Historical_Pattern_Matching"
+        - "107_Contraposition_Failure_Guarantee"
+        # Horizontal: #108-109, #111-112
+        - "108_Boundary_Risk_Scan"
+        - "109_Blind_Spot_Interrogation"
+        - "111_Temporal_Risk_Archaeology"
+        - "112_Scenario_Planning_Matrix"
+
+      QUANTIFY:
+        - "201_Five_Dimension_Scoring"
+        - "202_Exposure_Window_Analysis"
+        - "203_Cost_Estimation"
+        - "204_Precedent_Probability_Calibration"
+        - "205_Worst_Case_Construction"
+
+      INTERACT:
+        - "301_Risk_Cascade_Mapping"
+        - "302_Risk_Correlation_Matrix"
+        - "303_Common_Mode_Failure"
+        - "304_Concentration_Risk_Detection"
+
+      MITIGATE:
+        - "401_Four_T_Classification"
+        - "402_Mitigation_Cost_Benefit"
+        - "403_Defense_in_Depth"
+        - "404_Graceful_Degradation"
+        - "405_Residual_Risk_Assessment"
+        - "406_Contingency_Trigger_Design"
+        - "407_Cobra_Effect_Check"             # MANDATORY for all mitigations
+
+      MONITOR:
+        - "501_Leading_Indicator_Identification"
+        - "502_Review_Cadence_Design"
+        - "503_Escalation_Protocol"
+
+      META:
+        - "601_Cognitive_Bias_Audit"
+        - "602_Risk_Appetite_Calibration"
+        - "603_Portfolio_Risk_View"
+        - "605_Simpsons_Paradox_Audit"
+        - "606_Goodharts_Law_Check"
+
+    output: "Full risk register with mitigations and monitoring plan"
+
+  comprehensive:
+    name: "Comprehensive Assessment"
+    duration: "1-2 days"
+    use_when:
+      - "High-stakes projects"
+      - "Regulatory requirements"
+      - "Client SLA commitments"
+      - "Major architectural decisions"
+
+    methods:
+      GROUND:
+        - "001_Risk_Genesis_Model"
+        - "002_Uncertainty_Classification"
+        - "003_System_Characterization"
+
+      IDENTIFY:
+        - "101_Risk_Taxonomy_Scan"
+        - "102_Failure_Mode_Enumeration"
+        - "103_Threat_Modeling_STRIDE"
+        - "104_Dependency_Risk_Discovery"
+        - "105_Assumption_Torture"
+        - "106_Historical_Pattern_Matching"
+        - "107_Contraposition_Failure_Guarantee"
+        - "108_Boundary_Risk_Scan"
+        - "109_Blind_Spot_Interrogation"
+        - "111_Temporal_Risk_Archaeology"
+        - "112_Scenario_Planning_Matrix"
+
+      QUANTIFY:
+        - "201_Five_Dimension_Scoring"
+        - "202_Exposure_Window_Analysis"
+        - "203_Cost_Estimation"
+        - "204_Precedent_Probability_Calibration"
+        - "205_Worst_Case_Construction"
+        - "206_Ergodicity_Test"
+        - "207_Stability_Basin_Mapping"
+
+      INTERACT:
+        - "301_Risk_Cascade_Mapping"
+        - "302_Risk_Correlation_Matrix"
+        - "303_Common_Mode_Failure"
+        - "304_Concentration_Risk_Detection"
+        - "305_Compound_Risk_Scenarios"
+        - "306_Critical_Path_Severance"
+        - "307_Risk_Interaction_Paradoxes"
+
+      MITIGATE:
+        - "401_Four_T_Classification"
+        - "402_Mitigation_Cost_Benefit"
+        - "403_Defense_in_Depth"
+        - "404_Graceful_Degradation"
+        - "405_Residual_Risk_Assessment"
+        - "406_Contingency_Trigger_Design"
+        - "407_Cobra_Effect_Check"
+
+      MONITOR:
+        - "501_Leading_Indicator_Identification"
+        - "502_Review_Cadence_Design"
+        - "503_Escalation_Protocol"
+        - "504_Post_Incident_Feedback"
+        - "505_Sorites_Accumulation_Watch"
+
+      META:
+        - "601_Cognitive_Bias_Audit"
+        - "602_Risk_Appetite_Calibration"
+        - "603_Portfolio_Risk_View"
+        - "604_Risk_Communication_Framework"
+        - "605_Simpsons_Paradox_Audit"
+        - "606_Goodharts_Law_Check"
+
+    output: "Complete risk assessment package with all artifacts"
+
+  critical:
+    name: "Critical Assessment"
+    duration: "3-5 days"
+    use_when:
+      - "Critical infrastructure"
+      - "Life/safety implications"
+      - "Major financial exposure"
+      - "Regulatory deep-dive required"
+      - "Existential business risk"
+
+    methods:
+      GROUND:
+        - "001_Risk_Genesis_Model"
+        - "002_Uncertainty_Classification"
+        - "003_System_Characterization"
+
+      IDENTIFY:
+        - "101_Risk_Taxonomy_Scan"
+        - "102_Failure_Mode_Enumeration"
+        - "103_Threat_Modeling_STRIDE"
+        - "104_Dependency_Risk_Discovery"
+        - "105_Assumption_Torture"
+        - "106_Historical_Pattern_Matching"
+        - "107_Contraposition_Failure_Guarantee"
+        - "108_Boundary_Risk_Scan"
+        - "109_Blind_Spot_Interrogation"
+        - "110_Chaos_Probe_Design"
+        - "111_Temporal_Risk_Archaeology"
+        - "112_Scenario_Planning_Matrix"
+
+      QUANTIFY:
+        - "201_Five_Dimension_Scoring"
+        - "202_Exposure_Window_Analysis"
+        - "203_Cost_Estimation"
+        - "204_Precedent_Probability_Calibration"
+        - "205_Worst_Case_Construction"
+        - "206_Ergodicity_Test"
+        - "207_Stability_Basin_Mapping"
+
+      INTERACT:
+        - "301_Risk_Cascade_Mapping"
+        - "302_Risk_Correlation_Matrix"
+        - "303_Common_Mode_Failure"
+        - "304_Concentration_Risk_Detection"
+        - "305_Compound_Risk_Scenarios"
+        - "306_Critical_Path_Severance"
+        - "307_Risk_Interaction_Paradoxes"
+
+      MITIGATE:
+        - "401_Four_T_Classification"
+        - "402_Mitigation_Cost_Benefit"
+        - "403_Defense_in_Depth"
+        - "404_Graceful_Degradation"
+        - "405_Residual_Risk_Assessment"
+        - "406_Contingency_Trigger_Design"
+        - "407_Cobra_Effect_Check"
+        - "408_Regret_Minimization"
+
+      MONITOR:
+        - "501_Leading_Indicator_Identification"
+        - "502_Review_Cadence_Design"
+        - "503_Escalation_Protocol"
+        - "504_Post_Incident_Feedback"
+        - "505_Sorites_Accumulation_Watch"
+
+      META:
+        - "601_Cognitive_Bias_Audit"
+        - "602_Risk_Appetite_Calibration"
+        - "603_Portfolio_Risk_View"
+        - "604_Risk_Communication_Framework"
+        - "605_Simpsons_Paradox_Audit"
+        - "606_Goodharts_Law_Check"
+
+    output: "Enterprise risk assessment with external review capability"
+
+# Method categories for targeted assessment
+targeted_assessments:
+  security_focused:
+    description: "Focus on security and threat risks"
+    primary_methods:
+      - "103_Threat_Modeling_STRIDE"
+      - "102_Failure_Mode_Enumeration"
+      - "109_Blind_Spot_Interrogation"
+      - "403_Defense_in_Depth"
+
+  dependency_focused:
+    description: "Focus on external dependencies and integrations"
+    primary_methods:
+      - "104_Dependency_Risk_Discovery"
+      - "304_Concentration_Risk_Detection"
+      - "303_Common_Mode_Failure"
+      - "108_Boundary_Risk_Scan"
+
+  timeline_focused:
+    description: "Focus on schedule and delivery risks"
+    primary_methods:
+      - "111_Temporal_Risk_Archaeology"
+      - "202_Exposure_Window_Analysis"
+      - "105_Assumption_Torture"
+      - "406_Contingency_Trigger_Design"
+
+  architectural_focused:
+    description: "Focus on system design risks"
+    primary_methods:
+      - "003_System_Characterization"
+      - "301_Risk_Cascade_Mapping"
+      - "306_Critical_Path_Severance"
+      - "207_Stability_Basin_Mapping"
+
+# Phase-specific guidance
+phase_guidance:
+  GROUND:
+    purpose: "Establish framing and context"
+    skip_if: "Rushing to identify before understanding context"
+    key_insight: "Where you start shapes what you find"
+
+  IDENTIFY:
+    purpose: "Find risks systematically"
+    vertical: "Deep in specific categories"
+    horizontal: "Broad across boundaries"
+    balance: "Need both depth and breadth"
+
+  QUANTIFY:
+    purpose: "Score and prioritize"
+    key_insight: "Don't skip flags (FAT_TAIL, NON_ERGODIC)"
+    trap: "False precision - better approximately right than precisely wrong"
+
+  INTERACT:
+    purpose: "Find risk relationships"
+    key_insight: "Individual risks acceptable, portfolio may not be"
+    trap: "Treating risks as independent when correlated"
+
+  MITIGATE:
+    purpose: "Respond to risks"
+    key_insight: "Strategy selection matters more than execution details"
+    trap: "Treating all risks the same (all TREAT)"
+
+  MONITOR:
+    purpose: "Ongoing vigilance"
+    key_insight: "Leading indicators beat lagging indicators"
+    trap: "Alert fatigue from bad monitoring"
+
+  META:
+    purpose: "Check the checkers"
+    key_insight: "Process itself can be source of risk"
+    trap: "Skipping this phase due to 'process fatigue'"

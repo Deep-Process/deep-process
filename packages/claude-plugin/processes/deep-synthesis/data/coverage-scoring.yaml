@@ -1,0 +1,137 @@
+# Coverage Scoring Rules for Deep Synthesis V1.0
+# PURPOSE: Measure synthesis thoroughness
+
+---
+scoring:
+  # Phase completion
+  phases:
+    phase_completed: 3.0
+    description: "Each of 7 phases (SCOPE through OUTPUT) completed"
+
+  # Method execution
+  methods:
+    method_executed: 1.0
+    description: "Each of 40 methods executed"
+
+  # Source processing
+  sources:
+    source_processed: 0.5
+    source_quality_assessed: 0.3
+    counter_source_found: 0.5
+    tacit_knowledge_elicited: 0.5
+
+  # Decomposition
+  decomposition:
+    claim_extracted: 0.3
+    concept_mapped: 0.3
+    model_inventoried: 0.5
+    assumption_surfaced: 0.3
+    gap_identified: 0.3
+
+  # Relationships
+  relationships:
+    relationship_mapped: 0.5
+    tension_identified: 0.5
+    pattern_detected: 0.5
+    analogy_constructed: 0.5
+
+  # Integration
+  integration:
+    tension_resolved: 1.0
+    emergent_insight_identified: 1.5
+    framework_unified: 1.0
+    boundary_condition_mapped: 0.5
+
+  # Crystallization
+  crystallization:
+    core_insight_distilled: 0.5
+    mental_model_designed: 1.0
+    principle_extracted: 1.0
+    narrative_constructed: 0.5
+
+  # META methods
+  meta:
+    meta_method_applied: 0.5
+    bias_detected_and_corrected: 0.5
+    apophenia_checked: 0.5
+    falsifiability_verified: 0.5
+
+---
+# Thresholds by depth level
+thresholds:
+  quick:
+    comprehensive: 15
+    adequate: 10
+    partial: 5
+    insufficient: 0
+    description: "Rapid synthesis - 1-2 hours"
+    expected_phases: [0, 1, 2, 3, 4, 5, 6]
+    expected_methods: "~10"
+
+  standard:
+    comprehensive: 35
+    adequate: 25
+    partial: 15
+    insufficient: 0
+    description: "Standard synthesis - half day"
+    expected_phases: [0, 1, 2, 3, 4, 5, 6]
+    expected_methods: "~25"
+
+  rigorous:
+    comprehensive: 50
+    adequate: 40
+    partial: 30
+    insufficient: 0
+    description: "Rigorous synthesis - 2-3 days"
+    expected_phases: [0, 1, 2, 3, 4, 5, 6]
+    expected_methods: "~35"
+
+  comprehensive:
+    comprehensive: 65
+    adequate: 55
+    partial: 45
+    insufficient: 0
+    description: "Comprehensive synthesis - 1-2 weeks"
+    expected_phases: [0, 1, 2, 3, 4, 5, 6]
+    expected_methods: "40 (all)"
+
+---
+# Calculation formula
+calculation: |
+  C = (phases_completed × 3)
+    + (methods_executed × 1)
+    + (sources_processed × 0.5)
+    + (claims_extracted × 0.3)
+    + (relationships_mapped × 0.5)
+    + (tensions_resolved × 1)
+    + (emergent_insights × 1.5)
+    + (mental_models × 1)
+    + (principles × 1)
+    + (meta_methods × 0.5)
+
+---
+# Quality indicators (not scored, but tracked)
+quality_indicators:
+  - name: "Novelty ratio"
+    check: "At least 30% of insights are genuine synthesis (Shannon test PASS)"
+    red_flag: "<30% novelty = this is a summary, not a synthesis"
+
+  - name: "Compression ratio"
+    check: "Synthesis is at least 2x shorter than combined sources"
+    red_flag: "<2x compression = elaboration, not synthesis"
+
+  - name: "Falsifiability coverage"
+    check: "At least 70% of conclusions are falsifiable"
+    red_flag: "<70% falsifiable = narrative, not knowledge"
+
+  - name: "Diversity coverage"
+    check: "At least 2/5 diversity dimensions well-represented"
+    red_flag: "<2/5 diversity = high bias risk"
+
+  - name: "Counter-source presence"
+    check: "At least one dissenting source included"
+    red_flag: "No counter-sources = confirmation bias risk"
+
+  - name: "META audit complete"
+    check: "All 7 META methods applied for rigorous+ depths"
+    red_flag: "Missing META methods = false coherence risk"

@@ -1,0 +1,293 @@
+# Theoretical Foundations — Principles Grounding Deep Feasibility
+# LOAD: workflow.md, step-00-frame.md
+# PURPOSE: Understand WHY feasibility assessment works (and doesn't work)
+
+---
+# LOADING INSTRUCTIONS:
+# 1. Review at START of assessment for calibration
+# 2. Reference when encountering specific patterns
+# 3. Use to explain findings and limitations
+
+---
+computability_complexity:
+  description: "The hardest limits — what computers (and projects) cannot do"
+
+  turing_halting:
+    year: 1936
+    author: "Alan Turing"
+    principle: "Some problems are provably undecidable"
+    implication: |
+      Not a matter of effort — a matter of mathematical impossibility.
+      If a problem reduces to the Halting Problem, no algorithm can solve it.
+    applied_in: ["#101 Constraint Hardness (H5)"]
+    example: "Perfectly predicting if arbitrary code will terminate"
+
+  cook_karp_np:
+    year: 1971
+    authors: ["Stephen Cook", "Richard Karp"]
+    principle: "Even decidable problems may be practically infeasible"
+    spectrum:
+      P: "Feasible at scale — do it"
+      NP: "Verify feasible, solve maybe not — may need approximation"
+      NP_hard: "Infeasible at scale for exact solution — approximate or decompose"
+      PSPACE_EXPTIME: "Theoretical only — redesign the problem"
+      Undecidable: "Impossible — stop trying, reframe"
+    implication: |
+      Question is not "can we solve optimally?" but "can we solve WELL ENOUGH?"
+      Many real problems are NP-hard but have good approximations.
+    applied_in: ["#101 Constraint Hardness (H4)"]
+
+  godel_incompleteness:
+    year: 1931
+    author: "Kurt Gödel"
+    principle: "System cannot fully assess its own feasibility"
+    implication: |
+      External perspective is required.
+      This is why Reference Class Forecasting (#301) uses EXTERNAL data,
+      not internal analysis.
+    applied_in: ["#301 Reference Class", "#505 Meta-Feasibility"]
+
+---
+resource_constraint_theory:
+  description: "How resource limits constrain what's possible"
+
+  goldratt_toc:
+    year: 1984
+    author: "Eliyahu Goldratt"
+    principle: "Throughput determined by single tightest constraint"
+    implication: |
+      Optimizing anything OTHER than the bottleneck is waste.
+      A project with 10 adequate resources and 1 missing resource is infeasible.
+      Feasibility depends on identifying the TRUE constraint.
+    applied_in: ["#401 Multi-Axis Profile (binding constraint)"]
+    key_insight: "BINDING CONSTRAINT = min(dimensions)"
+
+  ashby_requisite_variety:
+    year: 1956
+    author: "W. Ross Ashby"
+    principle: "Controller must have as many response options as system disturbances"
+    implication: |
+      If problem has N dimensions of complexity and team covers M < N,
+      control is fundamentally impossible. Not hard — impossible.
+      Feasibility requires matching team variety to problem variety.
+    applied_in: ["#102 Requisite Variety Audit"]
+    formula: "Required(Variety_controller) ≥ Variety_system"
+
+  brooks_mythical_man_month:
+    year: 1975
+    author: "Frederick Brooks"
+    principles:
+      brooks_law: |
+        Adding people to a late project makes it later.
+        Team capacity is NOT linearly scalable.
+        Communication overhead grows as n(n-1)/2.
+      no_silver_bullet: |
+        No single technique provides order-of-magnitude improvement.
+        Essential complexity cannot be reduced, only accidental complexity.
+      second_system_effect: |
+        V2 is over-engineered because "now we know what we're doing."
+        Leads to false feasibility confidence.
+    applied_in: ["#202 Resource Feasibility", "#205 Temporal Feasibility"]
+
+  conway_law:
+    year: 1968
+    author: "Melvin Conway"
+    principle: "Organizations produce systems mirroring their communication structures"
+    implication: |
+      If required architecture demands cross-team integration that doesn't
+      exist in org structure, that architecture is STRUCTURALLY INFEASIBLE
+      regardless of individual competence.
+    applied_in: ["#104 Conway Alignment Check"]
+
+---
+estimation_decision_theory:
+  description: "How humans estimate and decide — and where they fail"
+
+  simon_bounded_rationality:
+    year: 1955
+    author: "Herbert Simon"
+    principle: "Humans don't optimize — they satisfice"
+    implication: |
+      Feasibility assessment itself is bounded.
+      We cannot evaluate ALL paths.
+      Heuristics for when to stop investigating are essential.
+    applied_in: ["#505 Meta-Feasibility Check"]
+
+  kahneman_planning_fallacy:
+    year: 1979
+    authors: ["Daniel Kahneman", "Amos Tversky"]
+    principle: "Systematic underestimation of time, cost, difficulty"
+    data: |
+      NOT random error — directional bias toward optimism.
+      Empirical: 86% of projects exceed budget, 80% exceed timeline.
+      Every self-generated feasibility estimate is systematically optimistic.
+    applied_in: ["#501 Planning Fallacy Detection"]
+
+  flyvbjerg_reference_class:
+    year: 2006
+    author: "Bent Flyvbjerg"
+    principle: "Use EXTERNAL base rates instead of internal analysis"
+    implication: |
+      Only proven antidote to planning fallacy.
+      Inside view ("our project is special") is systematically worse
+      than outside view ("what happens to projects like this").
+    applied_in: ["#301 Reference Class Forecasting"]
+
+  hofstadter_law:
+    year: 1979
+    author: "Douglas Hofstadter"
+    principle: "It always takes longer than expected, even accounting for this law"
+    implication: |
+      The recursive nature of estimation error.
+      Awareness of bias does not eliminate it.
+      Apply correction factor AFTER all other calibration.
+    applied_in: ["#502 Hofstadter Correction"]
+
+---
+systems_theory:
+  description: "How complex systems behave"
+
+  snowden_cynefin:
+    year: 2007
+    author: "Dave Snowden"
+    principle: "Assessment method depends on problem type"
+    domains:
+      clear:
+        cause_effect: "Obvious"
+        approach: "Direct constraint check"
+      complicated:
+        cause_effect: "Requires expertise"
+        approach: "Expert analysis"
+      complex:
+        cause_effect: "Only visible in retrospect"
+        approach: "CANNOT ASSESS TRADITIONALLY — must probe"
+      chaotic:
+        cause_effect: "No perceivable relationship"
+        approach: "Act first to create stability"
+    critical_insight: |
+      For Complex problems, feasibility assessment in advance is a CATEGORY ERROR.
+      You can only learn feasibility by doing small experiments.
+    applied_in: ["#001 Cynefin Classification", "#303 Probe Design"]
+
+  meadows_leverage_points:
+    year: 1999
+    author: "Donella Meadows"
+    principle: "Not all interventions are equally feasible"
+    implication: |
+      12 levels from parameters (easy to change, small effect) to
+      paradigms (hard to change, transformational).
+      Feasibility of change depends on which level you're targeting.
+    applied_in: ["Constraint classification"]
+
+  altshuller_triz:
+    years: "1946-1985"
+    author: "Genrich Altshuller"
+    principle: "Contradictions signal infeasibility or innovation opportunity"
+    contradiction_types:
+      technical: "Improving X worsens Y"
+      physical: "Element must have property A AND not-A"
+    resolution_principles:
+      - "Separation in time"
+      - "Separation in space"
+      - "Separation in scale"
+      - "Separation by condition"
+    implication: |
+      Feasibility analysis should search for CONTRADICTIONS in requirements.
+      Unresolved contradiction = infeasibility OR breakthrough opportunity.
+    applied_in: ["#103 TRIZ Contradiction Detection"]
+
+---
+engineering_frameworks:
+  description: "Structured approaches from engineering disciplines"
+
+  nasa_trl:
+    author: "NASA"
+    principle: "Technology Readiness Levels (1-9)"
+    levels:
+      1: "Basic principles observed"
+      2: "Technology concept formulated"
+      3: "Proof of concept"
+      4: "Component validated in lab"
+      5: "Component validated in relevant environment"
+      6: "System demonstrated in relevant environment"
+      7: "System prototype in operational environment"
+      8: "System complete and qualified"
+      9: "System proven in operations"
+    key_insight: "System TRL = min(component TRLs)"
+    applied_in: ["#201 Technical Feasibility"]
+
+  boehm_spiral:
+    year: 1986
+    author: "Barry Boehm"
+    principle: "Iterative feasibility reassessment"
+    implication: |
+      Feasibility is not a one-time gate but a continuous signal.
+      It degrades and improves over the project lifecycle.
+      Each cycle re-evaluates feasibility with new information.
+    applied_in: ["#404 Feasibility Decay Monitoring"]
+
+---
+paradoxes:
+  description: "Paradoxes that complicate feasibility assessment"
+
+  zeno:
+    mechanism: "Infinite decomposition"
+    implication: "If every step requires sub-analysis, assessment never completes"
+    resolution: "Stop decomposing when assessable or clearly needs probe"
+
+  ship_of_theseus:
+    mechanism: "Incremental change"
+    implication: "Each migration step 'feasible' but total creates entirely new system"
+    resolution: "Assess cumulative change coherence, not just individual steps"
+
+  sorites:
+    mechanism: "Gradual accumulation"
+    implication: "Each added requirement 'feasible' but scope total is infeasible"
+    resolution: "Track cumulative impact, not just marginal additions"
+
+  icarus:
+    mechanism: "Success → overconfidence"
+    implication: "Past feasibility success → overestimate future feasibility"
+    resolution: "Reference class includes failures, not just own successes"
+
+  jevons:
+    mechanism: "Efficiency → increased demand"
+    implication: "Making something feasible → everyone uses it → new bottleneck"
+    resolution: "Consider second-order effects of success"
+
+  observer:
+    mechanism: "Assessment consumes resources"
+    implication: "Feasibility study itself costs time/money that affects feasibility"
+    resolution: "Budget assessment effort, don't over-analyze (Bonini's paradox)"
+
+  buridans_ass:
+    mechanism: "Equal options → paralysis"
+    implication: "Multiple feasible paths → decision paralysis delays all paths"
+    resolution: "Set decision deadline, accept 'good enough' over 'optimal'"
+
+  moravec:
+    mechanism: "Human-easy ≠ machine-easy"
+    implication: "Feasibility intuition fails for automated systems"
+    resolution: "Validate automation assumptions empirically"
+
+  bonini:
+    mechanism: "Model as complex as reality"
+    implication: "Perfect feasibility model is as hard to build as actual system"
+    resolution: "Accept model limitations, use bounded analysis"
+
+---
+# USAGE SUMMARY:
+#
+# These foundations explain:
+# - Why some things are fundamentally impossible (H5)
+# - Why estimates are systematically optimistic (planning fallacy)
+# - Why external data beats internal analysis (reference class)
+# - Why weakest link determines feasibility (binding constraint)
+# - Why some things can only be learned by trying (Complex domain)
+# - Why contradictions matter (TRIZ)
+#
+# Reference specific foundations when:
+# - Classifying constraints (#101)
+# - Justifying early exit decisions
+# - Explaining why traditional analysis doesn't apply
+# - Calibrating confidence levels

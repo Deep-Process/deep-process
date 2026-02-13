@@ -1,0 +1,101 @@
+# RAG/AI Domain Patterns — Deep-Architect V1.2.0
+# 6 deep patterns specific to RAG and AI/ML architecture
+# Loaded ONLY when DOM-PAR-AI detected (R12)
+# Version: 1.0.0
+# Date: 2026-02-12
+
+metadata:
+  version: "1.0.0"
+  domain_id: "DOM-PAR-AI"
+  total_patterns: 6
+
+patterns:
+
+  - pattern_id: "DP-AI-001"
+    name: "Embedding Pipeline"
+    category: "ingestion"
+    description: "Pipeline for converting documents into vector embeddings: parse → chunk → embed → store."
+    when_to_use:
+      - "Building RAG system"
+      - "Semantic search over documents"
+      - "Knowledge base construction"
+    trade_offs: "Embedding quality vs processing cost. Batch freshness vs incremental complexity."
+    implementation_hints:
+      - "Pipeline stages: extract text → clean/normalize → chunk → embed → upsert to vector store"
+      - "Track document versions for incremental updates"
+      - "Monitor embedding model drift over time"
+
+  - pattern_id: "DP-AI-002"
+    name: "Vector Store Selection"
+    category: "storage"
+    description: "Selection framework for vector database based on scale, features, and operational requirements."
+    when_to_use:
+      - "Choosing vector storage for RAG"
+      - "Evaluating managed vs self-hosted"
+      - "Scaling vector search beyond prototype"
+    trade_offs: "Managed simplicity vs self-hosted control. Feature richness vs operational complexity."
+    implementation_hints:
+      - "Prototype: ChromaDB or Qdrant (local, simple)"
+      - "Production managed: Pinecone, Weaviate Cloud, Azure AI Search"
+      - "Production self-hosted: Milvus, Qdrant, pgvector"
+      - "Key factors: index size, query latency, filtering, metadata support, cost"
+
+  - pattern_id: "DP-AI-003"
+    name: "Chunking Strategy"
+    category: "ingestion"
+    description: "Strategy for splitting documents into chunks optimized for retrieval relevance."
+    when_to_use:
+      - "Document preprocessing for RAG"
+      - "Optimizing retrieval quality"
+      - "Handling diverse document types"
+    trade_offs: "Chunk size: large = more context but diluted relevance, small = precise but missing context."
+    implementation_hints:
+      - "Fixed-size (500-1000 tokens) with overlap (100-200 tokens) as baseline"
+      - "Semantic chunking for better coherence (split at topic boundaries)"
+      - "Hierarchical: parent-child chunks for context expansion at retrieval"
+      - "Evaluate with retrieval metrics (precision@k, recall@k)"
+
+  - pattern_id: "DP-AI-004"
+    name: "Retrieval Pattern"
+    category: "retrieval"
+    description: "Multi-stage retrieval pipeline: query processing → candidate retrieval → reranking → context assembly."
+    when_to_use:
+      - "RAG system retrieval optimization"
+      - "Need higher relevance than basic vector search"
+      - "Complex queries requiring query transformation"
+    trade_offs: "Retrieval quality vs latency. Multi-stage accuracy vs pipeline complexity."
+    implementation_hints:
+      - "Stage 1: Query expansion/reformulation (HyDE, multi-query)"
+      - "Stage 2: Candidate retrieval (top-k from vector store, k=20-50)"
+      - "Stage 3: Reranking (cross-encoder, Cohere Rerank, top-n from candidates)"
+      - "Stage 4: Context assembly (deduplicate, order, truncate to context window)"
+
+  - pattern_id: "DP-AI-005"
+    name: "Model Serving Architecture"
+    category: "inference"
+    description: "Architecture for serving ML/LLM models in production: routing, scaling, fallback, monitoring."
+    when_to_use:
+      - "Production ML/LLM inference"
+      - "Multiple models or model versions"
+      - "SLA requirements for inference latency"
+    trade_offs: "Self-hosted control vs managed API cost. Latency vs cost optimization."
+    implementation_hints:
+      - "API gateway for model routing and rate limiting"
+      - "Model versioning with A/B testing support"
+      - "Fallback chain: primary model → fallback model → cached response"
+      - "Monitor: latency P50/P95/P99, token usage, error rate, cost per request"
+
+  - pattern_id: "DP-AI-006"
+    name: "MLOps Pipeline"
+    category: "operations"
+    description: "End-to-end ML lifecycle: data versioning, experiment tracking, model registry, deployment, monitoring."
+    when_to_use:
+      - "Production ML systems"
+      - "Multiple data scientists/teams"
+      - "Model retraining requirements"
+    trade_offs: "Full lifecycle management vs MLOps infrastructure investment."
+    implementation_hints:
+      - "Data versioning: DVC, LakeFS"
+      - "Experiment tracking: MLflow, W&B, Neptune"
+      - "Model registry: MLflow, SageMaker, Vertex AI"
+      - "Monitoring: data drift, model performance, prediction quality"

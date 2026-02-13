@@ -1,0 +1,80 @@
+# Deep-Architect V1.0 — Process Log Schema
+# Audit trail of all phases, decisions, violations
+# Produced by: Phase 6 (Verification) — accumulates data from all phases
+# Consumed by: Phase 6 (process integrity audit), external review
+
+schema:
+  version: "1.0.0"
+  artifact: "process-log.yaml"
+  produced_by: "Phase 6 (accumulated from Phases 0-5)"
+  consumed_by: ["Phase 6", "external review"]
+
+structure:
+  metadata:
+    version: "string (required)"
+    timestamp: "ISO-8601 (required)"
+    depth_level: "enum: quick|standard|deep (required)"
+    execution_mode: "enum: iterative|waterfall|hybrid (required)"
+
+  # --- Phase Execution Log ---
+  phases:
+    - phase: "integer (required) — 0-6"
+      name: "string (required)"
+      started: "ISO-8601 (required)"
+      completed: "ISO-8601 (required)"
+      gate: "string (required) — GATE_N"
+      gate_status: "enum: OPEN|LOCKED (required)"
+      conditions_passed: "integer (required)"
+      conditions_total: "integer (required)"
+      scope_reductions: "integer (required)"
+      assumptions_declared: "integer (required)"
+      counter_checks_executed: "integer (required)"
+
+  # --- Decisions Log ---
+  decisions:
+    - id: "string (required) — D-NNN"
+      phase: "integer (required)"
+      description: "string (required)"
+      rationale: "string (required)"
+      alternatives_considered: "string[]"
+      impact: "string (required)"
+
+  # --- Violations Log ---
+  violations:
+    - invariant_id: "string (required) — INV-NN"
+      phase: "integer (required)"
+      timestamp: "ISO-8601 (required)"
+      violation_description: "string (required)"
+      severity: "enum: BLOCKER|CRITICAL|ERROR|REQUIRED (required)"
+      action_taken: "string (required)"
+      recovery_plan: "string (required)"
+
+  # --- Scope Reductions ---
+  scope_reductions:
+    - gate: "string (required) — GATE_N"
+      condition: "string (required) — G_N-NN"
+      item_skipped: "string (required)"
+      reason: "string (required)"
+      impact_assessment: "string (required)"
+      user_approved: "boolean (required)"
+
+  # --- Assumptions Summary ---
+  all_assumptions:
+    - id: "string (required) — A-NNN"
+      phase: "integer (required)"
+      assumption: "string (required)"
+      confidence: "number (required) — 0.0-1.0"
+      status: "enum: UNTESTED|CONFIRMED|REFUTED (required)"
+
+  # --- Counter-Checks Summary ---
+  counter_checks:
+    - phase: "integer (required)"
+      method: "string (required) — Method #NN Name"
+      result: "string (required)"
+      findings: "string[]"
+
+validation_rules:
+  phases_count: "phases.length == 7 (Phases 0-6)"
+  all_gates_logged: "every phase has gate_status"
+  violations_documented: "all violations have recovery_plan"
+  assumptions_minimum: "all_assumptions.length >= 10"

@@ -1,0 +1,192 @@
+# Deep-Diagram V0.1.0 - Process Registration
+# Standalone Architecture Diagram Generation Process
+# Created: 2026-02-13
+# Status: INITIAL EXTRACTION (requires further development)
+
+# ==============================================================================
+# BASIC METADATA
+# ==============================================================================
+id: proc-deep-diagram
+name: "Deep-Diagram V0.1.0 (Standalone Architecture Diagram Generation)"
+version: "0.1.0"
+type: diagram-generation
+status: initial-extraction
+
+# ==============================================================================
+# DESCRIPTION
+# ==============================================================================
+description: |
+  Deep-Diagram V0.1.0 - Standalone architecture diagram generation process.
+
+  **Origin:** Extracted from Deep-Document V7.1.4 STATE_SYNTHESIS pipeline
+  (step-10-synthesis.md) and related diagram content across the Deep-Document
+  process (domain-dependencies.yaml diagram triggers, ADR-016 topology-driven
+  diagram detection, ADR-015 transitive dependency closure, architectural-model
+  schema, GATE_3 synthesis gate, config.yaml topology settings).
+
+  **Pipeline:** 9-step enforced sequence for generating architecture diagrams:
+  1. LOAD_INPUTS (evidence, plan, ontology, triggers)
+  2. ASSUMPTIONS_DECLARED (component types, layers, relationships, thresholds)
+  3. EXTRACT_COMPONENTS (from ontology entities)
+  4. EXTRACT_RELATIONSHIPS (from evidence claims)
+  5. BUILD_DEPENDENCY_METRICS (degree counting from evidence)
+  6. RANK_COMPONENTS (degree centrality, priority selection)
+  7. GENERATE_DIAGRAMS (trigger evaluation, component selection, Mermaid generation)
+  8. VERIFY_COVERAGE (coverage ratio >= 0.90)
+  9. VERIFY_AND_RENDER (grounding, phantom hunt, coherence, output)
+
+  **Diagram Types:** component, sequence, deployment, class, data_flow, architecture
+  **Output Format:** Mermaid syntax in architectural-model.json
+  **Trigger System:** Domain-based diagram triggers (DT-*) from active domains
+  **Ranking:** Degree centrality (LLM-executable, no graph algorithms)
+  **Coverage Target:** >= 90% components represented in diagrams
+
+  **What Needs Development for Standalone Operation:**
+  - INPUT_PREPARATION step (standalone needs to build its own evidence/ontology
+    or accept them as pre-built inputs)
+  - USER_REVIEW step (diagram approval workflow)
+  - INCREMENTAL_MODE (supplement existing diagrams without regeneration)
+  - Standalone trigger detection (currently depends on domain detection from
+    Deep-Document STATE_DETECTION)
+  - Independent process-state management
+  - Template system for different output formats (Mermaid, PlantUML, D2, etc.)
+
+priority: COMPLETENESS > TOKEN_ECONOMY > DEPTH > AESTHETICS
+
+# ==============================================================================
+# FILES AND STRUCTURE
+# ==============================================================================
+structure:
+  workflow_file: workflow.md
+  steps_directory: steps/
+  step_files:
+    - step-01-load-inputs.md          # Load evidence, plan, ontology, triggers
+    - step-02-declare-assumptions.md   # ASSUMPTIONS_DECLARED
+    - step-03-extract-components.md    # Extract from ontology entities
+    - step-04-extract-relationships.md # Extract from evidence claims
+    - step-05-build-metrics.md         # Degree counting (LLM-executable)
+    - step-06-rank-components.md       # Centrality ranking, priority selection
+    - step-07-generate-diagrams.md     # Trigger evaluation, Mermaid generation
+    - step-08-verify-coverage.md       # Coverage ratio >= 0.90
+    - step-09-verify-and-render.md     # Grounding, phantoms, coherence, output
+
+  data_directory: data/
+  data_files:
+    schemas:
+      - schemas/architectural-model.schema.yaml
+    patterns:
+      - patterns/diagram-triggers.yaml
+
+# ==============================================================================
+# GATES
+# ==============================================================================
+gate_counts:
+  total: 1
+  processing_gates: 1
+  processing_gate_list:
+    - GATE_DIAG              # Diagram generation completeness (10 conditions)
+
+# ==============================================================================
+# EXTRACTION SOURCE
+# ==============================================================================
+extraction_source:
+  process: "Deep-Document V7.1.4"
+  location: "src/core/deep-document/"
+  files_extracted_from:
+    - "steps/step-10-synthesis.md (primary - ENFORCED SEQUENCE for STATE_SYNTHESIS)"
+    - "steps/step-11-user-review-diagrams.md (user review pattern)"
+    - "steps/step-05-planning.md (diagram planning, trigger evaluation)"
+    - "steps/step-02-ontology.md (topology calculation, diagram triggers)"
+    - "steps/step-12-generation.md (diagram embedding in docs)"
+    - "data/schemas/architectural-model.schema.yaml (output schema)"
+    - "data/gates.yaml (GATE_3 synthesis conditions)"
+    - "data/contracts.yaml (STATE_SYNTHESIS pre/post conditions)"
+    - "data/config.yaml (topology thresholds)"
+    - "data/patterns/domain-dependencies.yaml (DT-* trigger references)"
+    - "data/adr/ADR-016-topology-diagrams.md (topology-driven detection)"
+    - "data/adr/ADR-015-transitive-dependency.md (dependency closure)"
+    - "data/adr/ADR-014-pragmatic-enhancements.md (enhancement selection)"
+
+# ==============================================================================
+# METHODS USED
+# ==============================================================================
+methods_applied:
+  - id: 90
+    name: "Dependency Topology Mapping"
+    usage: "Centrality metrics, diagram prioritization, complexity classification"
+
+  - id: 159
+    name: "Transitive Dependency Mapping"
+    usage: "Dependency closure for complete relationship discovery"
+
+  - id: 85
+    name: "Grounding Check"
+    usage: "CC1 - sample 3 components, verify evidence exists"
+
+  - id: 168
+    name: "Existence Verification (Phantom Hunt)"
+    usage: "CC2 - detect phantom components/relationships/diagrams"
+
+  - id: 84
+    name: "Coherence Check"
+    usage: "CC3 - verify cross-reference integrity (component IDs in diagrams)"
+
+# ==============================================================================
+# COMPLIANCE (R1-R12)
+# ==============================================================================
+compliance:
+  R1_self_contained: "PARTIAL - requires input artifacts from external process"
+  R2_completeness_priority: "YES - coverage >= 0.90 enforced"
+  R3_mechanisms_not_intentions: "YES - GATE_DIAG with 10 binding conditions"
+  R4_binding_gates: "YES - GATE_DIAG BLOCKER/CRITICAL enforcement"
+  R5_assumptions_declared: "YES - step-02 mandatory assumptions"
+  R6_extract_verify_render: "YES - extract (steps 3-4) -> verify (steps 5-8) -> render (step 9)"
+  R7_post_phase_checklists: "YES - GATE_DIAG checklist in step 9"
+  R8_counter_checks: "YES - CC1 Grounding, CC2 Phantom Hunt, CC3 Coherence"
+  R9_executable: "YES - numbered step sequences with specific actions"
+  R10_step_by_step: "YES - 9 steps with sub-steps"
+  R11_instructions_and_data: "YES - schemas + instructions in step files"
+  R12_just_in_time: "YES - workflow routes to step files on demand"
+
+# ==============================================================================
+# KNOWN LIMITATIONS (V0.1.0)
+# ==============================================================================
+limitations:
+  - limitation: "Not fully standalone - requires pre-built input artifacts"
+    severity: HIGH
+    description: "Needs evidence_map.yaml, documentation-plan.yaml, domain-ontology.yaml from upstream process"
+    resolution_needed: "Add INPUT_PREPARATION step or accept artifacts as parameters"
+
+  - limitation: "No independent domain detection"
+    severity: MEDIUM
+    description: "Diagram triggers depend on domains detected by Deep-Document STATE_DETECTION"
+    resolution_needed: "Add lightweight domain detection or accept domain list as parameter"
+
+  - limitation: "Single output format (Mermaid only)"
+    severity: LOW
+    description: "Only generates Mermaid syntax diagrams"
+    resolution_needed: "Add PlantUML, D2, and other format support"
+
+  - limitation: "No incremental mode"
+    severity: MEDIUM
+    description: "Cannot supplement existing diagrams without full regeneration"
+    resolution_needed: "Port INCREMENTAL_SYNTHESIS from Deep-Document step-10"
+
+  - limitation: "No user review loop"
+    severity: MEDIUM
+    description: "User review pattern extracted but not integrated into standalone flow"
+    resolution_needed: "Integrate step-11-user-review-diagrams pattern"
+
+# ==============================================================================
+# CHANGELOG
+# ==============================================================================
+changelog:
+  - version: "0.1.0"
+    date: "2026-02-13"
+    changes:
+      - "Initial extraction from Deep-Document V7.1.4 STATE_SYNTHESIS"
+      - "Created 9 step files from ENFORCED SEQUENCE"
+      - "Extracted architectural-model.schema.yaml"
+      - "Created diagram-triggers.yaml from domain-dependencies.yaml DT-* references"
+      - "Created workflow.md with routing table and enforcement rules"
+      - "Mapped GATE_3 conditions to GATE_DIAG"

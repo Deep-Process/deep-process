@@ -1,0 +1,268 @@
+# Security & Cybersecurity Risk Pattern Library
+# Patterns specific to application security, data protection, and cyber threats
+
+library:
+  id: "security-cybersecurity"
+  name: "Security & Cybersecurity Risk Patterns"
+  version: "1.0.0"
+  description: "Failure patterns from security breaches, vulnerabilities, and cyber incidents"
+
+patterns:
+  - id: "SEC-001"
+    name: "Authentication Bypass Accumulation"
+    description: |
+      Multiple authentication paths exist, some without proper validation.
+      Legacy endpoints, admin panels, or debug interfaces skip authentication.
+
+    signature:
+      - "Multiple authentication mechanisms (session, token, API key, certificate)"
+      - "Admin endpoints with different auth than main app"
+      - "Debug endpoints accessible in production"
+      - "Authentication logic duplicated across services"
+
+    anti_patterns:
+      - "Authentication in application code instead of middleware"
+      - "Hardcoded bypass for testing"
+      - "No centralized authentication service"
+      - "Different auth rules per endpoint without documentation"
+
+    indicators:
+      - "Unauthenticated access in penetration test findings"
+      - "Auth logic inconsistencies across services"
+      - "Legacy endpoints without auth review"
+
+    historical_examples:
+      - "Facebook 2018: View As feature bypassed access controls (50M accounts)"
+      - "Equifax 2017: Unpatched Struts framework bypassed security"
+
+    mitigation_hints:
+      - "Centralized auth gateway/middleware"
+      - "Regular endpoint inventory audit"
+      - "Zero-trust architecture"
+
+  - id: "SEC-002"
+    name: "Supply Chain Dependency Bomb"
+    description: |
+      Third-party libraries contain vulnerabilities or malicious code.
+      Dependency tree too deep to audit, creating invisible attack surface.
+
+    signature:
+      - "Hundreds of transitive dependencies"
+      - "No dependency scanning in CI/CD"
+      - "Dependencies not pinned to specific versions"
+      - "No policy for dependency updates"
+
+    anti_patterns:
+      - "npm install without auditing"
+      - "Using deprecated or unmaintained libraries"
+      - "No lock file in version control"
+      - "Ignoring CVE alerts"
+
+    indicators:
+      - "Growing CVE count in dependency scan"
+      - "Dependencies with no maintainer"
+      - "Dependency confusion attacks possible"
+
+    historical_examples:
+      - "SolarWinds 2020: Compromised build pipeline injected malware"
+      - "event-stream 2018: NPM package hijacked to steal cryptocurrency"
+      - "Log4Shell 2021: Critical vulnerability in ubiquitous logging library"
+
+    mitigation_hints:
+      - "Automated dependency scanning (Snyk, Dependabot)"
+      - "Software Bill of Materials (SBOM)"
+      - "Dependency pinning and lock files"
+
+  - id: "SEC-003"
+    name: "Injection Vector Blindness"
+    description: |
+      Application accepts user input without proper sanitization,
+      enabling SQL injection, XSS, command injection, or template injection.
+
+    signature:
+      - "String concatenation for SQL queries"
+      - "User input rendered directly in HTML"
+      - "Shell commands built from user input"
+      - "No input validation framework"
+
+    anti_patterns:
+      - "Building queries with string concatenation"
+      - "Trusting client-side validation"
+      - "No output encoding"
+      - "Using eval() or similar dynamic execution"
+
+    indicators:
+      - "SAST findings for injection vulnerabilities"
+      - "No parameterized queries in codebase"
+      - "User input flowing to dangerous functions"
+
+    historical_examples:
+      - "Sony 2011: SQL injection exposed 77M PlayStation Network accounts"
+      - "British Airways 2018: XSS-based card skimming (380K cards)"
+
+    mitigation_hints:
+      - "Parameterized queries only"
+      - "Output encoding for all user content"
+      - "Content Security Policy headers"
+
+  - id: "SEC-004"
+    name: "Data Exposure Through Logging"
+    description: |
+      Sensitive data (PII, credentials, financial data) inadvertently
+      captured in application logs, metrics, or error reports.
+
+    signature:
+      - "Full request/response logging"
+      - "Stack traces with sensitive data in production"
+      - "Log aggregation without data classification"
+      - "Error messages exposing internal details"
+
+    anti_patterns:
+      - "Logging entire request bodies"
+      - "No PII filtering in log pipeline"
+      - "Debug logging enabled in production"
+      - "Sending unfiltered errors to client"
+
+    indicators:
+      - "PII found in log search"
+      - "Credentials in error tracking systems"
+      - "Log retention exceeding data protection requirements"
+
+    historical_examples:
+      - "Twitter 2018: Passwords logged in plain text (330M users)"
+      - "Facebook 2019: Hundreds of millions of passwords stored in plain text logs"
+
+    mitigation_hints:
+      - "Structured logging with PII redaction"
+      - "Automated log scanning for sensitive data"
+      - "Log retention policies"
+
+  - id: "SEC-005"
+    name: "Privilege Escalation Path"
+    description: |
+      Legitimate low-privilege operations can be chained to gain
+      higher privileges. Authorization checks exist per action but
+      not for action combinations.
+
+    signature:
+      - "Role changes without re-authentication"
+      - "API endpoints with different authorization logic"
+      - "No authorization for data export/bulk operations"
+      - "Admin actions accessible through API manipulation"
+
+    anti_patterns:
+      - "Client-side role enforcement"
+      - "IDOR vulnerabilities (accessing other users' data by changing ID)"
+      - "No rate limiting on sensitive operations"
+      - "Authorization checked at UI but not API level"
+
+    indicators:
+      - "Users accessing data outside their scope"
+      - "API calls with manipulated user/role parameters"
+      - "Bulk data access without authorization check"
+
+    historical_examples:
+      - "Parler 2021: Sequential IDs allowed scraping all posts"
+      - "Multiple IDOR vulnerabilities in banking applications"
+
+    mitigation_hints:
+      - "Server-side authorization for every request"
+      - "Principle of least privilege"
+      - "Access control testing in CI/CD"
+
+  - id: "SEC-006"
+    name: "Cryptographic Weakness Accumulation"
+    description: |
+      Weak or outdated cryptographic algorithms, improper key management,
+      or missing encryption create exploitable vulnerabilities.
+
+    signature:
+      - "MD5 or SHA1 used for security purposes"
+      - "Encryption keys hardcoded or in source code"
+      - "No key rotation policy"
+      - "Custom cryptography implementations"
+
+    anti_patterns:
+      - "Rolling own crypto"
+      - "Using deprecated algorithms (DES, RC4, MD5)"
+      - "Same key for all environments"
+      - "No encryption at rest for sensitive data"
+
+    indicators:
+      - "Compliance scan finding weak algorithms"
+      - "Keys older than rotation policy"
+      - "Mixed encryption standards across services"
+
+    historical_examples:
+      - "Adobe 2013: Weak password encryption led to 153M account exposure"
+      - "WPA2 KRACK 2017: Protocol-level cryptographic weakness"
+
+    mitigation_hints:
+      - "Use established crypto libraries only"
+      - "Automated key rotation"
+      - "Regular cryptographic audit"
+
+  - id: "SEC-007"
+    name: "Incident Response Vacuum"
+    description: |
+      No defined process for security incident detection, containment,
+      and recovery. When breach occurs, response is ad-hoc and chaotic.
+
+    signature:
+      - "No incident response plan"
+      - "No security monitoring (SIEM, IDS)"
+      - "No one trained in incident response"
+      - "No communication plan for breaches"
+
+    anti_patterns:
+      - "Security treated as feature, not process"
+      - "No tabletop exercises"
+      - "No forensic readiness (logs not preserved)"
+      - "No legal/PR coordination plan"
+
+    indicators:
+      - "Mean time to detect (MTTD) unknown"
+      - "No incident response drills conducted"
+      - "Security alerts without clear owner"
+
+    historical_examples:
+      - "Equifax 2017: 76 days between breach and detection"
+      - "Target 2013: FireEye alerts ignored for weeks"
+
+    mitigation_hints:
+      - "Documented incident response playbook"
+      - "Regular tabletop exercises"
+      - "24/7 security monitoring"
+
+  - id: "SEC-008"
+    name: "API Surface Over-Exposure"
+    description: |
+      APIs expose more data and functionality than clients need.
+      Internal APIs accessible externally, verbose error responses
+      reveal implementation details.
+
+    signature:
+      - "APIs return full database records"
+      - "Internal APIs reachable from public internet"
+      - "No API gateway or rate limiting"
+      - "API documentation publicly accessible for internal APIs"
+
+    anti_patterns:
+      - "Same API for internal and external use"
+      - "No field-level filtering (returning all columns)"
+      - "GraphQL without depth/complexity limits"
+      - "No API versioning or deprecation"
+
+    indicators:
+      - "API responses larger than client needs"
+      - "Sensitive fields in API responses"
+      - "No API inventory"
+
+    historical_examples:
+      - "Facebook-Cambridge Analytica: Overly permissive Graph API"
+      - "Venmo: Public API exposed transaction history by default"
+
+    mitigation_hints:
+      - "API gateway with field filtering"
+      - "Separate internal/external API surfaces"
+      - "API inventory and review process"

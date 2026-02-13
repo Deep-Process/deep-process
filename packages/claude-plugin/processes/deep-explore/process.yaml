@@ -1,0 +1,318 @@
+# Deep Explore V3.1 — Process Definition for Deep-Process Framework
+# Version: 3.1.0
+# Architecture: Single-agent sequential pipeline (7 steps + enforcement layers)
+
+id: "proc-deep-explore-v2"
+name: "Deep Explore V3.2.0 (Minimal Orchestrator — Just-In-Time)"
+version: "3.2.0"
+description: |
+  Structured decision exploration with enforcement architecture.
+  Transforms complex choices into understanding through knowledge expansion,
+  uncertainty mapping, and systematic option analysis.
+
+  V3.2.0 changes over V3.1.1:
+  - Reduced workflow.md from 733 lines to 147 lines (80% reduction)
+  - Removed ALL protocols already embedded in step files (ASSUMPTIONS, EVR, COUNTER-CHECK, CHECKLIST)
+  - Removed ALL content not needed upfront (gate definitions, artifact schemas, scoring, version history)
+  - workflow.md now ONLY orchestrates: priority, scope_reduction, execution sequence, enforcement rules
+  - True just-in-time architecture: step files load ONLY when entered, with all their context embedded
+  - Token savings: ~1800 tokens not loaded upfront
+
+  V3.1.1 changes over V3.1.0:
+  - EXECUTION SEQUENCE section rewritten from descriptive to programmatic
+  - Added explicit Read tool instructions for each step (imperative, not descriptive)
+  - Added PRECONDITION checks for gate passage before step progression
+  - Added VIOLATION enforcement rules (abort if sequence violated)
+  - Fixed R3 (mechanisms not intentions) and R12 (just-in-time delivery) compliance
+
+  V3.1.0 changes over V3.0:
+  - Methods embedded inline in step files (no external loading)
+  - Artifact schemas embedded in workflow.md (single source of truth)
+  - reference.md removed (content consolidated into workflow.md + steps)
+  - R1-R12 compliance validated (process design requirements)
+
+  V3.0 additions over V2.2:
+  - Binding gates at every phase exit (no "intelligent" skipping)
+  - ASSUMPTIONS_DECLARED before every extraction phase
+  - EVR sequence enforcement (Extract → Verify → Render)
+  - Mandatory post-phase checklists
+  - Counter-checks on key claims
+  - SCOPE_REDUCTION protocol (formal skip declaration)
+  - COMPLETENESS > TOKEN_ECONOMY priority
+  - Execution-focused instructions (HOW/WHEN, not WHAT)
+
+  7-step pipeline: AUDIT → RESEARCH → MAP → DEEPEN → CHALLENGE →
+  SYNTHESIZE → OUTPUT, with enforcement layers and optional fear analysis.
+
+  54 methods embedded in 7 step files. 3 depth levels (quick/standard/deep).
+  Automatic fear detection with structured resolution.
+
+inherits:
+  framework: "deep-process"
+  version: "3.7"
+  base_process: "proc-deep-explore"
+  base_version: "2.2.0"
+
+# Architecture
+architecture:
+  type: "single-agent"
+  orchestrator: "workflow.md"
+  reference: "REMOVED (content consolidated into workflow.md + steps)"
+  artifacts: "Schemas embedded in workflow.md section ARTIFACT SCHEMAS"
+  methods: "Embedded inline in step files (3-5 bullet points per method)"
+
+# Priority declaration (binding)
+priorities:
+  - rank: 1
+    name: "COMPLETENESS"
+    description: "Every element covered, no silent omissions"
+  - rank: 2
+    name: "DEPTH"
+    description: "Thorough analysis of each element"
+  - rank: 3
+    name: "ACCURACY"
+    description: "Verified over assumed"
+  - rank: 4
+    name: "TOKEN_ECONOMY"
+    description: "Conciseness — lowest priority"
+
+# Enforcement layers
+enforcement:
+  assumptions_declared:
+    when: "Before any extraction/analysis in each phase"
+    violation: "PROTOCOL_VIOLATION → HALT"
+  evr_sequence:
+    phases: ["EXTRACT", "VERIFY", "RENDER"]
+    violation: "SEQUENCE_VIOLATION → HALT"
+  counter_checks:
+    minimum_per_phase:
+      quick: 1
+      standard: 2
+      deep: 3
+    violation: "PROTOCOL_VIOLATION → gate LOCKED"
+  post_phase_checklist:
+    when: "After every phase"
+    violation: "Gate LOCKED"
+  binding_gates:
+    count: 7
+    ids: ["GATE_00", "GATE_01", "GATE_02", "GATE_03", "GATE_04", "GATE_05", "GATE_06"]
+    violation: "Cannot proceed"
+    escape: "SCOPE_REDUCTION_DECLARATION"
+  scope_reduction:
+    requires_user_approval: "For CRITICAL items"
+    must_document: ["item_skipped", "reason", "impact_assessment", "completeness_cost"]
+
+# Configuration
+config_files:
+  scoring: "data/coverage-scoring.yaml"
+  report_template: "data/exploration-report-template.md"
+  research_methods: "data/research-methods.md"
+  method_index: "methods.csv"
+
+# Methods (54 methods across tiers)
+methods:
+  foundation_core: ["E001", "E002", "E003", "E004", "E005", "E006", "E007"]
+  foundation_fear: ["E008", "E009", "E010", "E011", "E012", "E013", "E014"]
+  map: ["M001", "M002", "M003"]
+  illuminate: ["M011", "M012", "M013", "M014", "M015", "M016", "M017", "M018"]
+  challenge: ["M021", "M022", "M023", "M024", "M025", "M026"]
+  synthesize: ["M031", "M032", "M033", "M034", "M035", "M036"]
+  converge: ["M041", "M042", "M043", "M044"]
+  meta: ["M051", "M052", "M053", "M054"]
+
+# Depth levels
+depth_levels:
+  - id: "quick"
+    time: "10-20 min"
+    max_iterations: 1
+    dimensions_min: 3
+    options_analyzed: "top 2"
+    coverage_target: 15
+    counter_checks_per_phase: 1
+  - id: "standard"
+    time: "45-90 min"
+    max_iterations: 3
+    dimensions_min: 4
+    options_analyzed: "top 3-5"
+    coverage_target: 35
+    counter_checks_per_phase: 2
+  - id: "deep"
+    time: "2-4 hours"
+    max_iterations: "unlimited"
+    dimensions_min: 5
+    options_analyzed: "all viable"
+    coverage_target: 50
+    counter_checks_per_phase: 3
+
+# Process steps
+steps:
+  - id: "step-00"
+    name: "Knowledge Audit"
+    file: "steps/step-00-knowledge-audit.md"
+    time_estimate: "5-15 min"
+    inputs: ["decision_question", "context"]
+    outputs: ["knowledge_map", "research_queue", "fear_map"]
+    gate: "GATE_00"
+    enforcement: ["ASSUMPTIONS_DECLARED", "EVR", "CHECKLIST"]
+
+  - id: "step-01"
+    name: "Research"
+    file: "steps/step-01-research.md"
+    time_estimate: "15-120 min"
+    inputs: ["research_queue", "knowledge_map"]
+    outputs: ["research_summary", "updated_knowledge_map"]
+    gate: "GATE_01"
+    enforcement: ["ASSUMPTIONS_DECLARED", "EVR", "COUNTER_CHECK", "CHECKLIST"]
+
+  - id: "step-02"
+    name: "Map"
+    file: "steps/step-02-map.md"
+    time_estimate: "15-30 min"
+    inputs: ["knowledge_map", "research_summary"]
+    outputs: ["option_map", "morphological_box"]
+    gate: "GATE_02"
+    enforcement: ["ASSUMPTIONS_DECLARED", "EVR", "COUNTER_CHECK", "CHECKLIST"]
+
+  - id: "step-03"
+    name: "Deepen"
+    file: "steps/step-03-deepen.md"
+    time_estimate: "20-40 min"
+    inputs: ["option_map"]
+    outputs: ["consequence_map", "reversibility_assessment", "dependency_graph"]
+    gate: "GATE_03"
+    enforcement: ["ASSUMPTIONS_DECLARED", "EVR", "COUNTER_CHECK", "CHECKLIST"]
+
+  - id: "step-04"
+    name: "Challenge"
+    file: "steps/step-04-challenge.md"
+    time_estimate: "15-20 min"
+    inputs: ["option_map", "consequence_map"]
+    outputs: ["challenge_results", "fear_resolution"]
+    gate: "GATE_04"
+    enforcement: ["ASSUMPTIONS_DECLARED", "EVR", "COUNTER_CHECK", "CHECKLIST"]
+
+  - id: "step-05"
+    name: "Synthesize"
+    file: "steps/step-05-synthesize.md"
+    time_estimate: "10-15 min"
+    inputs: ["challenged_option_map", "consequence_map"]
+    outputs: ["minimal_assertions", "strategic_clusters", "decision_sequence"]
+    gate: "GATE_05"
+    enforcement: ["ASSUMPTIONS_DECLARED", "EVR", "COUNTER_CHECK", "CHECKLIST"]
+
+  - id: "step-06"
+    name: "Output"
+    file: "steps/step-06-output.md"
+    time_estimate: "5-10 min"
+    inputs: ["all_step_outputs"]
+    outputs: ["exploration_report", "coverage_score", "process_log"]
+    gate: "GATE_06"
+    enforcement: ["ASSUMPTIONS_DECLARED", "EVR", "CHECKLIST"]
+
+# Artifacts produced
+artifacts:
+  process_artifacts:
+    - { id: "knowledge-map", name: "Knowledge Map", step: "step-00" }
+    - { id: "research-summary", name: "Research Summary", step: "step-01" }
+    - { id: "option-map", name: "Option Map (Morphological Box)", step: "step-02" }
+    - { id: "consequence-map", name: "Consequence Map", step: "step-03" }
+    - { id: "challenge-results", name: "Challenge Results", step: "step-04" }
+    - { id: "synthesis", name: "Synthesis Summary", step: "step-05" }
+    - { id: "process-log", name: "Process Execution Log", step: "all" }
+  output_artifacts:
+    - { id: "exploration-report", name: "Exploration Report", template: "data/exploration-report-template.md", step: "step-06" }
+
+# Decision points
+decision_points:
+  - id: "dp-depth-selection"
+    step: "step-00"
+    question: "Select exploration depth"
+    options: ["Quick", "Standard", "Deep"]
+  - id: "dp-fear-detection"
+    step: "step-00"
+    question: "Fear analysis (auto-detected)"
+    options: ["on", "off"]
+
+# Features
+features:
+  fear_analysis:
+    description: "Auto-detected from user language. Adds structured fear resolution to exploration."
+    trigger: "automatic"
+    methods_added: ["E008", "E009", "E010", "E011", "E012", "E013", "E014"]
+    report_section: "Section 8: Fear Resolution"
+  enforcement_architecture:
+    description: "5-layer enforcement stack applied to every phase: ASSUMPTIONS_DECLARED, EVR sequence, counter-checks, post-phase checklists, binding gates"
+    layers: 5
+    scope_reduction: "Formal protocol for any deliberate omission"
+
+# Integration with other Deep Processes
+integrates_with:
+  produces_for:
+    - { process: "deep-verify", outputs: ["option_map", "assumptions", "consequence_map"] }
+    - { process: "deep-risk", outputs: ["option_map", "consequence_map", "knowledge_gaps"] }
+    - { process: "deep-synthesis", outputs: ["option_map", "assumptions", "consequence_map", "knowledge_gaps"] }
+  based_on:
+    - { process: "deep-explore", version: "2.2.0", relationship: "enhanced successor" }
+
+# Process Design Requirements Compliance (R1-R12)
+compliance:
+  r1_self_contained:
+    status: "COMPLIANT"
+    evidence: "All instructions in deep-explore-v2/ directory. Artifact schemas in workflow.md. Methods embedded in step files. No external dependencies."
+  r2_completeness_priority:
+    status: "COMPLIANT"
+    evidence: "Priority declaration: COMPLETENESS > DEPTH > ACCURACY > TOKEN_ECONOMY. Enforcement via gates and checklists."
+  r3_mechanisms_not_intentions:
+    status: "COMPLIANT"
+    evidence: "7 binding gates (GATE_00..06) with specific conditions. EVR sequence enforcement with PRECONDITION checks. ASSUMPTIONS_DECLARED tables mandatory."
+  r4_binding_gates:
+    status: "COMPLIANT"
+    evidence: "7 gates with CRITICAL/REQUIRED severity. BLOCKER conditions prevent bypass. SCOPE_REDUCTION protocol for formal skips."
+  r5_assumptions_declared:
+    status: "COMPLIANT"
+    evidence: "ASSUMPTIONS_DECLARED table in section X.0 of every step file (7 total). Minimum 1 assumption per phase enforced."
+  r6_extract_verify_render:
+    status: "COMPLIANT"
+    evidence: "EVR sequence enforced via PRECONDITION checks in sections X.1-X.8. [EXTRACT_COMPLETE], [VERIFY_COMPLETE], [RENDER_COMPLETE] markers."
+  r7_post_phase_checklists:
+    status: "COMPLIANT"
+    evidence: "POST-PHASE CHECKLIST section in every step file (sections X.9). 8-13 items per checklist. PASS/FAIL status required."
+  r8_counter_checks:
+    status: "COMPLIANT"
+    evidence: "Minimum counter-checks per depth (quick=1, standard=2, deep=3). CC-1, CC-2, CC-3 structure in VERIFY sections. Counter-check results logged."
+  r9_egzekucyjny:
+    status: "COMPLIANT"
+    evidence: "Step files specify HOW (numbered steps 1-5) and ORDER (PRECONDITION chains). Method procedures embedded with executable steps. Gate conditions specify IF FAIL actions."
+  r10_step_by_step_thinking:
+    status: "COMPLIANT"
+    evidence: "Methods decomposed to 3-5 numbered steps. Complex algorithms (clustering, sequencing, scoring) documented with procedures. PRECONDITION/OUTPUT/VERIFICATION structure."
+  r11_executable_instructions:
+    status: "COMPLIANT"
+    evidence: "Imperative instructions (identify, assess, classify, tag). Input/output schemas provided. Validation criteria explicit. Error handling documented."
+  r12_just_in_time_delivery:
+    status: "COMPLIANT"
+    evidence: "One step file loaded at a time (steps/step-NN-name.md). External data files referenced not embedded (coverage-scoring.yaml, exploration-report-template.md). Workflow.md contains step routing."
+
+# Version History
+history:
+  - version: "3.1.0"
+    date: "2026-02-11"
+    changes: |
+      V3.1.0 ENFORCEMENT ARCHITECTURE FIX:
+      - Embedded methods inline in step files (3-5 bullet points per method, NO explanations)
+      - Removed reference.md (content consolidated into workflow.md + steps)
+      - Artifact schemas embedded in workflow.md ARTIFACT SCHEMAS section
+      - Removed decorative content (Purpose, Time, explanations)
+      - Added PRECONDITION checks for EVR sequence enforcement
+      - Added R1-R12 compliance validation (all 12 requirements met)
+      - Steps 03-06 rewritten following pattern from steps 00-02
+      - External data files referenced not embedded (coverage-scoring.yaml, template.md)
+      Files modified: steps/step-03-deepen.md, step-04-challenge.md, step-05-synthesize.md,
+      step-06-output.md, process.yaml
+      Files removed: reference.md (content consolidated)
+      RATIONALE: Self-contained execution with lean workflow.md + executable step files.
+      IMPACT: Agent loads only current step file + workflow.md schemas. Zero external dependencies.
+      R1-R12 COMPLIANCE: ✓ All 12 process design requirements validated.
+  - version: "3.0.0"
+    date: "2026-02-10"
+    changes: "V3.0 enforcement architecture over V2.2"

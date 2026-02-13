@@ -1,0 +1,42 @@
+id,phase,name,core_question,depth_required,file
+001,SCOPE,Synthesis Question Formulation,What exactly are we synthesizing and why?,QUICK,data/method-procedures/001_Synthesis_Question_Formulation.md
+002,SCOPE,Level-of-Analysis Selection,At what abstraction level?,STANDARD,data/method-procedures/002_Level_of_Analysis_Selection.md
+003,SCOPE,Source Landscape Mapping,What types of knowledge exist and are missing?,STANDARD,data/method-procedures/003_Source_Landscape_Mapping.md
+101,ACQUIRE,Systematic Source Collection,Have we gathered comprehensively?,QUICK,data/method-procedures/101_Systematic_Source_Collection.md
+102,ACQUIRE,Source Quality Assessment,How reliable is each source?,QUICK,data/method-procedures/102_Source_Quality_Assessment.md
+103,ACQUIRE,Diversity Verification,Are multiple perspectives represented?,STANDARD,data/method-procedures/103_Diversity_Verification.md
+104,ACQUIRE,Tacit Knowledge Elicitation,What knowledge is undocumented?,RIGOROUS,data/method-procedures/104_Tacit_Knowledge_Elicitation.md
+105,ACQUIRE,Counter-Source Search,Have we sought disagreement?,RIGOROUS,data/method-procedures/105_Counter_Source_Search.md
+201,DECOMPOSE,Atomic Claim Extraction,What exactly does each source claim?,QUICK,data/method-procedures/201_Atomic_Claim_Extraction.md
+202,DECOMPOSE,Concept Taxonomy Building,Are we using consistent terminology?,STANDARD,data/method-procedures/202_Concept_Taxonomy_Building.md
+203,DECOMPOSE,Model Inventory,What frameworks do sources use?,STANDARD,data/method-procedures/203_Model_Inventory.md
+204,DECOMPOSE,Evidence Grading,How strong is the evidence?,STANDARD,data/method-procedures/204_Evidence_Grading.md
+205,DECOMPOSE,Assumption Surfacing,What's implicit in each source?,RIGOROUS,data/method-procedures/205_Assumption_Surfacing.md
+206,DECOMPOSE,Knowledge Gap Identification,What's missing from the source set?,STANDARD,data/method-procedures/206_Knowledge_Gap_Identification.md
+301,RELATE,Convergence-Divergence Mapping,Where do sources agree and disagree?,QUICK,data/method-procedures/301_Convergence_Divergence_Mapping.md
+302,RELATE,Dialectical Tension Mapping,What thesis-antithesis pairs exist?,STANDARD,data/method-procedures/302_Dialectical_Tension_Mapping.md
+303,RELATE,Analogical Structure Mapping,What structural parallels exist cross-domain?,RIGOROUS,data/method-procedures/303_Analogical_Structure_Mapping.md
+304,RELATE,Conceptual Blend Construction,What emerges when we blend mental spaces?,COMPREHENSIVE,data/method-procedures/304_Conceptual_Blend_Construction.md
+305,RELATE,Causal Chain Reconciliation,How do different causal explanations fit together?,RIGOROUS,data/method-procedures/305_Causal_Chain_Reconciliation.md
+306,RELATE,Pattern Detection Across Sources,What recurring patterns span sources?,STANDARD,data/method-procedures/306_Pattern_Detection_Across_Sources.md
+307,RELATE,Level Alignment Check,Are we mixing abstraction levels correctly?,STANDARD,data/method-procedures/307_Level_Alignment_Check.md
+308,RELATE,Gap Significance Analysis,Are gaps random or systematic?,RIGOROUS,data/method-procedures/308_Gap_Significance_Analysis.md
+401,INTEGRATE,Dialectical Integration,How do we resolve productive tensions?,QUICK,data/method-procedures/401_Dialectical_Integration.md
+402,INTEGRATE,Framework Unification,Can we build one framework from many?,STANDARD,data/method-procedures/402_Framework_Unification.md
+403,INTEGRATE,Emergence Detection,What's genuinely new in the combination?,STANDARD,data/method-procedures/403_Emergence_Detection.md
+404,INTEGRATE,Abductive Integration,What's the best explanation for all evidence?,RIGOROUS,data/method-procedures/404_Abductive_Integration.md
+405,INTEGRATE,Knowledge Compression,What's the shortest description that captures the essential?,STANDARD,data/method-procedures/405_Knowledge_Compression.md
+406,INTEGRATE,Boundary Condition Mapping,Where does this synthesis apply and where not?,STANDARD,data/method-procedures/406_Boundary_Condition_Mapping.md
+407,INTEGRATE,Synthesis Coherence Check,Is the synthesis internally consistent?,STANDARD,data/method-procedures/407_Synthesis_Coherence_Check.md
+501,CRYSTALLIZE,Core Insight Distillation,What are the 3-7 most important findings?,QUICK,data/method-procedures/501_Core_Insight_Distillation.md
+502,CRYSTALLIZE,Mental Model Design,What model captures this for intuitive use?,STANDARD,data/method-procedures/502_Mental_Model_Design.md
+503,CRYSTALLIZE,Principle Extraction,What general rules emerge?,STANDARD,data/method-procedures/503_Principle_Extraction.md
+504,CRYSTALLIZE,Narrative Construction,What's the story?,RIGOROUS,data/method-procedures/504_Narrative_Construction.md
+505,CRYSTALLIZE,Actionability Assessment,What should change based on this?,QUICK,data/method-procedures/505_Actionability_Assessment.md
+601,META,Apophenia Check,Are detected patterns real?,RIGOROUS,data/method-procedures/601_Apophenia_Check.md
+602,META,Confirmation Bias Audit,Did prior views distort the synthesis?,STANDARD,data/method-procedures/602_Confirmation_Bias_Audit.md
+603,META,Completeness Assessment,Is the synthesis adequate?,STANDARD,data/method-procedures/603_Completeness_Assessment.md
+604,META,Falsifiability Check,Can the synthesis be proven wrong?,STANDARD,data/method-procedures/604_Falsifiability_Check.md
+605,META,Source Bias Propagation Check,Did source biases infect the synthesis?,RIGOROUS,data/method-procedures/605_Source_Bias_Propagation_Check.md
+606,META,Novel Information Test,Is this genuine synthesis or just summary?,STANDARD,data/method-procedures/606_Novel_Information_Test.md
+607,META,Synthesis Decay Monitoring,When will this synthesis expire?,STANDARD,data/method-procedures/607_Synthesis_Decay_Monitoring.md

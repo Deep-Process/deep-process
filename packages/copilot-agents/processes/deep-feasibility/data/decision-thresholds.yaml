@@ -1,0 +1,221 @@
+# Decision Thresholds — Feasibility Decision Rules
+# LOAD: step-04-decide.md
+# PURPOSE: Consistent Go/No-Go decision making
+
+---
+# LOADING INSTRUCTIONS:
+# 1. Load this file at the START of DECIDE phase
+# 2. Apply decision_matrix using binding constraint score + confidence
+# 3. Determine decision
+# 4. Apply condition logic if CONDITIONAL
+
+---
+decision_matrix:
+  description: |
+    Decision is determined by TWO factors:
+    1. Binding constraint score (1-5)
+    2. Confidence level on that score (H/M/L)
+
+    Same score with different confidence = different decision.
+
+  cells:
+    - score_range: [4, 5]
+      score_label: "Feasible"
+      confidence: "High"
+      decision: "GO"
+      meaning: "Proceed with standard project management"
+      next_steps:
+        - "Initiate project"
+        - "Standard risk monitoring"
+        - "Scheduled reassessments at milestones"
+
+    - score_range: [4, 5]
+      score_label: "Feasible"
+      confidence: "Low"
+      decision: "CONDITIONAL GO"
+      meaning: "Proceed but invest in validation"
+      next_steps:
+        - "Design validation activities first"
+        - "Run probes/spikes before full commitment"
+        - "Gate decision after validation"
+
+    - score_range: [3, 3]
+      score_label: "Borderline"
+      confidence: "High"
+      decision: "CONDITIONAL GO"
+      meaning: "Proceed with explicit conditions and checkpoints"
+      next_steps:
+        - "Document all conditions explicitly"
+        - "Define checkpoint criteria"
+        - "Plan fallbacks for each condition"
+
+    - score_range: [3, 3]
+      score_label: "Borderline"
+      confidence: "Low"
+      decision: "INVESTIGATE"
+      meaning: "More information needed before deciding"
+      next_steps:
+        - "Identify what information would change decision"
+        - "Design investigation activities"
+        - "Set decision deadline"
+
+    - score_range: [1, 2]
+      score_label: "Infeasible"
+      confidence: "High"
+      decision: "NO GO"
+      meaning: "Stop, redirect, or fundamentally redesign"
+      next_steps:
+        - "Document why infeasible"
+        - "Identify what would make it feasible"
+        - "Propose alternatives"
+
+    - score_range: [1, 2]
+      score_label: "Infeasible"
+      confidence: "Low"
+      decision: "INVESTIGATE or NO GO"
+      meaning: "May be infeasible, may be unknown"
+      next_steps:
+        - "Determine if investigation can resolve uncertainty"
+        - "If investigation not feasible → NO GO"
+        - "If investigation feasible → investigate then decide"
+
+---
+decision_types:
+  GO:
+    description: "Proceed with standard project management"
+    implies:
+      - "Binding constraint score ≥ 4 with high confidence"
+      - "Conditions are few and manageable"
+      - "Risk profile acceptable"
+    monitoring:
+      - "Standard project metrics"
+      - "Decay trigger monitoring"
+      - "Scheduled reassessments"
+
+  NO_GO:
+    description: "Stop current approach"
+    implies:
+      - "Binding constraint score ≤ 2 with high confidence"
+      - "Fundamental barrier exists"
+      - "Effort would be wasted"
+    options:
+      redesign: "What would make it feasible?"
+      reduce_scope: "What could be cut?"
+      extend_timeline: "By how much?"
+      increase_resources: "What's needed?"
+      abandon: "Is this the wrong goal entirely?"
+
+  CONDITIONAL_GO:
+    description: "Proceed only after conditions secured"
+    implies:
+      - "Feasibility depends on external factors"
+      - "Conditions are enumerable and monitorable"
+      - "Fallbacks exist for condition failure"
+    requirements:
+      - "All conditions explicitly documented"
+      - "Probability assigned to each condition"
+      - "Fallback plan for each condition"
+      - "Monitoring mechanism for each condition"
+      - "Compound probability calculated"
+
+  INVESTIGATE:
+    description: "More information needed before deciding"
+    implies:
+      - "Key uncertainty exists"
+      - "Investigation can resolve uncertainty"
+      - "Cost of investigation < cost of wrong decision"
+    requirements:
+      - "Specific questions to answer"
+      - "Method to answer each question"
+      - "Timeline for investigation"
+      - "Decision deadline"
+
+---
+conditional_logic:
+  compound_probability:
+    description: |
+      Multiple independent conditions compound as:
+      P(all conditions) = P(C1) × P(C2) × ... × P(Cn)
+
+      Example:
+      5 conditions, each P=0.8
+      Compound: 0.8^5 = 0.33 (33%)
+
+      Many "likely" conditions → "unlikely" combined feasibility
+
+    thresholds:
+      high: "> 0.6"
+      medium: "0.3 - 0.6"
+      low: "< 0.3"
+
+  condition_attributes:
+    - name: "probability"
+      question: "How likely is this condition to hold?"
+      values: ["High (>80%)", "Medium (50-80%)", "Low (<50%)", "Unknown"]
+
+    - name: "controller"
+      question: "Who controls whether this condition holds?"
+      values: ["Us", "Partner", "External", "Regulation", "Market"]
+
+    - name: "fallback"
+      question: "What's the plan if this condition fails?"
+      values: ["Documented fallback", "Partial mitigation", "Accept delay", "Project fails"]
+
+    - name: "monitoring"
+      question: "How will we know if this condition is failing?"
+      values: ["Early warning system", "Regular check", "Reactive only"]
+
+---
+escalation_triggers:
+  description: "When to escalate beyond normal decision process"
+
+  triggers:
+    - condition: "Non-ergodic risk identified"
+      meaning: "Survival uncertain if risk materializes"
+      action: "Escalate to executive/board level"
+
+    - condition: "Regulatory prohibition discovered"
+      meaning: "H5 constraint — cannot proceed legally"
+      action: "Escalate to legal/compliance"
+
+    - condition: "Compound probability < 0.2"
+      meaning: "Very unlikely all conditions hold"
+      action: "Escalate to sponsor — is this worth pursuing?"
+
+    - condition: "Dunning-Kruger zone on binding constraint"
+      meaning: "Score unreliable due to low expertise"
+      action: "Require external expert validation"
+
+---
+reassessment_rules:
+  boehm_spiral:
+    description: "Feasibility is not one-time; reassess at milestones"
+    schedule:
+      - milestone: "Sprint boundary"
+        scope: "Quick check on binding constraint"
+      - milestone: "Phase gate"
+        scope: "Standard reassessment of all dimensions"
+      - milestone: "Major scope change"
+        scope: "Full reassessment"
+      - milestone: "External shock"
+        scope: "Immediate targeted reassessment"
+
+  decay_triggers:
+    - "Scope change > 10%"
+    - "Key team member departure"
+    - "Budget cut > 15%"
+    - "Deadline change"
+    - "Dependency deprecation"
+    - "Regulatory change"
+    - "Technology major version"
+    - "Competitive/market change"
+
+---
+# USAGE SUMMARY:
+#
+# 1. Take binding constraint score (1-5)
+# 2. Assess confidence on binding constraint (H/M/L)
+# 3. Look up in decision_matrix
+# 4. If CONDITIONAL: apply conditional_logic
+# 5. Check for escalation_triggers
+# 6. Document decision with rationale

@@ -1,247 +1,220 @@
-# Deep-Document V7 - Workflow (Main Entry Point)
-# Version: 7.1.0
-# Pure Self-Contained Structure with Just-In-Time Loading
+# Deep-Document V8.0 - Code Documentation Process
+
+**Version:** 8.0.1
+**Pattern:** Deep-Verify minimal core (6 phases, 0 phantom artifacts, <40% overhead)
 
 ---
 
-## CRITICAL: Load Shared Rules First
+## PRIORITY DECLARATION
 
-**Before ANY execution, read:**
-```
-Read tool: rules.md
-```
+**COMPLETENESS > TOKEN_ECONOMY > DEPTH > AESTHETICS**
 
-This file contains ALL shared rules (PRIORITY, ANTI-BYPASS, EXECUTION, modes, patterns).
+If choice between:
+- Read all files (expensive) vs sample files (cheap) → **Read all**
+- Extract all knowledge (thorough) vs quick scan (fast) → **Extract all**
+- Verify every claim (careful) vs spot-check (efficient) → **Verify every**
+
+Agent abbreviates or skips → **PRIORITY VIOLATION** → Re-execute phase with COMPLETENESS enforcement.
 
 ---
 
-## SCENARIO 0: STARTUP
+## PROCESS OVERVIEW
 
-**Purpose:** Discover existing projects and show menu
+**Input:** Repository path + documentation template
+**Output:** Comprehensive documentation in `docs/` directory
+**Phases:** 6 mandatory (PREPARATION → KNOWLEDGE → MAPPING → DOCUMENTATION → VERIFICATION → REFINEMENT)
+**Time:** 90-180 minutes typical (depends on project size: small <50 files: 90 min, medium 50-200 files: 120 min, large >200 files: 180 min)
+**Artifacts:** 6 total (all consumed by downstream phases, 0 phantoms)
 
-### STEP 1: SCAN_PROJECTS
+---
 
-Search for process-state.yaml files:
+## ROUTING TABLE (Just-In-Time Loading)
 
-**Paths:**
-1. `./docs/deep-artifacts/process-state.yaml`
-2. `./**/deep-artifacts/process-state.yaml` (depth 3)
-3. `../**/deep-artifacts/process-state.yaml` (2 levels up)
+Agent loads **ONE step file at a time** when entering phase. NOT all upfront.
 
-**Command:**
-```bash
-# Windows
-Get-ChildItem -Path . -Recurse -Depth 3 -Filter "process-state.yaml" -ErrorAction SilentlyContinue | Where-Object { $_.Directory.Name -eq "deep-artifacts" }
+| Phase | Step File | Load When | Time Est | Gate |
+|-------|-----------|-----------|----------|------|
+| 0 | `steps/step-00-preparation.md` | Process start | 15-20 min | GATE_0 |
+| 1 | `steps/step-01-knowledge.md` | GATE_0 passes | 30-90 min | GATE_1 |
+| 2 | `steps/step-02-mapping.md` | GATE_1 passes | 10-15 min | GATE_2 |
+| 3 | `steps/step-03-documentation.md` | GATE_2 passes | 30-45 min | GATE_3 |
+| 4 | `steps/step-04-verification.md` | GATE_3 passes | 15-20 min | GATE_4 |
+| 5 | `steps/step-05-refinement.md` | GATE_4 passes OR user request | 10-15 min | GATE_5 |
 
-# Linux/Mac
-find . -maxdepth 3 -name "process-state.yaml" -path "*/deep-artifacts/*" 2>/dev/null
+**VIOLATION:** Agent reading step-03 during phase 0 = **ZASADA 12 violation** → HALT.
+
+---
+
+## EXECUTION SEQUENCE (ENFORCED - PROGRAMMATIC)
+
+### Phase 0: PREPARATION
+```
+1. Read tool: steps/step-00-preparation.md
+2. Execute ENFORCED SEQUENCE from step file
+3. Evaluate GATE_0 (template understood, assumptions declared)
+4. IF GATE_0 fails → SCOPE_REDUCTION_DECLARATION or ABORT
+5. IF GATE_0 passes → Proceed to Phase 1
 ```
 
-**For each found file:**
-1. Read: metadata.version, execution_context.current_state, metadata.last_modified, metadata.repository_path
-2. Store in projects[] array:
-```yaml
-- path: <absolute_path>
-  repository: <repository_path>
-  state: <current_state>
-  modified: <ISO8601>
-  version: <version>
-  is_default: <true if ./docs/deep-artifacts/>
+PRECONDITION: None (entry point)
+VIOLATION CHECK: Agent MUST NOT read step-01 until GATE_0 = OPEN
+
+### Phase 1: KNOWLEDGE EXTRACTION
+```
+1. Read tool: steps/step-01-knowledge.md
+2. Execute ENFORCED SEQUENCE (execution/data/control/test/config flow analysis)
+3. Evaluate GATE_1 (≥80% coverage, counter-checks pass)
+4. IF GATE_1 fails → SCOPE_REDUCTION_DECLARATION or ABORT
+5. IF GATE_1 passes → Proceed to Phase 2
 ```
 
-Sort by: is_default first, then last_modified descending.
+PRECONDITION: GATE_0 = OPEN (if not, HALT)
+VIOLATION CHECK: Agent MUST NOT read step-02 until GATE_1 = OPEN
 
-### STEP 2: DISPLAY_MENU
-
-**Display as TEXT (no AskUserQuestion - see rules.md ANTI-BYPASS RULE 5):**
-
-IF projects found:
+### Phase 2: TEMPLATE MAPPING
 ```
-DEEP-DOCUMENT V7 ORCHESTRATOR
-DISCOVERED PROJECTS: <count>
-
-[1] <repository_name>
-    Path: <path>
-    State: <state> | Modified: <time> | Version: <version>
-    [DEFAULT]
-
-[2] <repository_name>
-    Path: <path>
-    State: <state> | Modified: <time> | Version: <version>
-
-...
-
-[N] NEW PROJECT
-[F] CUSTOM FILE
-[Q] QUIT
-
-Choice: [1-<count>/N/F/Q]
+1. Read tool: steps/step-02-mapping.md
+2. Execute ENFORCED SEQUENCE (map knowledge → template sections)
+3. Evaluate GATE_2 (≥90% template coverage)
+4. IF GATE_2 fails → SCOPE_REDUCTION_DECLARATION or ABORT
+5. IF GATE_2 passes → Proceed to Phase 3
 ```
 
-IF no projects:
+PRECONDITION: GATE_1 = OPEN
+VIOLATION CHECK: Agent MUST NOT read step-03 until GATE_2 = OPEN
+
+### Phase 3: DOCUMENTATION
 ```
-DEEP-DOCUMENT V7 ORCHESTRATOR
-No projects found
-
-[N] NEW PROJECT
-[F] CUSTOM FILE
-[Q] QUIT
-
-Choice: [N/F/Q]
-```
-
-### STEP 3: READ_CHOICE
-
-**WAIT for user message with choice.**
-- DO NOT call tools to read input
-- User will type choice (1, N, F, Q) and press send
-- Extract choice from user's message
-
-Validate:
-- IF projects found: accept [1], [2], ..., [N], [F], [Q]
-- IF no projects: accept [N], [F], [Q]
-- IF invalid → display menu again and wait
-
-### STEP 4: COUNTER_CHECKS
-
-**CC1 (Grounding - Method #85):**
-- Sample 3 projects (if any)
-- Verify each file exists at path, is readable
-- IF >30% fail → WARNING
-
-**CC2 (Phantom Hunt - Method #168):**
-- Re-scan 1 search path
-- Compare with original results
-- IF mismatch >1 project → ERROR
-
-**CC3 (Coherence - Method #84):**
-- IF [1-N]: verify projects[selected].path exists
-- IF [F]: verify provided file_path exists
-- IF fail → BLOCKER
-
-### STEP 5: CHECKLIST
-
-```yaml
-startup_checklist:
-  - item: "Scan executed"
-    status: <DONE|SKIPPED>
-    paths: <list>
-  - item: "Projects discovered"
-    status: <DONE>
-    count: <N>
-  - item: "Menu displayed"
-    status: <DONE>
-    options: <list>
-  - item: "User choice recorded"
-    status: <DONE>
-    choice: <input>
-  - item: "Counter-checks executed"
-    status: <DONE|FAILED>
-    results: <PASS|WARNING|ERROR|BLOCKER>
-  - item: "Decision logged"
-    status: <DONE>
+1. Read tool: steps/step-03-documentation.md
+2. Execute ENFORCED SEQUENCE (write sections with evidence)
+3. Evaluate GATE_3 (quality gates pass)
+4. IF GATE_3 fails → SCOPE_REDUCTION_DECLARATION or ABORT
+5. IF GATE_3 passes → Proceed to Phase 4
 ```
 
-### STEP 6: GATE_STARTUP
+PRECONDITION: GATE_2 = OPEN
+VIOLATION CHECK: Agent MUST NOT read step-04 until GATE_3 = OPEN
 
-**Load gate definition:** data/gates.yaml GATE_STARTUP
-
-Evaluate conditions:
-- GS-01: Scan executed for ≥1 path (CRITICAL)
-- GS-02: Menu displayed with all options (CRITICAL)
-- GS-03: User choice received and valid (BLOCKER)
-- GS-04: CC1/CC2/CC3 all executed, no BLOCKER (ERROR)
-- GS-05: Checklist complete (ERROR)
-
-**Enforcement (see rules.md GATE ENFORCEMENT PATTERN):**
-- IF BLOCKER → halt, display error, return to failed step
-- IF CRITICAL → STATE_ERROR
-- IF ERROR → log warning, continue
-
-### STEP 7: ROUTE
-
-Based on user choice, load scenario file **just-in-time**:
-
-**[1-N] Load Existing Project:**
+### Phase 4: VERIFICATION
 ```
-Read tool: scenarios/load-project.md
-```
-Pass: file_path = projects[selected].path
-
-**[N] New Project:**
-```
-Read tool: scenarios/new-project.md
+1. Read tool: steps/step-04-verification.md
+2. Execute ENFORCED SEQUENCE (verify claims, detect hallucinations)
+3. Evaluate GATE_4 (<5% claim degradation)
+4. IF GATE_4 fails → SCOPE_REDUCTION_DECLARATION or ABORT
+5. IF GATE_4 passes → Proceed to Phase 5 OR Complete (user choice)
 ```
 
-**[F] Custom File:**
-Prompt user: "Enter process-state.yaml path:"
-```
-Read tool: scenarios/load-project.md
-```
-Pass: file_path = user_input
+PRECONDITION: GATE_3 = OPEN
+VIOLATION CHECK: Agent MUST NOT read step-05 until GATE_4 = OPEN
 
-**[Q] Quit:**
-Exit
+### Phase 5: REFINEMENT (Optional)
+```
+1. Read tool: steps/step-05-refinement.md
+2. Execute ENFORCED SEQUENCE (address issues, polish)
+3. Evaluate GATE_5 (user approval)
+4. IF GATE_5 passes → COMPLETE
+```
 
-### STEP 8: LOG
+PRECONDITION: GATE_4 = OPEN OR user explicit request
+VIOLATION CHECK: None (terminal phase)
+
+---
+
+## ENFORCEMENT RULES
+
+### Rule E-01: Sequential Execution (BINDING)
+Agent MUST execute phases in order 0→1→2→3→4→5. Skipping phases = **PROCESS VIOLATION** → ABORT.
+
+### Rule E-02: Progressive Loading (BINDING - ZASADA 12)
+Agent loads ONE step file per phase. Loading all steps upfront = **PROCESS VIOLATION** → ABORT.
+
+### Rule E-03: Gate Enforcement (BINDING)
+Agent CANNOT proceed to Phase N+1 if GATE_N = LOCKED. Attempting bypass = **PROCESS VIOLATION** → ABORT.
+
+### Rule E-04: SCOPE_REDUCTION Protocol (BINDING)
+If gate fails, agent has 2 options:
+1. **SCOPE_REDUCTION_DECLARATION** - Log decision to reduce scope (e.g., "Cannot analyze config files, proceeding without config analysis")
+2. **ABORT** - Halt process, report failure
+
+Agent proceeding without either = **PROCESS VIOLATION** → ABORT.
+
+### Rule E-05: Artifact Consumption (BINDING)
+Every artifact MUST have downstream consumer. Creating unused artifact = **PROCESS VIOLATION** → Flag in verification.
+
+### Rule E-06: User Checkpoint (BINDING)
+After Phase 1 (KNOWLEDGE EXTRACTION), agent MUST present knowledge-map summary to user and wait for confirmation before proceeding to Phase 2. All gates are self-evaluated — user checkpoint provides external validation of extraction quality. Skipping checkpoint = **PROCESS VIOLATION** → ABORT.
+
+---
+
+## SCOPE_REDUCTION_PROTOCOL
+
+When gate condition fails but proceeding is acceptable:
 
 ```yaml
-decisions:
-  - timestamp: <ISO8601>
-    decision: "STARTUP_MENU_EXECUTED"
-    user_choice: <choice>
-    projects_discovered: <count>
-    selected_project: <path>
-    gate_startup: PASSED
-    counter_checks:
-      cc1: <status>
-      cc2: <status>
-      cc3: <status>
-    checklist_complete: true
+scope_reduction:
+  phase: <phase_number>
+  gate: <gate_id>
+  condition_failed: <which condition>
+  justification: <why reduction acceptable>
+  impact: <what coverage lost>
+  mitigation: <how to minimize impact>
+  logged_at: <timestamp>
+```
+
+Example:
+```yaml
+scope_reduction:
+  phase: 1
+  gate: GATE_1
+  condition_failed: "Config analysis completeness <80%"
+  justification: "No config files found in repository"
+  impact: "Configuration section will be minimal"
+  mitigation: "Document absence of config files explicitly"
+  logged_at: 2026-02-12T10:30:00Z
 ```
 
 ---
 
-## SCENARIOS (Loaded Just-In-Time)
+## ARTIFACT DIRECTORY
 
-Scenarios are loaded progressively based on execution path:
+All artifacts saved to: `{output_directory}/deep-artifacts/`
 
-**SCENARIO A (NEW_PROJECT):**
-- Loaded ONLY when user chooses [N]
-- File: scenarios/new-project.md
-- Content: Initialize, template selection, create state, delegate to STATE_INIT
+| Artifact | Producer | Consumers | Purpose |
+|----------|----------|-----------|---------|
+| `preparation-report.yaml` | Phase 0 | Phase 1, 2 (assumptions reference) | Template understanding, assumptions |
+| `knowledge-map.yaml` | Phase 1 | Phase 2, 3, 4 (mapping, writing, entity verification) | Execution/data/control/test/config flows |
+| `documentation-plan.yaml` | Phase 2 | Phase 3, 4 (writing order, verification) | Template section mapping, coverage plan |
+| `entity-log.yaml` | Phase 3 | Phase 4 (entity completeness verification) | Entity tracking per section |
+| `docs/*.md` | Phase 3 | Phase 4, 5 (verification target), User (deliverable) | Final documentation output |
+| `verification-report.yaml` | Phase 4 | Phase 5 (issues to fix), User (quality report) | Claim verification, hallucination detection |
 
-**SCENARIO B (LOAD_PROJECT):**
-- Loaded ONLY when user chooses [1-N] or [F]
-- File: scenarios/load-project.md
-- Content: Validate, load state, resume from current_state
-
-**SCENARIO C (CONTINUE):**
-- Loaded ALWAYS after A or B
-- File: scenarios/continue.md
-- Content: Execute current state, route to steps/, handle staleness, call utils/, transition to next state
-- Loops for each processing state (15 total)
-
-**SCENARIO D (USER_REVIEW):**
-- Loaded ONLY at USER_REVIEW_* states (4 times)
-- File: scenarios/user-review.md
-- Content: Display artifact, approve/reject/modify decision, route to continue or halt
-
-**SCENARIO E (COMPLETED_PROCESS):**
-- Loaded ONLY when STATE_COMPLETE reached
-- File: scenarios/completed.md
-- Content: Display completion, post-completion options (VERIFY_IMPROVE, AMEND_QUALITY, RESET, EXIT)
-
-**Token Savings:**
-- NEW PROJECT path: 180L + 60L + 67L + 37L×4 + 83L = 538L (vs 567L = 5% savings)
-- LOAD EXISTING (mid-process): 180L + 38L + 67L + 37L×2 = 359L (vs 567L = 37% savings)
-- LOAD COMPLETED: 180L + 38L + 83L = 301L (vs 567L = 47% savings)
-
-**Decision Tree Optimization:**
-Each execution path loads ONLY scenarios needed for that path, not all 5 scenarios upfront.
+**Total:** 6 artifacts, 0 phantoms, 100% consumer coverage.
 
 ---
 
-**Version:** 7.1.0 (2026-02-11)
-**Pattern:** Minimal Orchestrator with Just-In-Time Scenario Loading
-**ZASADA 12 Compliance:** ✓ Data appears when needed, not earlier
+## VIOLATION DETECTION
+
+### Severity Levels
+- **CRITICAL PROCESS VIOLATION** → ABORT execution immediately, log in process state
+- **ERROR** → Block progression to next phase, require fix
+- **WARNING** → Flag for review, allow progression with user acknowledgment
+
+### Compliance Principles
+1. **Sequential loading** — Agent reads step-N+1 before completing phase-N → CRITICAL VIOLATION
+2. **Gate enforcement** — Agent proceeds without gate evaluation → CRITICAL VIOLATION
+3. **Artifact consumption** — Every artifact has downstream consumer (verified in Phase 4)
+4. **Scope reduction** — Gate fails without SCOPE_REDUCTION_DECLARATION → ERROR
+
+---
+
+## ENFORCEMENT SUMMARY
+
+| Mechanism | Type | Enforcement |
+|-----------|------|-------------|
+| **6 Binding Gates** | GATE_0..5 | Block progression if conditions fail |
+| **Sequential execution** | Rule E-01 | Phases must run 0→1→2→3→4→5 |
+| **Just-in-time loading** | Rule E-02 | ONE step file per phase |
+| **SCOPE_REDUCTION** | Protocol | Required when gate fails but proceed acceptable |
+| **Artifact consumption** | Rule E-05 | All artifacts must have consumers |
+| **Violation detection** | System | CRITICAL violations abort process |
+

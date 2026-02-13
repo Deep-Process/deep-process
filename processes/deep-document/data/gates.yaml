@@ -1,0 +1,417 @@
+version: "8.1.0"
+total_gates: 6
+total_conditions: 44  # G0: 10, G1: 9, G2: 10, G3: 6, G4: 5, G5: 4
+binding_gates: 6
+advisory_gates: 0
+
+description: |
+  Gate definitions for Deep-Document V8.1.0 (Phase A+B: Multi-domain detection + Semantic template matching).
+  All gates are BINDING (block progression if fail).
+  AUTHORITATIVE SOURCE: This file is the single source of truth for gate conditions.
+  Step files reference these conditions. Any discrepancy = this file wins.
+  Synchronized with step files on 2026-02-13 (V8.1.0 Phase A+B implementation).
+
+gates:
+  - gate_id: "GATE_0"
+    name: "PREPARATION COMPLETE"
+    phase: 0
+    severity: "CRITICAL"
+    blocks: "Phase 1 (Knowledge Extraction)"
+    conditions:
+      - id: "G0-01"
+        description: "Repository scan completed"
+        check: "repository_scan{} exists, total_files > 0"
+        severity: "CRITICAL"
+
+      - id: "G0-02"
+        description: "Template analyzed"
+        check: "template_analysis{} exists, total_sections > 0"
+        severity: "CRITICAL"
+
+      - id: "G0-03"
+        description: "Assumptions declared"
+        check: "assumptions[] has ≥3 entries covering all 3 layers (surface, inherited, invisible)"
+        severity: "CRITICAL"
+
+      - id: "G0-04"
+        description: "Knowledge areas identified"
+        check: "knowledge_areas[] has ≥3 entries"
+        severity: "CRITICAL"
+
+      - id: "G0-05"
+        description: "All outputs written"
+        check: "preparation-report.yaml exists and valid YAML"
+        severity: "CRITICAL"
+
+      - id: "G0-06"
+        description: "Semantic intent extracted"
+        check: "EVERY section in section_structure[] has semantic_intent{} with purpose, depth, audience, entity_expectation"
+        severity: "CRITICAL"
+
+      - id: "G0-07"
+        description: "Entity expectation coherence"
+        check: "Sections with title containing Reference/Models/Tables/Endpoints/Configuration have entity_expectation='all', unless SCOPE_REDUCTION declared"
+        severity: "BLOCKER"
+
+      - id: "G0-08"
+        description: "Domain detection executed (V8.1.0 multi-domain system)"
+        check: "domain_detection{} exists, final_domains[] has ≥3 entries (at minimum: 3 base domains)"
+        severity: "CRITICAL"
+        rationale: "Multi-domain detection prevents 40% scope loss on 87% of projects"
+
+      - id: "G0-09"
+        description: "Base domains included"
+        check: "base_domains_included[] contains iac-agnostic, testing-patterns (mandatory), typescript-library IF applicable"
+        severity: "CRITICAL"
+        rationale: "Base domains provide universal patterns (DTAP, testing, TypeScript)"
+
+      - id: "G0-10"
+        description: "Dependency closure complete"
+        check: "No domain in final_domains[] has unmet requires[] dependencies"
+        severity: "BLOCKER"
+        rationale: "Incomplete closure causes missing patterns (e.g., aws-cdk without iac-agnostic)"
+
+    counter_checks:
+      - check: "Sample 3 files from repository_scan"
+        method: "#85 Grounding Check"
+        action: "Verify files exist (not hallucinated)"
+
+      - check: "Sample 3 template sections"
+        method: "#85 Grounding Check"
+        action: "Verify sections exist in template"
+
+      - check: "Sample 3 assumptions"
+        method: "#78 Assumption Excavation"
+        action: "Verify each has falsification criteria"
+
+      - check: "Sample 3 sections with entity_expectation=all"
+        method: "#59 CUI BONO"
+        action: "Verify title/content justifies exhaustive enumeration"
+
+      - check: "Sample 3 detected domains (CC1 domain grounding)"
+        method: "#85 Grounding Check"
+        action: "Verify detection evidence exists in repository (files/patterns found)"
+        pass_criteria: "All 3 samples have valid evidence"
+        failure_action: "BLOCKER - Domain detection hallucinated, re-scan repository"
+
+      - check: "Re-compute dependency closure (CC2 transitive dependencies)"
+        method: "#159 Transitive Dependency"
+        action: "Independently verify transitive closure from detected_domains → final_domains"
+        pass_criteria: "No missing dependencies (all requires[] satisfied)"
+        failure_action: "CRITICAL - Add missing dependencies to final_domains[]"
+
+      - check: "Verify pattern coherence (CC3 no phantoms)"
+        method: "#84 Coherence Check"
+        action: "Count active_patterns vs union of provides[] from final_domains"
+        pass_criteria: "Pattern count matches (no phantom patterns)"
+        failure_action: "ERROR - Remove phantom patterns from active_patterns[]"
+
+  - gate_id: "GATE_1"
+    name: "KNOWLEDGE EXTRACTION COMPLETE"
+    phase: 1
+    severity: "CRITICAL"
+    blocks: "Phase 2 (Template Mapping)"
+    conditions:
+      - id: "G1-01"
+        description: "Execution flow coverage ≥80%"
+        check: "execution_flows.count / entity_census.functions ≥ 0.80"
+        severity: "CRITICAL"
+
+      - id: "G1-02"
+        description: "Data flow coverage ≥80%"
+        check: "data_flows.count / entity_census.tables ≥ 0.80"
+        severity: "CRITICAL"
+
+      - id: "G1-03"
+        description: "Control flow coverage ≥70%"
+        check: "control_flows.count / entity_census.decisions ≥ 0.70"
+        severity: "CRITICAL"
+
+      - id: "G1-04"
+        description: "Test coverage analyzed"
+        check: "test_coverage[] exists, overall_coverage calculated"
+        severity: "CRITICAL"
+
+      - id: "G1-05"
+        description: "Configuration analyzed"
+        check: "configuration_impact[] exists, environment differences documented"
+        severity: "CRITICAL"
+
+      - id: "G1-06"
+        description: "Entity census complete"
+        check: "entity_census.scanned_at exists, all 4 entity types counted"
+        severity: "CRITICAL"
+
+      - id: "G1-07"
+        description: "All outputs written"
+        check: "knowledge-map.yaml exists and valid YAML"
+        severity: "CRITICAL"
+
+      - id: "G1-08"
+        description: "Priority entity coverage = 100%"
+        check: "ALL priority_entities.priority[] extracted, 0 skipped"
+        severity: "BLOCKER"
+
+      - id: "G1-09"
+        description: "Skipped entities justified"
+        check: "Every priority_entities.skipped[] has reason + impact"
+        severity: "CRITICAL"
+
+    counter_checks:
+      - check: "Sample 3 execution flows"
+        method: "#85 Grounding Check"
+        action: "Read source files, verify call sequence exists"
+
+      - check: "Sample 3 data transformations"
+        method: "#85 Grounding Check"
+        action: "Read source, verify transformation logic exists"
+
+      - check: "Sample 3 test files"
+        method: "#85 Grounding Check"
+        action: "Verify they exist and test claimed functions"
+
+  - gate_id: "GATE_2"
+    name: "TEMPLATE MAPPING COMPLETE"
+    phase: 2
+    severity: "CRITICAL"
+    blocks: "Phase 3 (Documentation)"
+    conditions:
+      - id: "G2-01"
+        description: "All sections mapped"
+        check: "section_mappings[] covers all template sections"
+        severity: "CRITICAL"
+
+      - id: "G2-02"
+        description: "Gaps identified"
+        check: "gaps[] exists, all required gaps have action"
+        severity: "CRITICAL"
+
+      - id: "G2-03"
+        description: "Coverage threshold"
+        check: "coverage_summary.section_coverage ≥90% (only covered_sections count, [UNKNOWN] sections do NOT count as covered)"
+        severity: "CRITICAL"
+
+      - id: "G2-04"
+        description: "Writing order planned"
+        check: "writing_order[] has topological order (no circular dependencies)"
+        severity: "CRITICAL"
+
+      - id: "G2-05"
+        description: "All outputs written"
+        check: "documentation-plan.yaml exists and valid YAML"
+        severity: "CRITICAL"
+
+      - id: "G2-06"
+        description: "Entity census verification"
+        check: "For EVERY section with entity_expectation=all: len(knowledge_sources[matching_type].items) == entity_census_check.expected. Count actual items, do NOT trust self-reported status."
+        severity: "BLOCKER"
+
+      - id: "G2-07"
+        description: "Semantic intent consumed"
+        check: "EVERY section_mapping has semantic_intent{} with purpose, depth, entity_expectation carried from Phase 0"
+        severity: "CRITICAL"
+
+      - id: "G2-08"
+        description: "Priority entity coverage in mapping"
+        check: "EVERY entity in priority_entities.priority[] appears in at least ONE section_mapping.knowledge_sources[].items[]"
+        severity: "BLOCKER"
+
+      - id: "G2-09"
+        description: "High-confidence mismatches resolved (V8.1.0 semantic verification)"
+        check: "All sections with entity_expectation='all' AND match_score < 0.40 have resolution (SCOPE_REDUCTION OR entity_expectation adjusted)"
+        severity: "CRITICAL"
+        rationale: "Prevents 30% sparse planning failures from keyword-only matching (V7 evidence)"
+
+      - id: "G2-10"
+        description: "Potential mismatches addressed (V8.1.0 semantic verification)"
+        check: "All sections with entity_expectation='all' AND match_score 0.40-0.60 have resolution (SCOPE_REDUCTION OR adjustment OR justification)"
+        severity: "CRITICAL"
+        rationale: "Semantic matching ensures entity_expectation aligns with section content"
+
+    counter_checks:
+      - check: "Sample 3 section mappings"
+        method: "#85 Grounding Check"
+        action: "Verify knowledge items exist in knowledge-map.yaml"
+
+      - check: "Verify writing_order topology"
+        method: "#84 Coherence Check"
+        action: "No circular dependencies"
+
+      - check: "Verify required gaps fillable"
+        method: "#61 Pre-mortem"
+        action: "All required gaps have fillable=true OR SCOPE_REDUCTION"
+
+      - check: "Sample 3 sections with entity_expectation=all"
+        method: "#167 Baseline Census"
+        action: "Verify mapped count matches entity_census"
+
+      - check: "Verify estimated_length realistic"
+        method: "#84 Coherence Check"
+        action: "entity_count × words_per_entity[depth] not artificially low"
+
+      - check: "Semantic grounding (CC4)"
+        method: "#85 Grounding Check"
+        action: "Sample 3 sections with entity_expectation='all', recalculate match_score independently, verify ≥0.60 OR valid resolution exists"
+        pass_criteria: "All 3 samples grounded (match_score ≥0.60 OR resolution documented)"
+        failure_action: "ERROR - Semantic mismatch unresolved, must add SCOPE_REDUCTION or adjust entity_expectation"
+
+      - check: "Threshold coherence (CC5)"
+        method: "#84 Coherence Check"
+        action: "Verify threshold logic: match_score < 0.60 → mismatch flagged, match_score ≥ 0.60 → no mismatch"
+        pass_criteria: "Logic consistent across all sections with entity_expectation='all'"
+        failure_action: "ERROR - Threshold violation detected, re-run semantic verification"
+
+  - gate_id: "GATE_3"
+    name: "DOCUMENTATION COMPLETE"
+    phase: 3
+    severity: "CRITICAL"
+    blocks: "Phase 4 (Verification)"
+    conditions:
+      - id: "G3-01"
+        description: "All sections written"
+        check: "All sections from documentation-plan written to docs/"
+        severity: "CRITICAL"
+
+      - id: "G3-02"
+        description: "Quality gates pass"
+        check: "Paragraph ≤300 chars, structure depth ≥2.0, [UNKNOWN] <10%, citation density ≤30%"
+        severity: "CRITICAL"
+
+      - id: "G3-03"
+        description: "Evidence citations present"
+        check: "Each claim has file:line reference"
+        severity: "CRITICAL"
+
+      - id: "G3-04"
+        description: "Code examples included"
+        check: "≥1 code example per section where applicable"
+        severity: "CRITICAL"
+
+      - id: "G3-05"
+        description: "Entity enumeration verified"
+        check: "For EVERY section with entity_expectation=all: count documented entities in entity_log and verify ≥80% of entity_census_check.expected"
+        severity: "BLOCKER"
+
+      - id: "G3-06"
+        description: "Depth compliance"
+        check: "For EVERY section, writing depth matches semantic_intent.depth (overview/standard/detailed/deep-dive)"
+        severity: "CRITICAL"
+
+    counter_checks:
+      - check: "Sample 10 paragraphs"
+        method: "#85 Grounding Check"
+        action: "Verify length ≤300 chars"
+
+      - check: "Sample 10 citations"
+        method: "#85 Grounding Check"
+        action: "Verify file:line references exist"
+
+      - check: "Calculate actual structure depth"
+        method: "#84 Coherence Check"
+        action: "Verify ≥2.0"
+
+      - check: "Sample 3 entity_expectation=all sections"
+        method: "#167 Baseline Census"
+        action: "Count entities in output vs entity_log"
+
+  - gate_id: "GATE_4"
+    name: "VERIFICATION COMPLETE"
+    phase: 4
+    severity: "CRITICAL"
+    blocks: "Phase 5 (Refinement) or Completion"
+    conditions:
+      - id: "G4-01"
+        description: "All claims verified"
+        check: "verification_results[] covers all claims"
+        severity: "CRITICAL"
+
+      - id: "G4-02"
+        description: "Degradation rate <5%"
+        check: "Verified claims ≥95% (degraded + hallucinated ≤5%)"
+        severity: "CRITICAL"
+
+      - id: "G4-03"
+        description: "No critical hallucinations"
+        check: "Hallucinated claims with impact=critical must be 0"
+        severity: "CRITICAL"
+
+      - id: "G4-04"
+        description: "Counter-check passed"
+        check: "Sample 10% of claims, re-verify independently"
+        severity: "CRITICAL"
+
+      - id: "G4-05"
+        description: "Entity coverage ≥80%"
+        check: "entity_completeness.overall.entity_coverage ≥ 0.80"
+        severity: "BLOCKER"
+
+    counter_checks:
+      - check: "Re-verify 10% of claims"
+        method: "#85 Grounding Check"
+        action: "Independent verification, compare results"
+
+      - check: "Verify hallucination detection"
+        method: "#168 Phantom Hunt"
+        action: "Scan for unverifiable claims"
+
+      - check: "Calculate actual degradation rate"
+        method: "#84 Coherence Check"
+        action: "Verify formula: (degraded + hallucinated) / total"
+
+  - gate_id: "GATE_5"
+    name: "REFINEMENT COMPLETE"
+    phase: 5
+    severity: "CRITICAL"
+    blocks: "Completion"
+    conditions:
+      - id: "G5-01"
+        description: "All verification issues addressed"
+        check: "DEGRADED claims fixed, HALLUCINATED claims removed"
+        severity: "CRITICAL"
+
+      - id: "G5-02"
+        description: "User approval obtained"
+        check: "User confirms documentation acceptable"
+        severity: "CRITICAL"
+
+      - id: "G5-03"
+        description: "No new degradation introduced"
+        check: "Re-calculate degradation rate after fixes, still <5%"
+        severity: "CRITICAL"
+
+      - id: "G5-04"
+        description: "No new hallucinations introduced"
+        check: "Re-verify fixed claims, 0 new hallucinations"
+        severity: "CRITICAL"
+
+    counter_checks:
+      - check: "Re-verify fixed claims"
+        method: "#85 Grounding Check"
+        action: "Verify degraded claims now verify correctly"
+
+      - check: "Verify no regression"
+        method: "#168 Phantom Hunt"
+        action: "Scan fixed sections for new unverifiable claims"
+
+scope_reduction_protocol:
+  description: "When gate condition fails but proceeding is acceptable"
+  required_fields:
+    - phase
+    - gate
+    - condition_failed
+    - justification
+    - impact
+    - mitigation
+    - logged_at
+
+violation_severity:
+  BLOCKER: "ABORT progression immediately, gate LOCKED until fixed"
+  CRITICAL: "Block progression to next phase, require fix or SCOPE_REDUCTION"
+  ERROR: "Block progression, require fix"
+  WARNING: "Flag for review, allow progression with user acknowledgment"
+
+authority_statement: |
+  This file (gates.yaml) is the AUTHORITATIVE SOURCE for all gate conditions.
+  Step files contain the same conditions for just-in-time reference during execution.
+  If discrepancy exists between gates.yaml and step files, gates.yaml is correct.
+  Any changes to gate conditions MUST update BOTH gates.yaml AND the relevant step file.
