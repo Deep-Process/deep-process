@@ -34,19 +34,16 @@ $dryRun -split "`n" | Where-Object { $_ -match "name:|version:|package size:|tot
 }
 
 # 4. Confirm and publish
-$otp = Read-Host "`nEnter npm OTP code (or 'n' to cancel)"
-if ($otp -eq "n" -or $otp -eq "") {
+$confirm = Read-Host "`nPublish deep-process@$version? (y/n)"
+if ($confirm -ne "y") {
     Write-Host "Cancelled." -ForegroundColor Red
     exit 0
 }
 
-Write-Host "`nPublishing deep-process@$version..." -ForegroundColor Yellow
-$ErrorActionPreference = "SilentlyContinue"
-$pubOutput = npm publish --access public --otp $otp 2>&1 | Out-String
-$pubExit = $LASTEXITCODE
-$ErrorActionPreference = "Stop"
-if ($pubExit -ne 0) {
-    Write-Host $pubOutput -ForegroundColor Red
+Write-Host "`nPublishing deep-process@$version (browser auth may open)..." -ForegroundColor Yellow
+# Run npm publish directly (not captured) so browser-based 2FA works
+npm publish --access public
+if ($LASTEXITCODE -ne 0) {
     throw "Publish failed"
 }
-Write-Host "=== Published deep-process@$version ===" -ForegroundColor Green
+Write-Host "`n=== Published deep-process@$version ===" -ForegroundColor Green
