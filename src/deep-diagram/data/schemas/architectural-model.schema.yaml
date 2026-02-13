@@ -1,0 +1,164 @@
+# Architectural Model Schema
+# Output schema for Deep-Diagram process
+# Extracted from Deep-Document V7 architectural-model.schema.yaml
+# Used by: GATE_DIAG conditions
+# Note: Actual artifact is architectural-model.json (JSON format)
+
+version: "0.1.0"
+origin: "Deep-Document V7.0.0 (enhanced with v7.1.3 degree centrality fix)"
+
+required_fields:
+  - metadata
+  - components
+  - relationships
+  - diagrams
+  - topology_metrics
+
+metadata:
+  type: object
+  required:
+    - synthesis_timestamp
+    - version
+    - process
+    - total_components
+    - total_relationships
+    - total_diagrams
+    - synthesis_duration_ms
+
+components:
+  type: array
+  min_items: 1
+  item_schema:
+    required:
+      - component_id
+      - component_name
+      - component_type
+      - layer
+      - source_segments
+      - evidence_claims
+    optional:
+      - description
+      - responsibilities
+      - dependencies
+      - priority_score
+  validation:
+    - "Component IDs must be unique"
+    - "Source segments must reference real files"
+    - "Evidence claims must reference evidence_map claim IDs"
+    - "Component type must be: module|service|function|class|interface|config|external"
+    - "Layer must be: presentation|business|data|infrastructure|integration"
+
+  priority_score:
+    type: object
+    required:
+      - in_degree
+      - out_degree
+      - total_degree
+      - degree_centrality
+      - is_high_priority
+    validation:
+      - "degree_centrality must be 0.0 to 1.0"
+      - "is_high_priority true if top 20% or total_degree > 10"
+
+relationships:
+  type: array
+  min_items: 0
+  item_schema:
+    required:
+      - relationship_id
+      - source_component_id
+      - target_component_id
+      - relationship_type
+      - evidence_claim_ids
+    optional:
+      - cardinality
+      - description
+  validation:
+    - "Component IDs must reference components[] array"
+    - "Evidence claim IDs must exist in evidence_map"
+    - "Relationship type must be: uses|contains|extends|implements|calls|subscribes|publishes|depends_on"
+
+diagrams:
+  type: array
+  min_items: 1
+  item_schema:
+    required:
+      - diagram_id
+      - diagram_type
+      - title
+      - components
+      - relationships
+      - mermaid_code
+    optional:
+      - description
+      - level_of_detail
+      - trigger_source
+  validation:
+    - "Diagram IDs must be unique"
+    - "Diagram type must be: component|sequence|deployment|class|data_flow|architecture"
+    - "Components array must reference components[] array"
+    - "Mermaid code must be valid syntax"
+    - "trigger_source documents origin: DT-* trigger ID | topology_driven | planned"
+
+topology_metrics:
+  type: object
+  required:
+    - high_priority_components
+    - diagram_coverage
+  optional:
+    - priority_distribution
+
+  high_priority_components:
+    type: array
+    item_schema:
+      required:
+        - component_id
+        - total_degree
+        - degree_centrality
+      validation:
+        - "degree_centrality must be >= 0.0"
+
+  diagram_coverage:
+    type: object
+    required:
+      - total_components
+      - components_in_diagrams
+      - coverage_ratio
+    validation:
+      - "Coverage ratio must be >= 0.90"
+
+  priority_distribution:
+    type: object
+    optional:
+      - high_count
+      - high_ratio
+      - assessment
+    validation:
+      - "high_ratio should be 0.05-0.30"
+      - "assessment: NORMAL|TOO_FEW|TOO_MANY"
+
+# Optional sections for process verification
+counter_checks:
+  type: object
+  optional:
+    - cc1_grounding
+    - cc2_phantom_hunt
+    - cc3_coherence
+
+gate_diag:
+  type: object
+  optional:
+    - gd_01 through gd_10
+
+# GATE_DIAG enforcement points
+gate_diag_validations:
+  gd_01: "File exists: architectural-model.json"
+  gd_02: "Diagrams generated per plan"
+  gd_03: "Each diagram has source evidence"
+  gd_04: "Diagram types appropriate"
+  gd_05: "No phantom diagrams (PD-UNIVERSAL)"
+  gd_06: "Counter-checks executed (CC1, CC2, CC3)"
+  gd_07: "Version incremented"
+  gd_08: "Delta math correct (counts match arrays)"
+  gd_09: "Diagram coverage >= 0.90"
+  gd_10: "Topology metrics computed (degree centrality)"
