@@ -1,4 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <circle cx="50" cy="50" r="45" fill="#007ACC" stroke="#FFFFFF" stroke-width="2"/>
-  <text x="50" y="70" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="#FFFFFF" text-anchor="middle">D</text>
+<svg width="500" height="250" viewBox="0 0 500 250" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e335a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#121e33;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="500" height="250" fill="url(#bgGrad)" rx="10" ry="10"/>
+  
+  <g transform="translate(50, 50)">
+    <g stroke="#3fa9ff" stroke-width="2.5" fill="none" opacity="0.9">
+      <path d="M0,15 L170,15 M0,35 L170,35 M0,55 L170,55 M0,75 L170,75 M0,95 L170,95" />
+      
+    
+    </g>
+
+    <path d="M20,55 L65,100 L145,10" fill="none" stroke="#3fa9ff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+    
+    <g font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#ffffff">
+      <text x="170" y="55" font-weight="800" font-size="68" letter-spacing="-1">Deep</text>
+      <text x="170" y="115" font-weight="800" font-size="68" letter-spacing="-1">Process</text>
+      
+     
+    </g>
+  </g>
+
 </svg>
