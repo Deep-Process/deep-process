@@ -9,13 +9,13 @@ tsconfig.json
 .cursor/
 .continue/
 _deep-process/
-node_modules/
 
-# Large images not needed at runtime
-processes/*/docs/img/logo.png
-processes/*/docs/img/logo_small.png
-processes/*/img/logo.png
-processes/*/img/logo_small.png
+# All image files — processes are text-only, images are for GitHub README only
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
 
 # Misc
 CHANGELOG.md

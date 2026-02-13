@@ -4,19 +4,22 @@
   "description": "Structured LLM workflows for verification, exploration, architecture, feasibility, risk, synthesis, and documentation — with interactive installer for 11 AI tools",
   "type": "module",
   "bin": {
-    "deep-process": "./bin/deep-process.js"
+    "deep-process": "bin/deep-process.js"
   },
   "main": "./dist/cli.js",
   "files": [
     "bin/",
     "dist/",
-    "processes/",
+    "processes/**/*.md",
+    "processes/**/*.yaml",
+    "processes/**/*.yml",
+    "processes/**/*.csv",
     "templates/"
   ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "start": "node bin/deep-process.mjs"
+    "start": "node bin/deep-process.js"
   },
   "keywords": [
     "llm",
