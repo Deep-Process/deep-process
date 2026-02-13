@@ -60,9 +60,9 @@ jobs:
         working-directory: packages/core
         run: pnpm run build
 
-      - name: Compile extension
+      - name: Build extension (esbuild)
         working-directory: packages/vscode
-        run: pnpm run compile
+        run: pnpm run build
 
       - name: Package extension
         working-directory: packages/vscode
