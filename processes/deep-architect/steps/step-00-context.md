@@ -111,13 +111,6 @@ Classify project scale to calibrate proportional depth expectations.
 3. Document evidence (what indicates this domain)
 4. Assess confidence (0.0-1.0)
 
-**Domain impacts (from MA-007):**
-- web → REST patterns, frontend/backend split, session management
-- embedded → real-time constraints, hardware interfaces, safety
-- data → ETL pipelines, storage layers, query optimization
-- cloud → infrastructure-as-code, auto-scaling, multi-region
-- hybrid → combination, document which aspects
-
 ---
 
 ## 0.4 EXTRACT: Architecture Domain Detection
@@ -159,11 +152,6 @@ Classify project scale to calibrate proportional depth expectations.
 4. Note architecture experience (boolean)
 5. Document evidence basis
 
-**Team impacts (from MA-002):**
-- junior/low maturity → more guidance, waterfall may be safer
-- senior/high maturity → can handle iterative, less prescriptive
-- mixed → hybrid approach, pair experienced with junior
-
 ---
 
 ## 0.6 EXTRACT: Conway's Law Mapping
@@ -183,8 +171,6 @@ Classify project scale to calibrate proportional depth expectations.
    ```
 2. IF team structure unknown → document as assumption, flag for Phase 1
 3. Misalignment between team boundaries and component boundaries = high risk
-
-**Conway's Law:** Organizations design systems that mirror their communication structure. Architecture MUST account for this or face continuous friction.
 
 ---
 

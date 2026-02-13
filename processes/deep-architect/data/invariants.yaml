@@ -1,9 +1,8 @@
-# Deep-Architect V1.2 — Invariants
-# Binding process rules that MUST hold throughout execution
-# Total: 14 invariants
+# Deep-Architect V1.4.1 — Invariants
+# Binding process rules — 16 invariants
 
 metadata:
-  version: "1.4.0"
+  version: "1.4.1"
   total_invariants: 16
   enforcement_level:
     BLOCKER: 5   # INV-01, INV-02, INV-07, INV-08, INV-09
@@ -11,706 +10,194 @@ metadata:
     ERROR: 2     # INV-10, INV-12
     REQUIRED: 1  # INV-06
 
-# ==============================================================================
-# INV-01: SEQUENTIAL EXECUTION (BLOCKER)
-# ==============================================================================
-
 INV-01:
   name: "Sequential Execution"
   severity: BLOCKER
-  description: "Phases MUST execute in order 0→1→2→3→4→5→6, no skipping"
-
   rule: "current_phase == previous_phase + 1"
-
-  rationale: "Each phase depends on previous outputs — skip = broken dependency"
-
-  violation_scenarios:
-    - "Agent jumps from Phase 0 to Phase 2 (skips canonical operations)"
-    - "Agent executes Phase 3 before Phase 2 complete"
-    - "Agent returns to Phase 1 after Phase 3 WITHOUT REDESIGN_LOOP trigger (unauthorized backward jump)"
-
-  exception: "REDESIGN_LOOP (INV-13) allows controlled backward jump from Phase 3 to Phase 1 or Phase 2 with user approval"
-
-  detection: "workflow.md precondition checks at each phase entry"
-
+  exception: "REDESIGN_LOOP (INV-13) allows controlled backward jump Phase 3→1/2 with user approval"
   enforcement:
     when_violated: "ABORT execution immediately"
-    message: "CRITICAL PROCESS VIOLATION: Phase sequence broken"
+    message: "Phase sequence broken"
     recovery: "Restart from Phase 0"
-
-  related_zasady:
-    - "ZASADA 6: Enforced sequence (Extract→Verify→Render)"
-    - "ZASADA 9: Executable language (imperative, numbered)"
-
-# ==============================================================================
-# INV-02: GATE BLOCKING (BLOCKER)
-# ==============================================================================
 
 INV-02:
   name: "Gate Blocking"
   severity: BLOCKER
-  description: "Agent CANNOT proceed if current gate = LOCKED"
-
   rule: "IF gate_status == LOCKED THEN next_phase_forbidden"
-
-  rationale: "Gates enforce quality — bypassing = unverified architecture"
-
-  violation_scenarios:
-    - "GATE_0 LOCKED but agent reads step-01-canonical.md"
-    - "GATE_3 LOCKED but agent proceeds to Phase 4"
-    - "Gate condition fails (CRITICAL) but agent continues"
-
-  detection: "Precondition checks in workflow.md EXECUTION SEQUENCE"
-
   enforcement:
     when_violated: "ABORT execution, log violation"
-    message: "GATE BYPASS DETECTED: Cannot proceed with LOCKED gate"
+    message: "Cannot proceed with LOCKED gate"
     recovery: "Fix gate condition, re-evaluate gate, proceed only if OPEN"
-
-  related_zasady:
-    - "ZASADA 4: Binding gates"
-    - "ZASADA 3: Mechanisms not intentions"
-
-# ==============================================================================
-# INV-03: ASSUMPTIONS_DECLARED (CRITICAL)
-# ==============================================================================
 
 INV-03:
   name: "Assumptions Declared"
   severity: CRITICAL
-  description: "Every phase MUST declare ≥1 assumption BEFORE extraction/analysis"
-
   rule: "FOR ALL phases: assumptions.length >= 1 AND assumptions_declared_before_extraction == true"
-
-  rationale: "Undeclared assumptions = hidden brittleness (ZASADA 5)"
-
-  violation_scenarios:
-    - "Phase 1 executes decomposition without declaring assumptions"
-    - "Phase 3 STRIDE analysis without threat model assumptions"
-    - "Assumptions declared AFTER analysis (should be BEFORE)"
-
-  detection: "ASSUMPTIONS_DECLARED section exists before EXTRACT in step files"
-
   enforcement:
     when_violated: "HALT phase execution"
-    message: "ZASADA 5 VIOLATION: Assumptions not declared before action"
+    message: "Assumptions not declared before action"
     recovery: "Declare assumptions, restart phase"
-
-  related_zasady:
-    - "ZASADA 5: ASSUMPTIONS_DECLARED"
-    - "ZASADA 10: Visible reasoning (log decisions)"
-
-# ==============================================================================
-# INV-04: EXTRACT→VERIFY→RENDER SEQUENCE (CRITICAL)
-# ==============================================================================
 
 INV-04:
   name: "EVR Sequence"
   severity: CRITICAL
-  description: "Every phase MUST follow Extract→Verify→Render sequence"
-
   rule: "FOR ALL phases: extraction_complete BEFORE verification_start AND verification_complete BEFORE rendering_start"
-
-  rationale: "Verifying before extracting = nothing to verify. Rendering before verifying = unvalidated output (ZASADA 6)"
-
-  violation_scenarios:
-    - "Agent renders C4 diagram before verifying components exist"
-    - "Agent starts verification before extraction complete"
-    - "Agent skips verification step entirely"
-
-  detection: "Step files have EXTRACT, VERIFY, RENDER sections in order with precondition checks"
-
   enforcement:
     when_violated: "HALT at current step"
-    message: "EVR SEQUENCE VIOLATION: Must extract, then verify, then render"
+    message: "Must extract, then verify, then render"
     recovery: "Execute steps in correct order"
-
-  related_zasady:
-    - "ZASADA 6: Enforced sequence"
-    - "ZASADA 9: Executable language (step-by-step)"
-
-# ==============================================================================
-# INV-05: POST-PHASE CHECKLIST (CRITICAL)
-# ==============================================================================
 
 INV-05:
   name: "Post-Phase Checklist"
   severity: CRITICAL
-  description: "Every phase MUST complete checklist documenting work"
-
   rule: "FOR ALL phases: checklist_completed == true AND checklist.items.all(i => i.status in [PASS, FAIL])"
-
-  rationale: "Checklists provide audit trail and catch omissions (ZASADA 7)"
-
-  checklist_contents:
-    - "What was extracted (data gathered)"
-    - "What was verified (quality checks)"
-    - "What decisions were made"
-    - "What assumptions were declared"
-    - "What counter-checks executed"
-
-  violation_scenarios:
-    - "Phase 1 completes without checklist"
-    - "Checklist has PASS/FAIL status but not documented"
-    - "Checklist created but not reviewed at gate"
-
-  detection: "Gate conditions check checklist.completed == true"
-
   enforcement:
     when_violated: "HALT at gate evaluation"
-    message: "CHECKLIST MISSING: Cannot evaluate gate without checklist"
+    message: "Cannot evaluate gate without checklist"
     recovery: "Complete checklist, re-evaluate gate"
-
-  related_zasady:
-    - "ZASADA 7: Checklist after phase"
-
-# ==============================================================================
-# INV-06: COUNTER-CHECKS MINIMUM (REQUIRED)
-# ==============================================================================
 
 INV-06:
   name: "Counter-Checks Minimum"
   severity: REQUIRED
-  description: "Each phase MUST execute minimum counter-checks per depth level"
-
   rule: |
     depth_level == quick: counter_checks >= 1/phase
     depth_level == standard: counter_checks >= 2/phase
     depth_level == deep: counter_checks >= 3/phase
-
-  rationale: "Counter-checks validate quality and catch gaming (ZASADA 8)"
-
-  counter_check_types:
-    - "Method #85 Grounding Check (sample 3 items, verify existence)"
-    - "Method #168 Phantom Hunt (re-scan for hallucinations)"
-    - "Method #84 Coherence Check (verify consistency)"
-    - "Method #61 Pre-mortem (what could go wrong)"
-
-  violation_scenarios:
-    - "Deep depth but only 1 counter-check per phase"
-    - "Counter-checks logged but not executed"
-    - "Zero counter-checks (always violation)"
-
-  detection: "GATE_6 condition G6-06 requires ≥21 total for deep (3×7 phases 0-6)"
-
   enforcement:
     when_violated: "LOG warning, proceed with degraded confidence"
-    message: "INSUFFICIENT COUNTER-CHECKS: Quality validation weak"
+    message: "Insufficient counter-checks"
     recovery: "Execute missing counter-checks"
-
-  related_zasady:
-    - "ZASADA 8: Counter-checks"
-
-# ==============================================================================
-# INV-07: EIGHT CANONICAL OPERATIONS (BLOCKER)
-# ==============================================================================
 
 INV-07:
   name: "Eight Canonical Operations"
   severity: BLOCKER
-  description: "Phase 1 MUST execute ALL 8 canonical operations, no exceptions"
-
   rule: "canonical_operations.executed == [Decomposition, Boundary, Relationship, Responsibility, Dependency, Pattern, Quality, Interface]"
-
-  rationale: "Partial canonical = gaps in architecture (MA-001 requires 16 total)"
-
-  operations_mandatory:
-    - id: 1
-      name: "Decomposition"
-      description: "Break system into components/modules/services"
-    - id: 2
-      name: "Boundary Definition"
-      description: "Define context boundaries and interfaces"
-    - id: 3
-      name: "Relationship Mapping"
-      description: "Map dependencies and data flows"
-    - id: 4
-      name: "Responsibility Allocation"
-      description: "Assign responsibilities per SRP"
-    - id: 5
-      name: "Dependency Management"
-      description: "Analyze coupling and cohesion"
-    - id: 6
-      name: "Pattern Application"
-      description: "Apply architectural patterns"
-    - id: 7
-      name: "Quality Attribute Analysis"
-      description: "Prioritize ISO 25010 attributes"
-    - id: 8
-      name: "Interface Design"
-      description: "Define contracts and protocols"
-
-  violation_scenarios:
-    - "Agent skips Dependency Management (only 7 operations)"
-    - "Agent combines Decomposition + Boundary into one (only 7 distinct)"
-    - "Agent declares operation but doesn't execute"
-
-  detection: "GATE_1 condition G1-01 checks executed_count == 8"
-
   enforcement:
     when_violated: "ABORT at GATE_1"
-    message: "BLOCKER: Incomplete canonical operations (MA-001 violation)"
+    message: "Incomplete canonical operations"
     recovery: "Execute missing operations, re-evaluate GATE_1"
-
-  related_zasady:
-    - "ZASADA 2: COMPLETENESS > TOKEN_ECONOMY"
-
-# ==============================================================================
-# INV-08: EIGHT ADVERSARIAL OPERATIONS (BLOCKER, NON-NEGOTIABLE)
-# ==============================================================================
 
 INV-08:
   name: "Eight Adversarial Operations"
   severity: BLOCKER
-  description: "Phase 3 MUST execute ALL 8 adversarial operations (NON-NEGOTIABLE)"
-
-  rule: "adversary.executed == [STRIDE, FMEA, Bottleneck, Anti-patterns, Complexity, Compliance, Pre-mortem, Trade-offs]"
-
-  rationale: "User requirement + MA-005 from exploration"
-
   non_negotiable: true
-  user_requirement: "ADVERSARY jest potrzebne (ADVERSARY is needed)"
-
-  operations_mandatory:
-    - id: 1
-      name: "Threat Modeling (STRIDE)"
-      description: "Analyze security threats across 6 categories"
-    - id: 2
-      name: "FMEA"
-      description: "Failure Mode and Effects Analysis"
-    - id: 3
-      name: "Bottleneck Detection"
-      description: "Identify performance choke points"
-    - id: 4
-      name: "Anti-Pattern Detection"
-      description: "Scan for known anti-patterns"
-    - id: 5
-      name: "Complexity Analysis"
-      description: "Calculate cyclomatic/cognitive/coupling metrics"
-    - id: 6
-      name: "Compliance Analysis"
-      description: "Verify regulatory/policy requirements"
-    - id: 7
-      name: "Pre-mortem"
-      description: "Assume failure, work backward to causes"
-    - id: 8
-      name: "Trade-off Identification"
-      description: "Identify conflicting quality attributes"
-
-  violation_scenarios:
-    - "Agent skips STRIDE (security not analyzed)"
-    - "Agent skips Pre-mortem (unknown-unknowns missed)"
-    - "Agent executes <8 operations citing 'time constraints'"
-
-  detection: "GATE_3 condition G3-01 checks executed_count == 8"
-
-  enforcement:
-    when_violated: "ABORT at GATE_3, NO SCOPE_REDUCTION allowed"
-    message: "BLOCKER: Incomplete ADVERSARY (user requirement violation)"
-    recovery: "Execute ALL 8 adversarial operations, no exceptions"
-
+  rule: "adversary.executed == [STRIDE, FMEA, Bottleneck, Anti-patterns, Complexity, Compliance, Pre-mortem, Trade-offs]"
   scope_reduction_forbidden: true
   user_approval_cannot_override: true
-
-  related_zasady:
-    - "ZASADA 2: COMPLETENESS > TOKEN_ECONOMY"
-
-# ==============================================================================
-# INV-09: BOUNDED VALIDATION (BLOCKER)
-# ==============================================================================
+  enforcement:
+    when_violated: "ABORT at GATE_3, NO SCOPE_REDUCTION allowed"
+    message: "Incomplete ADVERSARY"
+    recovery: "Execute ALL 8 adversarial operations, no exceptions"
 
 INV-09:
   name: "Bounded Validation"
   severity: BLOCKER
-  description: "Phase 5 MUST validate exactly 10 issues, not more/less"
-
   rule: "validation.issues_validated.length == 10"
-
-  rationale: "Prevents infinite scope, acknowledges blind spots (MA-004)"
-
   bounded_count: 10
-  selection_criteria: "Top 10 by severity × impact ranking"
-
-  violation_scenarios:
-    - "Agent validates 15 issues (exceeds bound)"
-    - "Agent validates 7 issues (below bound)"
-    - "Agent validates random 10, not top 10 by ranking"
-
-  detection: "GATE_5 condition G5-01 checks length == 10"
-
+  selection_criteria: "Top 10 by severity x impact ranking"
+  scope_reduction_forbidden: true
   enforcement:
     when_violated: "ABORT at GATE_5"
-    message: "BLOCKER: Validation not bounded (must be exactly 10)"
-    recovery: "Rank all issues, select top 10 by severity×impact, validate those"
-
-  scope_reduction_forbidden: true
-
-  related_zasady:
-    - "ZASADA 2: COMPLETENESS > TOKEN_ECONOMY"
-    - "MA-004: Bounded validation prevents infinite scope"
-
-# ==============================================================================
-# INV-10: CHECKPOINT MAXIMUM (ERROR)
-# ==============================================================================
+    message: "Validation not bounded (must be exactly 10)"
+    recovery: "Rank all issues, select top 10 by severity x impact, validate those"
 
 INV-10:
   name: "Checkpoint Maximum"
   severity: ERROR
-  description: "Process MUST NOT exceed 4 user approval checkpoints"
-
   rule: "checkpoints_requested <= 4"
-
-  rationale: "Prevents approval fatigue (MA-003)"
-
   max_checkpoints: 4
-
-  typical_checkpoints:
-    - "After Phase 1 (canonical operations review)"
-    - "After Phase 3 (ADVERSARY findings review)"
-    - "After Phase 5 (validation results review)"
-    - "Final approval (Phase 6 verification)"
-
-  violation_scenarios:
-    - "Agent requests approval after every operation (16 checkpoints)"
-    - "Agent requests approval mid-phase"
-    - ">4 checkpoints = user exhaustion"
-
-  detection: "Count approval requests in process_log.yaml"
-
   enforcement:
     when_violated: "LOG warning, proceed without additional approvals"
-    message: "CHECKPOINT LIMIT: Max 4 approvals to prevent fatigue"
+    message: "Max 4 approvals to prevent fatigue"
     recovery: "Consolidate approvals, proceed autonomously"
-
-  related_zasady:
-    - "MA-003: Max 4 checkpoints from exploration"
-
-# ==============================================================================
-# INV-11: EMBEDDED METHODS (CRITICAL)
-# ==============================================================================
 
 INV-11:
   name: "Embedded Methods"
   severity: CRITICAL
-  description: "All methods MUST be inline in step files, NO external files"
-
-  rule: "FOR ALL step_files: methods referenced → methods defined inline"
-
-  rationale: "Self-containment (ZASADA 1) — no external dependencies"
-
-  violation_scenarios:
-    - "Step file references 'Method #85' but definition in separate file"
-    - "Step file imports methods from data/method-procedures/"
-    - "Methods referenced but not defined anywhere"
-
-  detection: "Grep for method references, verify inline definitions exist"
-
+  rule: "FOR ALL step_files: methods referenced -> methods defined inline"
+  embedding_format: "Method name + 3-5 executable steps (numbered), NO theory"
   enforcement:
     when_violated: "HALT at step execution"
-    message: "EXTERNAL DEPENDENCY: Method not embedded (violates R1)"
+    message: "Method not embedded"
     recovery: "Embed method inline (3-5 bullet points), remove external reference"
-
-  embedding_format:
-    - "Method name + brief description"
-    - "3-5 executable steps (numbered)"
-    - "NO theory/explanation, ONLY procedure"
-
-  example: |
-    **Method #85 Grounding Check:**
-    1. Sample 3 random items from artifact
-    2. For each: verify existence in source (file/line number)
-    3. Calculate verification_rate = verified / sampled
-    4. IF rate < 0.70 → BLOCKER
-    5. Log results in counter_check_results
-
-  related_zasady:
-    - "ZASADA 1: Self-contained (R1)"
-    - "ZASADA 11: Instructions + data"
-    - "MA-006: Embedded methods for R1 compliance"
-
-# ==============================================================================
-# INV-12: JUST-IN-TIME LOADING (ERROR)
-# ==============================================================================
 
 INV-12:
   name: "Just-in-Time Loading"
   severity: ERROR
-  description: "Agent MUST load ONLY current step file, not all upfront"
-
   rule: "AT phase N: loaded_files == [workflow.md, step-0N-*.md] (no others)"
-
-  rationale: "Prevents context overload and cognitive waste (ZASADA 12)"
-
-  violation_scenarios:
-    - "Agent at Phase 0 reads all 7 step files upfront"
-    - "Agent loads data/schemas/ before needed"
-    - "Agent loads Phase 3 instructions during Phase 0"
-
-  detection: "workflow.md EXECUTION SEQUENCE has violation checks"
-
   enforcement:
     when_violated: "LOG warning, context bloated"
-    message: "JIT VIOLATION: Loading files not needed for current phase"
-    recovery: "Unload unnecessary files, focus on current step"
-
-  loading_pattern:
-    phase_0: ["workflow.md", "step-00-context.md"]
-    phase_1: ["workflow.md", "step-01-canonical.md"]
-    phase_2: ["workflow.md", "step-02-artifacts.md"]
-    phase_3: ["workflow.md", "step-03-adversary.md"]
-    phase_4: ["workflow.md", "step-04-tradeoffs.md"]
-    phase_5: ["workflow.md", "step-05-validation.md"]
-    phase_6: ["workflow.md", "step-06-verification.md"]
-
-  related_zasady:
-    - "ZASADA 12: Just-in-time information delivery (R12)"
-    - "ZASADA 1: Self-contained (each step file complete)"
-
-# ==============================================================================
-# INV-13: REDESIGN_LOOP EVALUATION (CRITICAL)
-# ==============================================================================
+    message: "Loading files not needed for current phase"
+    recovery: "Focus on current step only"
 
 INV-13:
   name: "REDESIGN_LOOP Evaluation"
   severity: CRITICAL
-  description: "After GATE_3 OPEN, REDESIGN_LOOP evaluation MUST be executed — cannot skip"
-
   rule: "IF GATE_3 == OPEN THEN redesign_loop.evaluated == true"
-
-  rationale: "ADVERSARY findings may reveal fundamental design flaws requiring redesign, not just mitigation"
-
-  violation_scenarios:
-    - "Agent skips REDESIGN_LOOP after GATE_3, proceeds directly to Phase 4"
-    - "REDESIGN_LOOP not evaluated despite critical STRIDE/FMEA findings"
-    - "Agent evaluates but ignores redesign_required=true"
-
-  detection: "step-03-adversary.md section 3.13 mandatory execution"
-
-  enforcement:
-    when_violated: "HALT at Phase 4 entry"
-    message: "REDESIGN_LOOP SKIPPED: Must evaluate adversary findings for redesign need"
-    recovery: "Execute section 3.13, evaluate redesign criteria, present to user if required"
-
   redesign_triggers:
-    - "≥3 critical STRIDE threats without viable mitigation"
+    - ">= 3 critical STRIDE threats without viable mitigation"
     - "FMEA failure mode with mitigated_rpn > 100"
     - "Anti-patterns 'Big Ball of Mud' or 'Distributed Monolith' detected"
-    - "≥2 pre-mortem scenarios without preventive measures"
-
+    - ">= 2 pre-mortem scenarios without preventive measures"
   user_decisions:
     REDESIGN: "Loop to Phase 1 (carry adversary findings as constraints)"
     REDESIGN_ARTIFACTS: "Loop to Phase 2 (update diagrams/ADRs)"
     ACCEPT_RISK: "Log risk acceptance, proceed to Phase 4"
-
-  related_zasady:
-    - "ZASADA 3: Mechanisms not intentions (IF critical → REDESIGN)"
-    - "ZASADA 2: COMPLETENESS > TOKEN_ECONOMY (don't skip redesign for speed)"
-
-# ==============================================================================
-# INV-14: PATTERN LIBRARY GROUNDING (CRITICAL)
-# ==============================================================================
+  enforcement:
+    when_violated: "HALT at Phase 4 entry"
+    message: "REDESIGN_LOOP not evaluated after GATE_3"
+    recovery: "Execute section 3.13, evaluate redesign criteria"
 
 INV-14:
   name: "Pattern Library Grounding"
   severity: CRITICAL
-  description: "All pattern_id and anti_pattern_id references MUST exist in pattern library files"
-
   rule: "FOR ALL pattern_ref IN architecture_artifacts: pattern_ref EXISTS IN data/patterns/*.yaml"
-
-  rationale: "Ungrounded pattern references indicate hallucination — agent invented pattern IDs not in library. Library provides curated guidance (when_to_use, trade_offs, implementation_hints); ungrounded IDs provide no guidance."
-
-  violation_scenarios:
-    - "Agent writes pattern_id 'AP-DEC-099' but only AP-DEC-001..007 exist in library"
-    - "Agent references 'AAP-COM-005' but only AAP-COM-001..004 exist"
-    - "Agent creates CP-AWS-020 but only CP-AWS-001..012 exist"
-    - "Agent references domain pattern DP-MS-010 but only DP-MS-001..008 exist"
-
-  detection: "step-06-verification.md section 6.8 Pattern Library Grounding check"
-
+  scope:
+    - "AP-XXX -> data/patterns/architecture-patterns.yaml"
+    - "AAP-XXX -> data/patterns/anti-patterns.yaml"
+    - "CP-XXX -> data/patterns/cloud-patterns.yaml"
+    - "DP-XXX -> data/patterns/domain-*.yaml"
   enforcement:
     when_violated: "HALT at GATE_6 (G6-09)"
-    message: "PATTERN GROUNDING FAILURE: Reference to non-existent pattern ID"
-    recovery: "Replace with valid pattern_id from library OR add pattern to library if genuinely needed"
-
-  scope:
-    - "AP-XXX references → data/patterns/architecture-patterns.yaml"
-    - "AAP-XXX references → data/patterns/anti-patterns.yaml"
-    - "CP-XXX references → data/patterns/cloud-patterns.yaml"
-    - "DP-XXX references → data/patterns/domain-*.yaml"
-
-  related_zasady:
-    - "ZASADA 3: Mechanisms not intentions (grounding check, not 'should reference')"
-    - "ZASADA 1: Self-contained (all patterns in library files)"
-
-# ==============================================================================
-# INV-15: ARCHITECTURE FITNESS (CRITICAL)
-# ==============================================================================
+    message: "Reference to non-existent pattern ID"
+    recovery: "Replace with valid pattern_id from library OR add pattern to library"
 
 INV-15:
   name: "Architecture Fitness"
   severity: CRITICAL
-  description: "Architecture MUST be evaluated for fitness-for-purpose — solving USER's problem, not just passing gates"
-
   rule: "validation.architecture_fitness.fitness_score >= 3 AND verdict in [FIT, PARTIALLY_FIT]"
-
-  rationale: "Process compliance ≠ architecture quality (Deep-Risk R-017). All 50+ gate conditions can PASS while architecture is strategically wrong. Gates verify operations EXECUTED, not that they PRODUCED the right result. Fitness assessment closes this gap."
-
   fitness_criteria:
     - id: "AF-01"
-      question: "Does architecture address ALL stated user requirements?"
-      method: "Trace each requirement to ≥1 design element (C-XXX, I-XXX, ADR-XXX)"
+      check: "Architecture addresses ALL stated user requirements"
     - id: "AF-02"
-      question: "Are primary quality attribute targets achievable?"
-      method: "Verify design decisions support each prioritized attribute target"
+      check: "Primary quality attribute targets achievable"
     - id: "AF-03"
-      question: "Does architecture match context (team, budget, timeline)?"
-      method: "Check complexity proportional to team capability and constraints"
+      check: "Architecture matches context (team, budget, timeline)"
     - id: "AF-04"
-      question: "Are there simpler alternatives? (over-engineering check)"
-      method: "Consider if simpler pattern/approach would achieve same goals"
+      check: "No simpler alternative would suffice (over-engineering check)"
     - id: "AF-05"
-      question: "Would architecture survive pre-mortem scenarios?"
-      method: "Cross-reference top 3 pre-mortem scenarios with design"
-
+      check: "Architecture survives pre-mortem scenarios"
   scoring:
-    FIT: "≥4/5 criteria PASS"
+    FIT: ">= 4/5 criteria PASS"
     PARTIALLY_FIT: "3/5 criteria PASS"
-    UNFIT: "≤2/5 criteria PASS → recommend redesign"
-
-  violation_scenarios:
-    - "All gates PASS but architecture doesn't address core user requirements (AF-01 FAIL)"
-    - "Architecture over-engineered for team/budget (AF-03, AF-04 FAIL)"
-    - "Architecture collapses under realistic failure scenarios (AF-05 FAIL)"
-
-  detection: "GATE_5 condition G5-07 checks fitness_score >= 3"
-
+    UNFIT: "<= 2/5 criteria PASS -> recommend redesign"
   enforcement:
     when_violated: "HALT at GATE_5, recommend returning to Phase 1"
-    message: "ARCHITECTURE UNFIT: Passes gates but does not solve user's problem"
-    recovery: "Redesign with focus on user requirements, context, and fitness criteria"
-
-  related_zasady:
-    - "ZASADA 2: COMPLETENESS > TOKEN_ECONOMY (fitness ≠ completion)"
-    - "ZASADA 3: Mechanisms not intentions (5 measurable criteria)"
-
-# ==============================================================================
-# INV-16: REASONING VISIBILITY (CRITICAL)
-# ==============================================================================
+    message: "Architecture passes gates but does not solve user's problem"
+    recovery: "Redesign with focus on user requirements and fitness criteria"
 
 INV-16:
   name: "Reasoning Visibility"
   severity: CRITICAL
-  description: "Key architecture decisions MUST include documented reasoning (WHY, not just WHAT)"
-
   rule: "FOR ALL key_decisions: reasoning field exists AND reasoning.length > 0"
-
-  rationale: "Architecture without reasoning is opaque — stakeholders cannot evaluate trade-offs, reviewers cannot assess alternatives, future maintainers cannot understand constraints. Decisions become dogma instead of informed choices."
-
+  minimum_coverage: 0.80
   applies_to:
-    - "Component decomposition (C-XXX.reasoning — WHY this component exists)"
-    - "Pattern selection (pattern_application.rationale — WHY this pattern)"
-    - "Quality attribute priorities (prioritized[].rationale — WHY this ranking)"
-    - "Trade-off resolutions (decisions[].rationale — WHY this resolution)"
-    - "ADR decisions (adrs[].rationale — WHY this decision)"
-
-  minimum_coverage: 0.80  # ≥80% of key decisions must have reasoning
-
-  violation_scenarios:
-    - "Components defined without reasoning (C-001 exists but no WHY)"
-    - "Pattern selected without rationale (Microservices chosen but WHY not documented)"
-    - "Trade-off resolved without explanation (chose Performance over Security but WHY)"
-    - "ADR created without alternatives analysis"
-
-  detection: "GATE_1 condition G1-08 checks reasoning coverage >= 0.80"
-
+    - "Component decomposition (C-XXX.reasoning)"
+    - "Pattern selection (pattern_application.rationale)"
+    - "Quality attribute priorities (prioritized[].rationale)"
+    - "Trade-off resolutions (decisions[].rationale)"
+    - "ADR decisions (adrs[].rationale)"
   enforcement:
-    when_violated: "LOG warning at GATE_1 (ERROR severity), fix before Phase 2"
-    message: "REASONING MISSING: Key decisions lack documented rationale"
+    when_violated: "LOG warning at GATE_1 (ERROR severity)"
+    message: "Key decisions lack documented rationale"
     recovery: "Add reasoning field to decisions missing WHY justification"
-
-  related_zasady:
-    - "ZASADA 10: Visible reasoning (log decisions)"
-    - "ZASADA 5: ASSUMPTIONS_DECLARED (reasoning includes assumptions)"
-
-# ==============================================================================
-# INVARIANT ENFORCEMENT SUMMARY
-# ==============================================================================
-
-enforcement_summary:
-  description: "How invariants are checked and enforced"
-
-  detection_mechanisms:
-    - "Gate conditions (gates.yaml) check invariants at phase boundaries"
-    - "Precondition checks in workflow.md EXECUTION SEQUENCE"
-    - "Post-phase checklists verify invariant compliance"
-    - "Counter-checks validate critical invariants"
-
-  severity_handling:
-    BLOCKER:
-      action: "ABORT execution immediately, log violation"
-      recovery: "Fix violation, restart from Phase 0"
-      examples: ["INV-01", "INV-02", "INV-07", "INV-08", "INV-09"]
-
-    CRITICAL:
-      action: "HALT at current phase, fix before proceeding"
-      recovery: "Fix violation, re-execute phase, re-evaluate gate"
-      examples: ["INV-03", "INV-04", "INV-05", "INV-11", "INV-13", "INV-14", "INV-15", "INV-16"]
-
-    ERROR:
-      action: "LOG warning, proceed with degraded quality"
-      recovery: "Fix in next iteration or accept risk"
-      examples: ["INV-10", "INV-12"]
-
-    REQUIRED:
-      action: "LOG info, proceed normally"
-      recovery: "Optional improvement"
-      examples: ["INV-06"]
-
-  violation_logging:
-    location: "process_log.yaml"
-    fields:
-      - "invariant_id"
-      - "phase"
-      - "timestamp"
-      - "violation_description"
-      - "severity"
-      - "action_taken"
-      - "recovery_plan"
-
-# ==============================================================================
-# VERSION HISTORY
-# ==============================================================================
-
-history:
-  - version: "1.0.0"
-    date: "2026-02-11"
-    changes:
-      - "Initial invariant definitions"
-      - "12 invariants: 5 BLOCKER, 4 CRITICAL, 2 ERROR, 1 REQUIRED"
-      - "INV-08 marked non-negotiable (user requirement)"
-      - "INV-09 enforces bounded validation (exactly 10 issues)"
-      - "INV-11 enforces embedded methods (R1 compliance)"
-      - "INV-12 enforces JIT loading (R12 compliance)"
-      - "All invariants linked to ZASADY/R1-R12"
-
-  - version: "1.1.0"
-    date: "2026-02-11"
-    changes:
-      - "Operational verification fixes"
-      - "INV-13: REDESIGN_LOOP evaluation mandatory after GATE_3 (CRITICAL)"
-      - "Total: 13 invariants (5 BLOCKER, 5 CRITICAL, 2 ERROR, 1 REQUIRED)"
-
-  - version: "1.2.0"
-    date: "2026-02-12"
-    changes:
-      - "Architecture Pattern Library integration (V1.2.0)"
-      - "INV-14: Pattern Library Grounding (CRITICAL) — all pattern/anti-pattern IDs must reference library entries"
-      - "Total: 14 invariants (5 BLOCKER, 6 CRITICAL, 2 ERROR, 1 REQUIRED)"
-
-  - version: "1.4.0"
-    date: "2026-02-13"
-    changes:
-      - "Deep-Risk V2.1.0 mitigation implementation (R-017 top risk)"
-      - "INV-15: Architecture Fitness (CRITICAL) — architecture evaluated for fitness-for-purpose, 5 criteria (AF-01..05), scoring FIT/PARTIALLY_FIT/UNFIT"
-      - "INV-16: Reasoning Visibility (CRITICAL) — key decisions MUST include reasoning (WHY not just WHAT), ≥80% coverage"
-      - "Total: 16 invariants (5 BLOCKER, 8 CRITICAL, 2 ERROR, 1 REQUIRED)"

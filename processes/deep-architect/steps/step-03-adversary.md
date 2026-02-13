@@ -17,7 +17,6 @@ non_negotiable: true
 
 **ALL 8 adversarial operations MUST be executed (INV-08, BLOCKER).**
 **NO scope reduction allowed. NO user approval can override.**
-**User requirement: "ADVERSARY jest potrzebne" + MA-005.**
 
 ## 3.0 ASSUMPTIONS_DECLARED (BEFORE ANY EXTRACTION)
 
@@ -31,8 +30,6 @@ non_negotiable: true
 ---
 
 ## 3.1 OPERATION 1: THREAT MODELING (STRIDE)
-
-Analyze security threats across ALL 6 STRIDE categories.
 
 1. For each component/interface, evaluate 6 categories:
    - **S**poofing: Can identity be faked? Authentication weaknesses?
@@ -59,8 +56,6 @@ Analyze security threats across ALL 6 STRIDE categories.
 ---
 
 ## 3.2 OPERATION 2: FMEA (Failure Mode and Effects Analysis)
-
-Identify failure modes, effects, and mitigations.
 
 1. For each critical component, identify how it can fail:
    ```yaml

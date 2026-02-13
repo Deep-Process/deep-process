@@ -1,107 +1,77 @@
-# Deep-Architect V1.2 — Gate Definitions
-# Binding enforcement mechanisms for 7 phases
-# Total: 50 conditions across 7 gates
+# Deep-Architect V1.4.1 — Gate Definitions
+# 53 conditions across 7 gates
 
 metadata:
-  version: "1.4.0"
+  version: "1.4.1"
   total_gates: 7
   total_conditions: 53
   severity_distribution:
     BLOCKER: 5
-    CRITICAL: 31
-    ERROR: 12
-    REQUIRED: 7
-
-# ==============================================================================
-# GATE_0: CONTEXT ASSESSMENT (5 conditions)
-# ==============================================================================
+    CRITICAL: 30
+    ERROR: 13
+    REQUIRED: 5
 
 GATE_0:
   name: "Context Assessment Gate"
   phase: 0
-  description: "Validates context analysis completeness before canonical design"
   conditions:
-
     G0-01:
       description: "Domain classification completed"
       severity: CRITICAL
       check: "context_assessment.domain exists AND domain in [web, embedded, data, cloud, hybrid]"
       failure_action: "HALT — Cannot proceed without domain context"
-      rationale: "Domain massively affects patterns (MA-007), must classify upfront"
-
     G0-02:
       description: "Team assessment documented"
       severity: CRITICAL
       check: "context_assessment.team exists with size/expertise/maturity fields"
       failure_action: "HALT — Team context required for execution mode"
-      rationale: "Team maturity determines process rigor (MA-002)"
-
     G0-03:
       description: "Organizational constraints captured"
       severity: ERROR
       check: "context_assessment.constraints exists with budget/timeline/culture"
       failure_action: "LOG warning — Proceed with unconstrained defaults"
-      rationale: "Constraints shape feasibility, but can infer if missing"
-
     G0-04:
       description: "Requirements stability measured"
       severity: CRITICAL
       check: "context_assessment.stability_score exists AND 0.0 <= stability_score <= 1.0"
       failure_action: "HALT — Stability drives iterative vs waterfall choice"
-      rationale: "Low stability requires iterative, high allows waterfall (MA-002)"
-
     G0-05:
       description: "Execution mode selected"
       severity: BLOCKER
       check: "context_assessment.execution_mode in [iterative, waterfall, hybrid]"
       failure_action: "ABORT — Execution mode undefined"
-      rationale: "Mode determines Phase 1-6 iteration strategy"
-
     G0-06:
       description: "System maturity classified"
       severity: CRITICAL
       check: "context_assessment.system_maturity in [greenfield, brownfield, migration]"
       failure_action: "HALT — Must classify system maturity for Phase 1 decomposition strategy"
-      rationale: "Brownfield/migration requires existing system inventory and migration constraints"
-
     G0-07:
       description: "Architecture domains detected and resolved"
       severity: CRITICAL
       check: "context_assessment.architecture_domains.final_domains.length >= 3 AND (architecture_domains.detected_count >= 1 OR brief_type == 'exploratory')"
       failure_action: "HALT — Must detect architecture domains for pattern-based design in Phase 1"
-      rationale: "Domains drive pattern selection (architecture-patterns.yaml), anti-pattern detection (anti-patterns.yaml), and cloud-specific patterns. Without domains, Phase 1 pattern application is unguided."
       counter_checks:
         - "CC-DOM-01: Grounding — sample 3 detected domains, verify keywords exist in brief (BLOCKER if >1 ungrounded)"
         - "CC-DOM-02: Phantom Hunt — re-scan borderline domains 0.50-threshold (ERROR)"
         - "CC-DOM-03: Coherence — verify no conflicting paradigms without rationale (ERROR)"
-
     G0-08:
       description: "Project scale classified with proportionality check"
       severity: ERROR
       check: "context_assessment.project_scale.classification in [small, medium, large, enterprise] AND depth_calibration documented"
       failure_action: "LOG warning — Proceed but analysis depth may be disproportionate"
-      rationale: "Small project with enterprise analysis = over-engineering (waste). Enterprise project with quick depth = under-engineering (risk). Proportionality calibrates rigor to value."
-
   pass_criteria: "ALL CRITICAL + BLOCKER conditions met"
   state_on_pass: "OPEN"
   state_on_fail: "LOCKED"
 
-# ==============================================================================
-# GATE_1: CANONICAL OPERATIONS (6 conditions)
-# ==============================================================================
-
 GATE_1:
   name: "Canonical Operations Gate"
   phase: 1
-  description: "Enforces all 8 canonical operations executed completely"
   conditions:
-
     G1-01:
       description: "All 8 canonical operations executed"
       severity: BLOCKER
       check: "canonical_operations.executed_count == 8"
-      failure_action: "ABORT — Missing operations violate MA-001 (16 required)"
-      rationale: "Incomplete canonical = gaps in architecture (INV-07)"
+      failure_action: "ABORT — Missing operations violate INV-07"
       operations_required:
         - "Decomposition"
         - "Boundary Definition"
@@ -111,141 +81,98 @@ GATE_1:
         - "Pattern Application"
         - "Quality Attribute Analysis"
         - "Interface Design"
-
     G1-02:
       description: "Decomposition depth adequate"
       severity: CRITICAL
       check: "canonical_operations.decomposition.levels >= 2"
       failure_action: "HALT — Single-level decomposition too shallow"
-      rationale: "Monolithic structures hide complexity"
-
     G1-03:
       description: "Boundaries explicitly defined"
       severity: CRITICAL
       check: "canonical_operations.boundaries exists with context_map"
       failure_action: "HALT — Undefined boundaries = integration failures"
-      rationale: "Implicit boundaries cause coupling"
-
     G1-04:
       description: "Dependencies mapped"
       severity: ERROR
       check: "canonical_operations.dependencies.count > 0"
       failure_action: "LOG warning — No dependencies unusual"
-      rationale: "Zero dependencies suspicious unless trivial system"
-
     G1-05:
       description: "Quality attributes prioritized"
       severity: CRITICAL
       check: "canonical_operations.quality_attributes.prioritized.length >= 3"
       failure_action: "HALT — Must prioritize ≥3 ISO 25010 attributes"
-      rationale: "Trade-offs impossible without priorities"
-
     G1-06:
       description: "ASSUMPTIONS_DECLARED present"
       severity: CRITICAL
       check: "canonical_operations.assumptions.length >= 3"
-      failure_action: "HALT — Violates ZASADA 5 (assumptions before action)"
-      rationale: "Undeclared assumptions = hidden brittleness"
-
+      failure_action: "HALT — Violates ZASADA 5"
     G1-07:
       description: "Primary pattern references valid library entry, source domains within detected domains"
       severity: CRITICAL
-      check: "canonical_operations.pattern_application.architectural_pattern.pattern_id EXISTS in architecture-patterns.yaml AND canonical_operations.pattern_application.architectural_pattern.source_domains IS_SUBSET_OF context_assessment.architecture_domains.final_domains"
+      check: "canonical_operations.pattern_application.architectural_pattern.pattern_id EXISTS in architecture-patterns.yaml AND source_domains IS_SUBSET_OF final_domains"
       failure_action: "HALT — Pattern must come from library (INV-14), domains must be detected"
-      rationale: "Ungrounded patterns risk hallucination. Patterns from undetected domains indicate detection failure."
-
     G1-08:
       description: "Key decisions include reasoning (WHY not just WHAT)"
       severity: ERROR
-      check: "canonical_operations.components.filter(c => c.reasoning exists).length / canonical_operations.components.length >= 0.80"
-      failure_action: "LOG warning — Decisions without reasoning hinder future review and trade-off analysis"
-      rationale: "Reasoning visibility (INV-16) enables stakeholders to understand WHY decisions were made, not just WHAT was decided. Without reasoning, architecture becomes opaque and unmaintainable."
-
+      check: "canonical_operations.components.filter(c => c.reasoning exists).length / components.length >= 0.80"
+      failure_action: "LOG warning — Decisions without reasoning hinder review"
   pass_criteria: "G1-01 (BLOCKER) + ALL CRITICAL conditions met"
   state_on_pass: "OPEN"
   state_on_fail: "LOCKED"
 
-# ==============================================================================
-# GATE_2: ARTIFACT GENERATION (5 conditions)
-# ==============================================================================
-
 GATE_2:
   name: "Artifact Generation Gate"
   phase: 2
-  description: "Validates architecture artifacts completeness"
   conditions:
-
     G2-01:
       description: "C4 Context diagram generated"
       severity: CRITICAL
       check: "artifacts.diagrams contains 'c4-context.mermaid'"
       failure_action: "HALT — Context diagram mandatory"
-      rationale: "System boundary visualization required"
-
     G2-02:
       description: "C4 Container diagram generated"
       severity: CRITICAL
       check: "artifacts.diagrams contains 'c4-container.mermaid'"
       failure_action: "HALT — Container diagram mandatory"
-      rationale: "High-level decomposition visualization required"
-
     G2-03:
       description: "Data model documented"
       severity: CRITICAL
       check: "artifacts.data_model exists with entities/relationships"
       failure_action: "HALT — Data model missing"
-      rationale: "State structure foundational"
-
     G2-04:
       description: "ADRs created for key decisions"
       severity: ERROR
       check: "artifacts.adrs.count >= 3"
       failure_action: "LOG warning — Few ADRs, decisions undocumented"
-      rationale: "Decision rationale enables future changes"
-
     G2-05:
       description: "Deployment model defined"
       severity: REQUIRED
       check: "artifacts.deployment exists"
       failure_action: "LOG info — Deployment deferred"
-      rationale: "Can defer if infrastructure undefined"
-
     G2-06:
       description: "Dynamic views generated"
       severity: CRITICAL
       check: "artifacts.diagrams contains sequence diagrams (≥2) AND flow diagrams (≥1)"
-      failure_action: "HALT — Dynamic views show HOW system behaves, not just static structure"
-      rationale: "Static views alone miss runtime behavior, data flows, state transitions"
-
+      failure_action: "HALT — Dynamic views show HOW system behaves"
     G2-07:
       description: "Operational view documented"
       severity: ERROR
       check: "artifacts.operational_view exists with monitoring AND cicd"
       failure_action: "LOG warning — Operational concerns deferred"
-      rationale: "Production readiness requires monitoring/CI-CD planning"
-
   pass_criteria: "ALL CRITICAL conditions met"
   state_on_pass: "OPEN"
   state_on_fail: "LOCKED"
 
-# ==============================================================================
-# GATE_3: ADVERSARY (7 conditions) — NON-NEGOTIABLE
-# ==============================================================================
-
 GATE_3:
   name: "ADVERSARY Gate"
   phase: 3
-  description: "Enforces all 8 adversarial operations executed (NON-NEGOTIABLE)"
   non_negotiable: true
-  rationale: "User requirement + MA-005 from exploration"
   conditions:
-
     G3-01:
       description: "All 8 adversarial operations executed"
       severity: BLOCKER
       check: "adversary.executed_count == 8"
-      failure_action: "ABORT — Missing adversarial ops violate user requirement"
-      rationale: "ADVERSARY non-negotiable (INV-08)"
+      failure_action: "ABORT — Missing adversarial ops violate INV-08"
       operations_required:
         - "Threat Modeling (STRIDE)"
         - "FMEA (Failure Mode and Effects Analysis)"
@@ -255,13 +182,11 @@ GATE_3:
         - "Compliance Analysis"
         - "Pre-mortem"
         - "Trade-off Identification"
-
     G3-02:
       description: "STRIDE threat model complete"
       severity: CRITICAL
       check: "adversary.stride.threats.length >= 6"
       failure_action: "HALT — Must analyze all STRIDE categories"
-      rationale: "Partial threat model misses attack vectors"
       stride_categories:
         - "Spoofing"
         - "Tampering"
@@ -269,280 +194,195 @@ GATE_3:
         - "Information Disclosure"
         - "Denial of Service"
         - "Elevation of Privilege"
-
     G3-03:
       description: "FMEA identifies failure modes"
       severity: CRITICAL
       check: "adversary.fmea.failure_modes.length >= 5"
       failure_action: "HALT — Insufficient failure analysis"
-      rationale: "Few failure modes = incomplete analysis"
-
     G3-04:
       description: "Bottlenecks identified"
       severity: ERROR
       check: "adversary.bottlenecks.length >= 2"
       failure_action: "LOG warning — No bottlenecks unusual"
-      rationale: "Most systems have performance choke points"
-
     G3-05:
-      description: "Anti-patterns scanned against library with valid AAP-XXX references and ≥1 symptom matched per detection"
+      description: "Anti-patterns scanned against library with valid AAP-XXX references and ≥1 symptom matched"
       severity: ERROR
-      check: "adversary.anti_patterns scanned AND each detected anti-pattern has valid anti_pattern_id in anti-patterns.yaml AND symptoms_matched.length >= 1"
+      check: "adversary.anti_patterns scanned AND each has valid anti_pattern_id in anti-patterns.yaml AND symptoms_matched.length >= 1"
       failure_action: "HALT — Anti-pattern scan must use library with grounded references"
-      rationale: "Library-based detection ensures systematic coverage. Ungrounded anti-pattern claims lack remediation guidance."
-
     G3-06:
       description: "Complexity metrics calculated"
       severity: CRITICAL
       check: "adversary.complexity exists with cyclomatic/cognitive/coupling"
       failure_action: "HALT — Complexity unmeasured = unmanageable"
-      rationale: "Quantified complexity enables control"
-
     G3-07:
       description: "Pre-mortem executed"
       severity: CRITICAL
       check: "adversary.premortem.failure_scenarios.length >= 5"
       failure_action: "HALT — Pre-mortem required (Method #61)"
-      rationale: "Pre-mortem uncovers unknown-unknowns"
-
   pass_criteria: "G3-01 (BLOCKER) + ALL CRITICAL conditions met"
   state_on_pass: "OPEN"
   state_on_fail: "LOCKED"
 
-# ==============================================================================
-# GATE_4: TRADE-OFF ANALYSIS (5 conditions)
-# ==============================================================================
-
 GATE_4:
   name: "Trade-off Analysis Gate"
   phase: 4
-  description: "Validates trade-off documentation using ATAM/CBAM"
   conditions:
-
     G4-01:
       description: "ATAM scenarios defined"
       severity: CRITICAL
       check: "tradeoffs.atam.scenarios.length >= 3"
       failure_action: "HALT — Insufficient scenario analysis"
-      rationale: "Trade-offs meaningless without scenarios"
-
     G4-02:
       description: "Sensitivity points identified"
       severity: CRITICAL
       check: "tradeoffs.sensitivity_points.length >= 2"
       failure_action: "HALT — Missing sensitivity analysis"
-      rationale: "Sensitivity points guide refinement"
-
     G4-03:
       description: "Trade-off points documented"
       severity: CRITICAL
       check: "tradeoffs.tradeoff_points.length >= 2"
       failure_action: "HALT — Trade-offs unresolved"
-      rationale: "Conflicting attributes must be reconciled"
-
     G4-04:
       description: "CBAM cost-benefit calculated"
       severity: ERROR
       check: "tradeoffs.cbam exists with costs/benefits"
       failure_action: "LOG warning — Economic analysis missing"
-      rationale: "Cost-benefit informs priorities"
-
     G4-05:
       description: "Decisions justified"
       severity: REQUIRED
       check: "tradeoffs.decisions.all(d => d.rationale exists)"
       failure_action: "LOG info — Some decisions lack rationale"
-      rationale: "Justification enables review"
-
     G4-06:
       description: "Evolution strategy defined"
       severity: ERROR
       check: "tradeoffs.evolution_strategy exists with phases AND migration_path"
       failure_action: "LOG warning — No evolution roadmap"
-      rationale: "Architecture must plan for change, not just current state"
-
     G4-07:
       description: "Cost architecture estimated"
       severity: REQUIRED
       check: "tradeoffs.cost_architecture exists with environments"
       failure_action: "LOG info — Cost estimation deferred"
-      rationale: "Cost awareness prevents budget surprises"
-
   pass_criteria: "ALL CRITICAL conditions met"
   state_on_pass: "OPEN"
   state_on_fail: "LOCKED"
 
-# ==============================================================================
-# GATE_5: VALIDATION (6 conditions) — BOUNDED TOP 10
-# ==============================================================================
-
 GATE_5:
   name: "Validation Gate"
   phase: 5
-  description: "Validates bounded validation (exactly 10 critical issues)"
   conditions:
-
     G5-01:
       description: "Exactly 10 issues validated"
       severity: BLOCKER
       check: "validation.issues_validated.length == 10"
-      failure_action: "ABORT — Must validate exactly 10 (bounded per MA-004)"
-      rationale: "Prevents infinite scope, acknowledges blind spots (INV-09)"
-
+      failure_action: "ABORT — Must validate exactly 10 (bounded, INV-09)"
     G5-02:
       description: "Top 10 by severity/impact ranking"
       severity: CRITICAL
       check: "validation.issues_validated.all(i => i.rank <= 10)"
       failure_action: "HALT — Must validate TOP 10, not random 10"
-      rationale: "Bounded validation targets highest risk"
-
     G5-03:
       description: "Validation tests designed"
       severity: CRITICAL
       check: "validation.tests.length >= 10"
       failure_action: "HALT — Each issue needs validation test"
-      rationale: "Validation without tests = assertions"
-
     G5-04:
       description: "Mitigation adequacy assessed"
       severity: CRITICAL
       check: "validation.issues_validated.all(i => i.mitigation_adequate !== null)"
       failure_action: "HALT — Mitigation assessment missing"
-      rationale: "Identifies residual risk"
-
     G5-05:
       description: "Unknown-unknown detection executed"
       severity: ERROR
       check: "validation.unknown_unknowns_scan executed"
       failure_action: "LOG warning — Blind spot analysis skipped"
-      rationale: "Bounded validation acknowledges gaps"
-
     G5-06:
       description: "ASSUMPTIONS_DECLARED for validation"
       severity: REQUIRED
       check: "validation.assumptions.length >= 2"
       failure_action: "LOG info — Validation assumptions not declared"
-      rationale: "Validation scope has assumptions"
-
     G5-07:
       description: "Architecture fitness assessed (fitness_score ≥ 3/5)"
       severity: CRITICAL
-      check: "validation.architecture_fitness.fitness_score >= 3 AND validation.architecture_fitness.verdict in [FIT, PARTIALLY_FIT]"
+      check: "validation.architecture_fitness.fitness_score >= 3 AND verdict in [FIT, PARTIALLY_FIT]"
       failure_action: "HALT — Architecture does not solve user's problem. Recommend returning to Phase 1."
-      rationale: "Process compliance ≠ architecture quality (R-017). Gates verify operations EXECUTED, not that they PRODUCED the right result. Fitness assessment checks the architecture against the USER'S problem, not just process gates."
       criteria:
         - "AF-01: Architecture addresses ALL stated user requirements"
         - "AF-02: Primary quality attribute targets achievable"
         - "AF-03: Architecture matches context (team, budget, timeline)"
         - "AF-04: No simpler alternative would suffice (over-engineering check)"
         - "AF-05: Architecture survives pre-mortem scenarios"
-
   pass_criteria: "G5-01 (BLOCKER) + ALL CRITICAL conditions met"
   state_on_pass: "OPEN"
   state_on_fail: "LOCKED"
 
-# ==============================================================================
-# GATE_6: VERIFICATION (8 conditions)
-# ==============================================================================
-
 GATE_6:
   name: "Verification Gate"
   phase: 6
-  description: "Final completeness audit and process integrity check"
   conditions:
-
     G6-01:
       description: "All 16 operations documented"
       severity: BLOCKER
       check: "verification.operations_completed == 16"
       failure_action: "ABORT — Incomplete process (8 canonical + 8 adversarial)"
-      rationale: "MA-001 requires all 16 operations"
-
     G6-02:
       description: "Traceability matrix complete"
       severity: CRITICAL
       check: "verification.traceability exists mapping requirements→design"
       failure_action: "HALT — Cannot verify without traceability"
-      rationale: "Traceability enables verification"
-
     G6-03:
       description: "All gates passed summary"
       severity: CRITICAL
       check: "verification.gates_passed.all(g => g.status == 'OPEN')"
       failure_action: "HALT — Previous gates failed"
-      rationale: "Cannot complete with failed gates"
-
     G6-04:
       description: "Assumptions summary documented"
       severity: CRITICAL
       check: "verification.assumptions_summary.length >= 10"
       failure_action: "HALT — Cumulative assumptions missing"
-      rationale: "Architecture built on assumptions"
-
     G6-05:
       description: "Scope reductions logged"
       severity: ERROR
       check: "verification.scope_reductions documented"
       failure_action: "LOG warning — Scope changes untracked"
-      rationale: "Transparency about what was cut"
-
     G6-06:
       description: "Counter-checks executed"
       severity: CRITICAL
       check: "verification.counter_checks >= 21"
       failure_action: "HALT — Insufficient counter-checks (min 3/phase for 7 phases)"
-      rationale: "Counter-checks validate quality (ZASADA 8)"
-
     G6-07:
       description: "Final verdict rendered"
       severity: REQUIRED
       check: "verification.verdict in [PASS, CONDITIONAL_PASS, FAIL]"
       failure_action: "LOG info — No verdict"
-      rationale: "Explicit verdict required"
-
     G6-08:
       description: "Invariant compliance verified (16/16 checked)"
       severity: CRITICAL
       check: "verification.invariant_compliance.checked == 16 AND all status in [COMPLIANT, DOCUMENTED_VIOLATION]"
       failure_action: "HALT — Invariant compliance unverified"
-      rationale: "All 16 invariants must be checked and compliant (ZASADA 3 — mechanisms not intentions)"
-
     G6-09:
-      description: "Pattern library grounding — all pattern_id and anti_pattern_id references exist in library files"
+      description: "Pattern library grounding — all pattern_id and anti_pattern_id references exist in library"
       severity: ERROR
-      check: "verification.pattern_grounding.grounding_rate == 1.0 (all references valid)"
+      check: "verification.pattern_grounding.grounding_rate == 1.0"
       failure_action: "HALT — Ungrounded pattern references detected, fix before verdict"
-      rationale: "Hallucinated pattern IDs provide false guidance. Every AP-XXX, CP-XXX, DP-XXX, AAP-XXX must map to library entry (INV-14)."
-
   pass_criteria: "G6-01 (BLOCKER) + ALL CRITICAL conditions met"
   state_on_pass: "OPEN"
   state_on_fail: "LOCKED"
 
-# ==============================================================================
-# GATE ENFORCEMENT PROTOCOL
-# ==============================================================================
-
 enforcement:
   gate_blocking: true
-  description: "Agent CANNOT proceed if gate LOCKED (ZASADA 4)"
-
   severity_actions:
     BLOCKER:
       action: "ABORT execution immediately"
       recovery: "Fix violation, restart from Phase 0"
-
     CRITICAL:
       action: "HALT at current phase"
       recovery: "Fix violation, re-execute phase, re-evaluate gate"
-
     ERROR:
       action: "LOG warning, proceed with degraded quality"
       recovery: "Fix in next iteration or accept risk"
-
     REQUIRED:
       action: "LOG info, proceed normally"
       recovery: "Optional improvement"
-
   scope_reduction_protocol:
     trigger: "Gate condition fails (CRITICAL or ERROR)"
     required_declaration:
@@ -552,95 +392,9 @@ enforcement:
       impact_assessment: "What is lost"
       completeness_cost: "Quality degradation"
       requires_user_approval: "YES (CRITICAL) | NO (ERROR)"
-
     user_approval_required: "CRITICAL failures MUST get user approval"
     silent_omission_forbidden: "Skipping without declaration = VIOLATION"
-
-# ==============================================================================
-# COUNTER-CHECKS (18 minimum for deep depth)
-# ==============================================================================
 
 counter_checks:
   minimum_per_phase: 3
   total_minimum: 21
-  description: "Each phase requires ≥3 counter-checks for 7 phases (0-6) (ZASADA 8)"
-
-  examples:
-    - phase: 0
-      checks:
-        - "Method #85 Grounding: Sample 3 context claims, verify against evidence"
-        - "Method #84 Coherence: Verify domain→patterns mapping consistent"
-        - "Method #61 Pre-mortem: What if context assessment wrong?"
-
-    - phase: 1
-      checks:
-        - "Method #85 Grounding: Sample 3 components, verify exist in design"
-        - "Method #168 Phantom Hunt: Re-scan for hallucinated components"
-        - "Method #84 Coherence: Verify dependency graph acyclic"
-
-    - phase: 3
-      checks:
-        - "Method #85 Grounding: Verify STRIDE threats map to attack surface"
-        - "Method #61 Pre-mortem: What failure modes did we miss?"
-        - "Method #84 Coherence: Verify FMEA severity scores consistent"
-
-  enforcement: "GATE_6 condition G6-06 requires ≥21 counter-checks logged"
-
-# ==============================================================================
-# VERSION HISTORY
-# ==============================================================================
-
-history:
-  - version: "1.0.0"
-    date: "2026-02-11"
-    changes:
-      - "Initial gate definitions"
-      - "41 conditions across 7 gates"
-      - "GATE_3 marked NON-NEGOTIABLE per user requirement"
-      - "GATE_5 enforces bounded validation (exactly 10 issues)"
-      - "Counter-check examples documented"
-
-  - version: "1.0.1"
-    date: "2026-02-11"
-    changes:
-      - "Deep-Verify V2.0 verification fixes (CONDITIONAL ACCEPT S=8.7)"
-      - "FC-01: Fixed metadata severity distribution (BLOCKER:3→5, CRITICAL:14→24, ERROR:9→7, REQUIRED:15→5)"
-      - "FC-03: Added G6-08 Invariant compliance verification (CRITICAL severity)"
-      - "FM-01: Fixed counter-check math (18→21 minimum, 6→7 phases)"
-      - "Total conditions: 41→42 across 7 gates"
-      - "Severity distribution: 5 BLOCKER, 25 CRITICAL, 7 ERROR, 5 REQUIRED"
-
-  - version: "1.1.0"
-    date: "2026-02-11"
-    changes:
-      - "Operational verification fixes (4 CRITICAL + 6 IMPORTANT findings)"
-      - "C-03: Added G0-06 System maturity classified (CRITICAL)"
-      - "C-02: Added G2-06 Dynamic views generated (CRITICAL)"
-      - "C-04: Added G2-07 Operational view documented (ERROR)"
-      - "I-03: Added G4-06 Evolution strategy defined (ERROR)"
-      - "I-04: Added G4-07 Cost architecture estimated (REQUIRED)"
-      - "Total conditions: 42→48 across 7 gates"
-      - "Severity distribution: 5 BLOCKER, 27 CRITICAL, 9 ERROR, 7 REQUIRED"
-
-  - version: "1.2.0"
-    date: "2026-02-12"
-    changes:
-      - "Architecture Pattern Library integration (V1.2.0)"
-      - "Added G0-07: Architecture domains detected and resolved (CRITICAL)"
-      - "Added G1-07: Primary pattern references valid library entry (CRITICAL)"
-      - "Upgraded G3-05: Anti-patterns scanned against library (REQUIRED→ERROR)"
-      - "Added G6-09: Pattern library grounding (ERROR)"
-      - "Updated G6-08: Invariant compliance 13→14"
-      - "Total conditions: 48→52 across 7 gates"
-      - "Severity distribution: 5 BLOCKER, 30 CRITICAL, 10 ERROR, 7 REQUIRED"
-
-  - version: "1.4.0"
-    date: "2026-02-13"
-    changes:
-      - "Deep-Risk V2.1.0 mitigation implementation (R-017 top risk)"
-      - "Added G0-08: Project scale classified with proportionality check (ERROR)"
-      - "Added G1-08: Key decisions include reasoning — INV-16 enforcement (ERROR)"
-      - "Added G5-07: Architecture fitness assessment, fitness_score ≥ 3/5 (CRITICAL)"
-      - "Updated G6-08: Invariant compliance 14→16 (INV-15, INV-16 added)"
-      - "Total conditions: 50→53 across 7 gates (+G0-08, +G1-08, +G5-07)"
-      - "Severity distribution: 5 BLOCKER, 31 CRITICAL, 12 ERROR, 7 REQUIRED"

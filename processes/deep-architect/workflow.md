@@ -1,4 +1,4 @@
-# Deep-Architect V1.2 — Orchestrator
+# Deep-Architect V1.4.1 — Orchestrator
 
 > Minimal orchestrator. All protocols, gates, schemas embedded in step files.
 > Load ONE step file at a time. Execute it. Pass its gate. Load next.
@@ -68,7 +68,7 @@ SCOPE_REDUCTION_DECLARATION:
 3. **Execute fully** (includes 8 operations, ASSUMPTIONS_DECLARED, EVR, checklist, GATE_1)
 4. **Verify:** GATE_1 = OPEN?
    - IF LOCKED → HALT (fix issues or declare SCOPE_REDUCTION)
-   - IF OPEN → proceed to PHASE 2
+   - IF OPEN → proceed to USER CHECKPOINT 1
 5. **Violation check:** Agent MUST NOT read step-02 until GATE_1 = OPEN
 
 ---
@@ -77,7 +77,7 @@ SCOPE_REDUCTION_DECLARATION:
 
 1. **Precondition:** GATE_1 = OPEN
 2. **Present to user:** Summary of canonical operations (components, boundaries, patterns, quality attributes)
-3. **User evaluation checklist** (present to help user assess quality, not just existence):
+3. **User evaluation checklist:**
 
    | # | Evaluation Question | Answer |
    |---|---------------------|--------|
@@ -93,7 +93,6 @@ SCOPE_REDUCTION_DECLARATION:
    - `APPROVE` → proceed to PHASE 2
    - `MODIFY` → user provides feedback → re-execute affected operations in Phase 1 → re-evaluate GATE_1
    - `ABORT` → log reason, terminate process
-5. **Rationale:** User validates decomposition BEFORE investing in diagrams/adversary (MA-003: max 4 checkpoints)
 
 ---
 
@@ -125,7 +124,6 @@ SCOPE_REDUCTION_DECLARATION:
    - IF redesign_required = FALSE → proceed to PHASE 4
    - Max iterations: config.iterations_max (1 quick / 3 standard / 10 deep)
 6. **Violation check:** Agent MUST NOT read step-04 until GATE_3 = OPEN AND REDESIGN_LOOP evaluated
-7. **NOTE:** ADVERSARY is NON-NEGOTIABLE (user requirement + MA-005)
 
 ---
 
@@ -152,7 +150,6 @@ SCOPE_REDUCTION_DECLARATION:
    - `PROCEED` → proceed to PHASE 4
    - `REVIEW_IN_DETAIL` → user examines full adversary-findings.yaml, provides feedback
    - `ABORT` → log reason, terminate process
-5. **Rationale:** User validates threat landscape BEFORE investing in trade-off analysis (MA-003: checkpoint_2 from config.yaml)
 
 ---
 
@@ -177,7 +174,6 @@ SCOPE_REDUCTION_DECLARATION:
    - IF LOCKED → HALT (fix issues or declare SCOPE_REDUCTION)
    - IF OPEN → proceed to PHASE 6
 5. **Violation check:** Agent MUST NOT read step-06 until GATE_5 = OPEN
-6. **NOTE:** EXACTLY 10 issues validated (bounded per MA-004)
 
 ---
 
@@ -205,20 +201,18 @@ SCOPE_REDUCTION_DECLARATION:
 
 ## ROUTING TABLE (Self-Contained Steps)
 
-| Phase | Step File | Operations | Time Est | Gate |
-|-------|-----------|------------|----------|------|
-| 0 | step-00-context.md | Context assessment + domain detection + project scale | 15-30m | GATE_0 (8) |
-| CP1 | — | User Checkpoint 1 (evaluate decomposition quality) | 5-15m | User decision |
-| 1 | step-01-canonical.md | 8 canonical operations + reasoning + pattern library | 60-120m | GATE_1 (8) |
-| 2 | step-02-artifacts.md | Static + dynamic views, operational, data model, ADRs | 60-120m | GATE_2 (7) |
-| 3 | step-03-adversary.md | 8 adversarial operations + anti-pattern library + REDESIGN_LOOP | 90-180m | GATE_3 (7) |
-| RL | — | REDESIGN_LOOP evaluation (may loop to Phase 1/2) | 5-15m | User decision |
-| CP2 | — | User Checkpoint 2 (evaluate adversary findings) | 5-15m | User decision |
-| 4 | step-04-tradeoffs.md | ATAM/CBAM + FinOps + evolution strategy | 60-120m | GATE_4 (7) |
-| 5 | step-05-validation.md | Bounded validation + architecture fitness assessment | 30-60m | GATE_5 (7) |
-| 6 | step-06-verification.md | Completeness audit, traceability, pattern grounding | 20-40m | GATE_6 (10) |
-
-**Total time:** 5.5-11 hours base estimate (7-14h with +25% buffer)
+| Phase | Step File | Gate |
+|-------|-----------|------|
+| 0 | step-00-context.md | GATE_0 (8) |
+| CP1 | — | User decision |
+| 1 | step-01-canonical.md | GATE_1 (8) |
+| 2 | step-02-artifacts.md | GATE_2 (7) |
+| 3 | step-03-adversary.md | GATE_3 (7) |
+| RL | — | REDESIGN_LOOP |
+| CP2 | — | User decision |
+| 4 | step-04-tradeoffs.md | GATE_4 (7) |
+| 5 | step-05-validation.md | GATE_5 (7) |
+| 6 | step-06-verification.md | GATE_6 (9) |
 
 ---
 
@@ -226,62 +220,6 @@ SCOPE_REDUCTION_DECLARATION:
 
 All artifacts saved to: `{output_directory}/architecture-artifacts/`
 
-**Artifacts:**
-- `context-assessment.yaml` (Phase 0)
-- `canonical-operations.yaml` (Phase 1)
-- `architecture-model.yaml` (Phase 2)
-- `diagrams/` (C4, data model, deployment)
-- `adrs/` (Architecture Decision Records)
-- `adversary-findings.yaml` (Phase 3)
-- `tradeoff-analysis.yaml` (Phase 4)
-- `validation-report.yaml` (Phase 5)
-- `verification-report.yaml` (Phase 6)
-- `process-log.yaml` (all phases)
-
 ---
 
-## INVARIANTS (Binding Process Rules)
-
-**INV-01:** Sequential execution (0→6, no skipping)
-**INV-02:** Gate blocking (LOCKED = cannot proceed)
-**INV-03:** ASSUMPTIONS_DECLARED (every phase ≥1 assumption)
-**INV-04:** Extract→Verify→Render sequence (every phase)
-**INV-05:** Post-phase checklist (every phase)
-**INV-06:** Counter-checks minimum (quick=1, standard=2, deep=3 per phase)
-**INV-07:** Eight canonical operations (Phase 1, all 8 mandatory)
-**INV-08:** Eight adversarial operations (Phase 3, all 8 mandatory, NON-NEGOTIABLE)
-**INV-09:** Bounded validation (Phase 5, exactly 10 issues)
-**INV-10:** Checkpoint maximum (max 4 checkpoints to prevent approval fatigue)
-**INV-11:** Embedded methods (all methods inline in steps, no external files)
-**INV-12:** Just-in-time loading (load only current step, not all upfront)
-**INV-13:** REDESIGN_LOOP evaluation (mandatory after GATE_3, cannot skip)
-**INV-14:** Pattern Library Grounding (all pattern_id/anti_pattern_id references must exist in library)
-**INV-15:** Architecture Fitness (architecture MUST be evaluated for fitness-for-purpose, not just process compliance)
-**INV-16:** Reasoning Visibility (key decisions MUST include WHY, not just WHAT was decided)
-
-See `data/invariants.yaml` for full definitions and violation handling.
-
----
-
-## VIOLATION DETECTION
-
-**CRITICAL PROCESS VIOLATION** → ABORT execution, log in process-log.yaml:
-- Out-of-order phase execution
-- Gate skipped without OPEN status
-- Step file loaded before previous gate OPEN
-- SILENT_OMISSION (skipping without SCOPE_REDUCTION)
-- < 8 canonical operations in Phase 1
-- < 8 adversarial operations in Phase 3
-- ≠ 10 issues validated in Phase 5
-- Architecture fitness not assessed in Phase 5
-- Key decisions lack reasoning (INV-16 violation)
-
-**Severity levels:**
-- **BLOCKER:** Process halts immediately, cannot proceed
-- **CRITICAL:** SCOPE_REDUCTION required with user approval
-- **ERROR:** Logged, may proceed with degraded quality
-- **REQUIRED:** Logged, non-blocking
-
----
-
-**VERSION:** 1.4.0 (Deep-Architect — Risk Mitigations: Architecture Quality Gate, CP2, Reasoning, Proportionality — 2026-02-13)
+**VERSION:** 1.4.1

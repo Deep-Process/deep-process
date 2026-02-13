@@ -106,10 +106,6 @@ For each of the 10 selected issues, design a validation test:
 
 ## 5.5b EXTRACT: Architecture Fitness Assessment (INV-15)
 
-**This section validates that the architecture SOLVES the user's problem, not just PASSES gates.**
-
-**Rationale (Deep-Risk R-017):** Process compliance ≠ architecture quality. All 50 gate conditions can pass while the architecture is strategically wrong. Gates verify operations were EXECUTED, not that they PRODUCED the right result.
-
 1. Read user brief → extract stated requirements, goals, constraints
 2. Read canonical-operations.yaml + architecture-model.yaml → extract design decisions
 3. Evaluate 5 fitness criteria:
