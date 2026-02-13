@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { registerCommands } from './commands';
 import { registerChatParticipant } from './chat/participant';
-import { createStatusBar } from './ui/status-bar';
+import { createStatusBar, updateStatusBar } from './ui/status-bar';
 import { detectTools } from './detectors/tool-detector';
 import { ConfigPanelProvider } from './ui/webview/config-panel';
 
@@ -38,7 +38,18 @@ export function activate(context: vscode.ExtensionContext) {
   const statusBar = createStatusBar(tools);
   context.subscriptions.push(statusBar);
 
-  // 6. Show welcome message on first activation
+  // 6. Watch for config file changes to update status bar
+  const configFileWatcher = vscode.workspace.createFileSystemWatcher(
+    '**/deep-process.config.yaml'
+  );
+
+  configFileWatcher.onDidChange(() => updateStatusBar(statusBar, tools));
+  configFileWatcher.onDidCreate(() => updateStatusBar(statusBar, tools));
+  configFileWatcher.onDidDelete(() => updateStatusBar(statusBar, tools));
+
+  context.subscriptions.push(configFileWatcher);
+
+  // 7. Show welcome message on first activation
   const hasShownWelcome = context.globalState.get<boolean>('deep-process.hasShownWelcome');
   if (!hasShownWelcome) {
     vscode.window.showInformationMessage(
