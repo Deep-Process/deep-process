@@ -35,8 +35,19 @@ export async function statusCommand(): Promise<void> {
 
   // Check for updates
   const manifests = loadAllManifests();
-  const updates = checkForUpdates(config, manifests);
-  const outdated = updates.filter(u => u.needsUpdate);
+  const updates = checkForUpdates(config, manifests, projectRoot);
+  const missing = updates.filter(u => u.reason === 'missing');
+  const outdated = updates.filter(u => u.reason === 'version');
+
+  if (missing.length > 0) {
+    log.blank();
+    log.warn(`${missing.length} process(es) missing from disk:`);
+    for (const u of missing) {
+      console.log(`  ${u.processId} — ${chalk.red('missing')}`);
+    }
+    log.dim('Run `npx deep-process update` to restore.');
+  }
+
   if (outdated.length > 0) {
     log.blank();
     log.warn(`${outdated.length} process(es) have updates available:`);

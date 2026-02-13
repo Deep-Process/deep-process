@@ -22,7 +22,7 @@ export async function updateCommand(options: UpdateOptions): Promise<void> {
   }
 
   const manifests = loadAllManifests();
-  const updates = checkForUpdates(config, manifests);
+  const updates = checkForUpdates(config, manifests, projectRoot);
   const outdated = updates.filter(u => u.needsUpdate);
 
   if (outdated.length === 0) {
@@ -34,7 +34,11 @@ export async function updateCommand(options: UpdateOptions): Promise<void> {
   log.blank();
 
   for (const u of outdated) {
-    log.info(`${u.processId}: ${u.currentVersion} → ${u.availableVersion}`);
+    if (u.reason === 'missing') {
+      log.info(`${u.processId}: missing — will restore`);
+    } else {
+      log.info(`${u.processId}: ${u.currentVersion} → ${u.availableVersion}`);
+    }
   }
 
   const pathCtx: PathContext = {

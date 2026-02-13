@@ -29,10 +29,14 @@ export async function initCommand(options: InitOptions): Promise<void> {
     process.exit(1);
   }
 
-  // Check if already installed
+  // Check if already installed — in interactive mode, ask what to do
   if (configExists(projectRoot) && !options.yes) {
-    log.warn('deep-process is already installed. Use `deep-process update` to update.');
-    return;
+    const { confirm } = await import('@inquirer/prompts');
+    const reinstall = await confirm({
+      message: 'deep-process is already installed. Reinstall?',
+      default: true,
+    });
+    if (!reinstall) return;
   }
 
   let answers: WizardAnswers;
