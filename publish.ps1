@@ -2,25 +2,33 @@ param(
     [string]$BumpType = "patch"  # patch, minor, major
 )
 
-$ErrorActionPreference = "Stop"
-
 Write-Host "`n=== Deep Process Publish ===" -ForegroundColor Cyan
 
 # 1. Bump version
 Write-Host "`n[1/4] Bumping version ($BumpType)..." -ForegroundColor Yellow
-npm version $BumpType --no-git-tag-version 2>$null
+$ErrorActionPreference = "SilentlyContinue"
+npm version $BumpType --no-git-tag-version 2>&1 | Out-Null
+$ErrorActionPreference = "Stop"
 $version = (Get-Content package.json | ConvertFrom-Json).version
 Write-Host "  Version: $version" -ForegroundColor Green
 
 # 2. Build
 Write-Host "`n[2/4] Building..." -ForegroundColor Yellow
-npm run build 2>$null
-if ($LASTEXITCODE -ne 0) { throw "Build failed" }
+$ErrorActionPreference = "SilentlyContinue"
+$buildOutput = npm run build 2>&1 | Out-String
+$buildExit = $LASTEXITCODE
+$ErrorActionPreference = "Stop"
+if ($buildExit -ne 0) {
+    Write-Host $buildOutput -ForegroundColor Red
+    throw "Build failed"
+}
 Write-Host "  Build OK" -ForegroundColor Green
 
 # 3. Dry run
 Write-Host "`n[3/4] Dry run..." -ForegroundColor Yellow
+$ErrorActionPreference = "SilentlyContinue"
 $dryRun = npm publish --dry-run 2>&1 | Out-String
+$ErrorActionPreference = "Stop"
 $dryRun -split "`n" | Where-Object { $_ -match "name:|version:|package size:|total files:" } | ForEach-Object {
     Write-Host "  $($_.Trim())" -ForegroundColor Gray
 }
@@ -33,6 +41,12 @@ if ($confirm -ne "y") {
 }
 
 Write-Host "`nPublishing..." -ForegroundColor Yellow
-npm publish --access public 2>$null
-if ($LASTEXITCODE -ne 0) { throw "Publish failed" }
-Write-Host "`n=== Published deep-process@$version ===" -ForegroundColor Green
+$ErrorActionPreference = "SilentlyContinue"
+$pubOutput = npm publish --access public 2>&1 | Out-String
+$pubExit = $LASTEXITCODE
+$ErrorActionPreference = "Stop"
+if ($pubExit -ne 0) {
+    Write-Host $pubOutput -ForegroundColor Red
+    throw "Publish failed"
+}
+Write-Host "=== Published deep-process@$version ===" -ForegroundColor Green
