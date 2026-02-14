@@ -107,8 +107,34 @@ Builds and packages the VS Code extension (.vsix file).
 
 ## Publish Scripts
 
+### `publish/publish-all-npm.ps1` ⭐ (Recommended)
+Publishes both `@deep-process/core` and `deep-process` CLI in correct order.
+
+**Usage:**
+```powershell
+.\scripts\publish\publish-all-npm.ps1                # patch both
+.\scripts\publish\publish-all-npm.ps1 -BumpType minor # minor both
+.\scripts\publish\publish-all-npm.ps1 -CoreOnly      # only core
+.\scripts\publish\publish-all-npm.ps1 -CliOnly       # only CLI
+```
+
+**What it does:**
+1. Publishes `@deep-process/core` first
+2. Waits for npm registry to update
+3. Updates CLI to use new core version
+4. Publishes `deep-process` CLI
+
+### `publish/publish-core.ps1`
+Publishes `@deep-process/core` package only.
+
+**Usage:**
+```powershell
+.\scripts\publish\publish-core.ps1                    # patch
+.\scripts\publish\publish-core.ps1 -BumpType minor    # minor
+```
+
 ### `publish/publish-npm.ps1`
-Publishes the deep-process npm package to npmjs.com.
+Publishes the `deep-process` CLI package only (not core).
 
 **Requirements:**
 - `NPM_TOKEN` environment variable or in `.secrets`
@@ -122,11 +148,12 @@ Publishes the deep-process npm package to npmjs.com.
 ```
 
 **What it does:**
-1. Bumps version in package.json
-2. Runs build
-3. Shows dry-run preview
-4. Confirms with user
-5. Publishes to npm with `--access public`
+1. Builds `@deep-process/core` (dependency)
+2. Bumps version in CLI package.json
+3. Builds CLI
+4. Shows dry-run preview
+5. Confirms with user
+6. Publishes to npm with `--access public`
 
 ### `publish/publish-vscode.ps1`
 Publishes the VS Code extension to Visual Studio Marketplace.

@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Core utilities and loaders for deep-process packages",
   "type": "module",
-  "private": true,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [

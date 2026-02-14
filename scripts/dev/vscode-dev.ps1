@@ -20,6 +20,9 @@ try {
         Write-Host "> Building extension..." -ForegroundColor Yellow
         Push-Location $vscodePath
         try {
+            # Clean up old .vsix files before building
+            Get-ChildItem -Filter "*.vsix" | Remove-Item -Force -ErrorAction SilentlyContinue
+
             pnpm run build
             if ($LASTEXITCODE -ne 0) { throw "Build failed" }
             pnpm run package
@@ -33,7 +36,8 @@ try {
 
     Push-Location $vscodePath
     try {
-        $vsixFile = Get-ChildItem -Filter "*.vsix" | Select-Object -First 1
+        # Get the newest .vsix file (by LastWriteTime)
+        $vsixFile = Get-ChildItem -Filter "*.vsix" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
         if (-not $vsixFile) {
             throw "VSIX file not found. Run without -SkipBuild to build first."
         }
@@ -42,10 +46,19 @@ try {
         $vsixSize = [math]::Round($vsixFile.Length/1MB, 2)
         Write-Host "> Found: $($vsixFile.Name) ($vsixSize MB)" -ForegroundColor Cyan
 
+        # Uninstall existing (if installed)
         Write-Host "> Uninstalling existing extension..." -ForegroundColor Yellow
-        code --uninstall-extension deep-process.deep-process-vscode 2>&1 | Out-Null
-        Start-Sleep -Milliseconds 500
-        Write-Host "[OK] Uninstalled" -ForegroundColor Green
+        $ErrorActionPreference = "Continue"
+        $uninstallResult = code --uninstall-extension deepprocess.deep-process-vscode 2>&1
+        $uninstallExitCode = $LASTEXITCODE
+        $ErrorActionPreference = "Stop"
+
+        if ($uninstallExitCode -eq 0) {
+            Write-Host "[OK] Uninstalled" -ForegroundColor Green
+            Start-Sleep -Milliseconds 500
+        } else {
+            Write-Host "[SKIP] Not installed (first time install)" -ForegroundColor Gray
+        }
 
         Write-Host "> Installing extension..." -ForegroundColor Yellow
         code --install-extension $vsixPath --force

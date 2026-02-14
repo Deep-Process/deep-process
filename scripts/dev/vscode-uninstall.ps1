@@ -16,7 +16,7 @@ Write-Host "â•â•â•â•â•â•â•â•â•â•
 
 try {
     # Check if installed
-    $installed = code --list-extensions | Select-String "deep-process.deep-process-vscode"
+    $installed = code --list-extensions | Select-String "deepprocess.deep-process-vscode"
 
     if (-not $installed) {
         Write-Host "âś“ Extension not installed (nothing to do)" -ForegroundColor Yellow
@@ -24,7 +24,7 @@ try {
     }
 
     Write-Host "â†’ Uninstalling deep-process-vscode..." -ForegroundColor Yellow
-    code --uninstall-extension deep-process.deep-process-vscode
+    code --uninstall-extension deepprocess.deep-process-vscode
 
     if ($LASTEXITCODE -ne 0) {
         throw "Uninstall failed"
