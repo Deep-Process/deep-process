@@ -5,8 +5,12 @@ import { createStatusBar, updateStatusBar } from './ui/status-bar';
 import { detectTools } from './detectors/tool-detector';
 import { ConfigPanelProvider } from './ui/webview/config-panel';
 import { shouldShowWizard, showSetupWizard, markWizardAsShown, markSetupCompleted } from './ui/setup-wizard';
+import { setExtensionPath } from './core/extension-context';
 
 export function activate(context: vscode.ExtensionContext) {
+  // Initialize extension path for process loading (needed for esbuild bundles)
+  setExtensionPath(context.extensionPath);
+
   console.log('Deep Process extension activated');
 
   // 1. Detect installed AI tools

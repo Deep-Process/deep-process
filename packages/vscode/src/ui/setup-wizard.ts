@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { detectToolsAsync, DetectedTool } from '../detectors/tool-detector';
-import { loadAllManifests } from '@deep-process/core';
+import { loadAllManifests } from '../core/process-registry.js';
 
 interface WizardResult {
   completed: boolean;

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { readConfig, loadManifest } from '@deep-process/core';
+import { readConfig } from '@deep-process/core';
+import { loadManifest } from '../core/process-registry.js';
 import {
   loadWorkflowFiles,
   getProcessDir,

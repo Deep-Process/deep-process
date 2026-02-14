@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { readConfig, loadManifest } from '@deep-process/core';
+import { readConfig } from '@deep-process/core';
+import { loadManifest } from '../core/process-registry.js';
 import {
   loadWorkflowFiles,
   formatWorkflowForChat,

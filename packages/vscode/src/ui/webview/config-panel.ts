@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { detectToolsAsync, refreshToolCache, getCachedTools, DetectedTool, getToolsStats } from '../../detectors/tool-detector';
-import { loadAllManifests, ProcessManifest } from '@deep-process/core';
+import { loadAllManifests, ProcessManifest } from '../../core/process-registry.js';
 
 export interface ProcessInfo extends ProcessManifest {
   installed: boolean;
@@ -51,6 +51,7 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
 
     // Handle messages from the webview
     webviewView.webview.onDidReceiveMessage(async data => {
+      console.log('[Deep Process] Received message:', data.type, data);
       switch (data.type) {
         case 'init':
           await this._initialize();
@@ -62,6 +63,7 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
           await this._saveConfig(data.enabledTools);
           break;
         case 'install':
+          console.log('[Deep Process] Executing install command...');
           await this._saveAndInstall(data.enabledTools);
           break;
         case 'installProcess':
@@ -321,12 +323,11 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
   </style>
 </head>
 <body>
-  <div id="app">
-    <div class="loading-screen" id="loading-screen">
-      <div class="spinner"></div>
-      <div id="loading-message">Initializing...</div>
-    </div>
+  <div class="loading-screen" id="loading-screen">
+    <div class="spinner"></div>
+    <div id="loading-message">Initializing...</div>
   </div>
+  <div id="app"></div>
 
   <script>
     ${this._getScript()}
@@ -933,9 +934,11 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
       // Handle messages from extension
       window.addEventListener('message', event => {
         const message = event.data;
+        console.log('[Deep Process Webview] Received message:', message.type, message);
 
         switch (message.type) {
           case 'stateUpdate':
+            console.log('[Deep Process Webview] Updating state, currentTab:', message.state?.currentTab);
             state = message.state;
             render();
             break;
@@ -950,14 +953,21 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
 
       function render() {
         const loadingScreen = document.getElementById('loading-screen');
+        const app = document.getElementById('app');
+
+        if (!app) return;
+
         if (state.isLoading && state.tools.length === 0) {
-          loadingScreen.classList.remove('hidden');
+          if (loadingScreen) {
+            loadingScreen.classList.remove('hidden');
+          }
+          app.innerHTML = '';
           return;
         } else {
-          loadingScreen.classList.add('hidden');
+          if (loadingScreen) {
+            loadingScreen.classList.add('hidden');
+          }
         }
-
-        const app = document.getElementById('app');
         app.innerHTML = \`
           <div class="header">
             <div class="header-top">
@@ -1378,6 +1388,7 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
       }
 
       function switchTab(tab) {
+        console.log('[Deep Process] Switching to tab:', tab);
         vscode.postMessage({ type: 'switchTab', tab });
       }
 
@@ -1390,6 +1401,7 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
       }
 
       function saveAndInstall() {
+        console.log('[Deep Process] Starting install with tools:', state.enabledTools);
         vscode.postMessage({ type: 'install', enabledTools: state.enabledTools });
       }
 

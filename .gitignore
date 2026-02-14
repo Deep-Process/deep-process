@@ -60,3 +60,7 @@ bmad-builder/
 plans/
 # NPM credentials
 .npmrc
+
+
+# Deep Process
+_deep-process/

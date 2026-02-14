@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as os from 'os';
 import { detectTools } from '../detectors/tool-detector';
+import { loadAllManifests, getProcessesDir } from '../core/process-registry.js';
 import {
-  loadAllManifests,
   copyProcessFiles,
   resolveProcessBaseDir,
   createConfig,
@@ -88,9 +88,10 @@ export async function installCommand(context: vscode.ExtensionContext) {
           // Step 1: Copy process files
           progress.report({ message: 'Copying process files...', increment: 20 });
 
+          const processesDir = getProcessesDir();
           let totalFiles = 0;
           for (const manifest of manifests) {
-            const count = copyProcessFiles(manifest, targetDir);
+            const count = copyProcessFiles(manifest, targetDir, processesDir);
             totalFiles += count;
           }
 

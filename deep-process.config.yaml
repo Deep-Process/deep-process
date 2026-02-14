@@ -1,0 +1,37 @@
+version: 1.0.0
+packageVersion: 1.0.0
+installation:
+  scope: project
+  processDir: _deep-process
+processes:
+  deep-architect:
+    installed: true
+    version: 1.4.1
+  deep-diagram:
+    installed: true
+    version: 0.1.0
+  deep-document:
+    installed: true
+    version: 7.1.1
+  deep-explore:
+    installed: true
+    version: 3.2.0
+  deep-feasibility:
+    installed: true
+    version: 1.1.0
+  deep-risk:
+    installed: true
+    version: 2.2.0
+  deep-synthesis:
+    installed: true
+    version: 1.1.0
+  deep-verify:
+    installed: true
+    version: 2.0.0
+tools:
+  claude:
+    enabled: true
+    files: []
+  gcloud:
+    enabled: true
+    files: []

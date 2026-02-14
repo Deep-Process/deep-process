@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as os from 'os';
+import { loadAllManifests, getProcessesDir } from '../core/process-registry.js';
 import {
-  loadAllManifests,
   copyProcessFiles,
   resolveProcessBaseDir,
   readConfig,
@@ -85,6 +85,7 @@ export async function updateCommand(context: vscode.ExtensionContext) {
     async (progress) => {
       let updatedCount = 0;
       let totalFiles = 0;
+      const processesDir = getProcessesDir();
 
       for (const manifest of outdatedProcesses) {
         progress.report({
@@ -92,7 +93,7 @@ export async function updateCommand(context: vscode.ExtensionContext) {
           increment: (100 / outdatedProcesses.length) * 0.9
         });
 
-        const count = copyProcessFiles(manifest, targetDir);
+        const count = copyProcessFiles(manifest, targetDir, processesDir);
         totalFiles += count;
 
         // Update version in config
