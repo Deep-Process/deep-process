@@ -78,8 +78,28 @@ For automated GitHub releases.
 
 **Get it:**
 1. Go to https://github.com/settings/tokens
-2. Generate new token (classic)
-3. Scopes needed: `repo`, `workflow`
+2. Click "Generate new token" → "Generate new token (classic)"
+3. Name: "Deep Process Releases"
+4. Expiration: Choose your preference (e.g., 90 days, 1 year)
+5. **Select scopes:**
+   - ✅ `repo` (Full control of private repositories)
+     - This includes: `repo:status`, `repo_deployment`, `public_repo`, `repo:invite`, `security_events`
+     - **Required for:** Creating releases, uploading assets, managing tags
+   - ✅ `workflow` (Update GitHub Action workflows)
+     - **Required if:** Scripts need to trigger or modify workflows
+     - **Optional if:** Only creating releases manually
+
+6. Click "Generate token"
+7. **Copy immediately** - you won't see it again!
+
+**Minimum required scopes:**
+- For **public repositories**: `public_repo` (subset of `repo`)
+- For **private repositories**: `repo` (full scope)
+- For **workflow automation**: Add `workflow` scope
+
+**Recommended scopes for Deep Process:**
+- ✅ `repo` - covers everything (releases, tags, code)
+- ✅ `workflow` - allows GitHub Actions automation
 
 **Set it:**
 ```json
