@@ -10,6 +10,7 @@ export interface ProcessConfig {
 export interface ToolConfig {
   enabled: boolean;
   files: string[];
+  cliFlags?: string; // Optional CLI flags (e.g., "--yolo" for gemini, "--dangerously-skip-permissions" for claude)
 }
 
 export interface DeepProcessConfig {

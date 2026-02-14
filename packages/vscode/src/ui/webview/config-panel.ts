@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { detectToolsAsync, refreshToolCache, getCachedTools, DetectedTool, getToolsStats } from '../../detectors/tool-detector';
 import { loadAllManifests, ProcessManifest } from '../../core/process-registry.js';
+import { readConfig } from '@deep-process/core';
 
 export interface ProcessInfo extends ProcessManifest {
   installed: boolean;
@@ -11,6 +12,7 @@ export interface ProcessInfo extends ProcessManifest {
 export interface PanelState {
   tools: DetectedTool[];
   enabledTools: string[];
+  toolConfigs: Record<string, { cliFlags?: string }>; // CLI flags per tool
   processes: ProcessInfo[];
   isLoading: boolean;
   lastSync: number;
@@ -27,6 +29,7 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
     this._state = {
       tools: getCachedTools(),
       enabledTools: [],
+      toolConfigs: {},
       processes: [],
       isLoading: false,
       lastSync: 0,
@@ -91,6 +94,9 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
         case 'viewDocs':
           await vscode.commands.executeCommand('deep-process.viewDocs', data.processId);
           break;
+        case 'updateCliFlags':
+          await this._updateCliFlags(data.toolId, data.flags);
+          break;
       }
     });
 
@@ -105,6 +111,21 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
       // Load config
       const config = vscode.workspace.getConfiguration('deep-process');
       const enabledTools = config.get<string[]>('enabledTools', []);
+
+      // Load tool configs (CLI flags) from deep-process config file
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+      const toolConfigs: Record<string, { cliFlags?: string }> = {};
+      if (workspaceFolder) {
+        const deepConfig = readConfig(workspaceFolder.uri.fsPath);
+        if (deepConfig) {
+          // Extract CLI flags from tool configs
+          for (const [toolId, toolConfig] of Object.entries(deepConfig.tools)) {
+            if (toolConfig.cliFlags) {
+              toolConfigs[toolId] = { cliFlags: toolConfig.cliFlags };
+            }
+          }
+        }
+      }
 
       // Get cached tools or detect async
       let tools = getCachedTools();
@@ -124,6 +145,7 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
       this._updateState({
         tools,
         enabledTools,
+        toolConfigs,
         processes,
         isLoading: false,
         lastSync: Date.now()
@@ -300,6 +322,44 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
       this._showSuccess(`${toolId} integration removed`);
     } catch (error) {
       this._showError(`Failed to uninstall ${toolId}: ${(error as Error).message}`);
+    }
+  }
+
+  private async _updateCliFlags(toolId: string, flags: string) {
+    try {
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+      if (!workspaceFolder) {
+        throw new Error('No workspace folder open');
+      }
+
+      const projectRoot = workspaceFolder.uri.fsPath;
+      const { readConfig, writeConfig } = await import('@deep-process/core');
+      const config = readConfig(projectRoot);
+
+      if (!config) {
+        throw new Error('Deep Process is not installed in this workspace');
+      }
+
+      // Update CLI flags for the tool
+      if (!config.tools[toolId]) {
+        config.tools[toolId] = { enabled: true, files: [] };
+      }
+      config.tools[toolId].cliFlags = flags.trim() || undefined;
+
+      writeConfig(projectRoot, config);
+
+      // Update local state
+      const toolConfigs = { ...this._state.toolConfigs };
+      if (flags.trim()) {
+        toolConfigs[toolId] = { cliFlags: flags.trim() };
+      } else {
+        delete toolConfigs[toolId];
+      }
+      this._updateState({ toolConfigs });
+
+      this._showSuccess(`CLI flags updated for ${toolId}`);
+    } catch (error) {
+      this._showError(`Failed to update CLI flags: ${(error as Error).message}`);
     }
   }
 
@@ -706,6 +766,45 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
         display: flex;
         gap: 8px;
         margin-top: 12px;
+      }
+
+      .tool-config {
+        margin-top: 12px;
+        padding: 12px;
+        background: var(--vscode-textBlockQuote-background);
+        border-radius: 4px;
+      }
+
+      .tool-config-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--vscode-foreground);
+        margin-bottom: 6px;
+      }
+
+      .tool-cli-flags {
+        width: 100%;
+        padding: 6px 8px;
+        background: var(--vscode-input-background);
+        color: var(--vscode-input-foreground);
+        border: 1px solid var(--vscode-input-border);
+        border-radius: 2px;
+        font-family: var(--vscode-font-family);
+        font-size: 12px;
+        margin-top: 4px;
+      }
+
+      .tool-cli-flags:focus {
+        outline: 1px solid var(--vscode-focusBorder);
+        border-color: var(--vscode-focusBorder);
+      }
+
+      .tool-config-hint {
+        margin-top: 6px;
+        font-size: 11px;
+        color: var(--vscode-descriptionForeground);
+        font-style: italic;
       }
 
       /* Process Card */
@@ -1207,6 +1306,24 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
                 \${tool.docsUrl ? \`<button class="button button-small button-link" onclick="openExtension('\${tool.docsUrl}')">Docs</button>\` : ''}
               </div>
             \` : ''}
+            \${isDetected && isEnabled && tool.type === 'cli' ? \`
+              <div class="tool-config">
+                <label class="tool-config-label">
+                  CLI Flags (optional):
+                  <input
+                    type="text"
+                    class="tool-cli-flags"
+                    data-tool-id="\${tool.id}"
+                    value="\${state.toolConfigs?.[tool.id]?.cliFlags || ''}"
+                    placeholder="e.g., --yolo or --dangerously-skip-permissions"
+                    onchange="updateCliFlags('\${tool.id}', this.value)"
+                  />
+                </label>
+                <div class="tool-config-hint">
+                  These flags will be added when running this tool from the Run menu
+                </div>
+              </div>
+            \` : ''}
             \${isDetected && isEnabled ? \`
               <div class="tool-actions">
                 <button class="button button-small button-danger" onclick="uninstallTool('\${tool.id}')">
@@ -1460,6 +1577,10 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
         if (confirm('Remove all integration files for ' + toolId + '?\\n\\nThis will delete all adapter files created for this tool.')) {
           vscode.postMessage({ type: 'uninstallTool', toolId });
         }
+      }
+
+      function updateCliFlags(toolId, flags) {
+        vscode.postMessage({ type: 'updateCliFlags', toolId, flags });
       }
 
       function updateLoadingMessage(message) {

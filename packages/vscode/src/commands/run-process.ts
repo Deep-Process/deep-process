@@ -89,14 +89,18 @@ export async function runProcessCommand(processId: string): Promise<void> {
     return; // User cancelled
   }
 
+  // Extract CLI flags from config
+  const claudeFlags = config.tools['claude']?.cliFlags || '';
+  const geminiFlags = config.tools['gemini']?.cliFlags || '';
+
   // Execute based on choice
   try {
     if (choice.label.includes('Chat Participant')) {
       await executeInChatParticipant(process.slashCommand);
     } else if (choice.label.includes('Claude CLI')) {
-      await executeWithClaudeCLI(process.slashCommand);
+      await executeWithClaudeCLI(process.slashCommand, claudeFlags);
     } else if (choice.label.includes('Gemini CLI')) {
-      await executeWithGeminiCLI(process.slashCommand);
+      await executeWithGeminiCLI(process.slashCommand, geminiFlags);
     } else if (choice.label.includes('View Workflow')) {
       await viewWorkflowDocument(processId, config, projectRoot);
     }
@@ -125,24 +129,26 @@ async function executeInChatParticipant(slashCommand: string): Promise<void> {
   }
 }
 
-async function executeWithClaudeCLI(slashCommand: string): Promise<void> {
+async function executeWithClaudeCLI(slashCommand: string, cliFlags: string = ''): Promise<void> {
   const terminal = vscode.window.createTerminal({
     name: 'Claude CLI',
     iconPath: new vscode.ThemeIcon('terminal'),
   });
 
   terminal.show();
-  terminal.sendText(`claude ${slashCommand}`);
+  const command = cliFlags ? `claude ${cliFlags} ${slashCommand}` : `claude ${slashCommand}`;
+  terminal.sendText(command);
 }
 
-async function executeWithGeminiCLI(slashCommand: string): Promise<void> {
+async function executeWithGeminiCLI(slashCommand: string, cliFlags: string = ''): Promise<void> {
   const terminal = vscode.window.createTerminal({
     name: 'Gemini CLI',
     iconPath: new vscode.ThemeIcon('terminal'),
   });
 
   terminal.show();
-  terminal.sendText(`gemini ${slashCommand}`);
+  const command = cliFlags ? `gemini ${cliFlags} ${slashCommand}` : `gemini ${slashCommand}`;
+  terminal.sendText(command);
 }
 
 async function viewWorkflowDocument(
