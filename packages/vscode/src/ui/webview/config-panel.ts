@@ -827,6 +827,12 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
         margin-bottom: 12px;
       }
 
+      .process-header-actions {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
       .process-title {
         font-size: 16px;
         font-weight: 600;
@@ -1372,27 +1378,27 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
                 <div class="process-title">\${proc.name}</div>
                 <div class="process-version">v\${proc.version}</div>
               </div>
+              \${installed ? \`
+                <div class="process-header-actions">
+                  <button class="button button-small button-secondary" onclick="viewDocs('\${proc.id}')" title="View documentation">
+                    📖 Docs
+                  </button>
+                  <button class="button button-small" onclick="runProcess('\${proc.id}')" title="Run this process">
+                    ▶️ Run
+                  </button>
+                </div>
+              \` : \`
+                <button class="button button-small" onclick="installProcess('\${proc.id}')">
+                  ⬇️ Install
+                </button>
+              \`}
             </div>
             <div class="process-description">\${proc.description}</div>
             \${installed ? \`
               <div class="process-meta">
                 Status: Installed · \${proc.fileCount || 0} files
               </div>
-              <div class="process-actions">
-                <button class="button button-small" onclick="runProcess('\${proc.id}')">
-                  ▶️ Run
-                </button>
-                <button class="button button-small button-secondary" onclick="viewDocs('\${proc.id}')">
-                  📖 Docs
-                </button>
-              </div>
-            \` : \`
-              <div class="process-actions">
-                <button class="button button-small" onclick="installProcess('\${proc.id}')">
-                  ⬇️ Install
-                </button>
-              </div>
-            \`}
+            \` : ''}
           </div>
         \`;
       }
