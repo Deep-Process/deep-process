@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
 
 export interface ProcessManifest {
@@ -23,7 +24,10 @@ export interface ProcessManifest {
  */
 export function getProcessesDir(): string {
   // When running from dist/, processes are at the package root
-  return path.resolve(import.meta.dirname, '..', '..', 'processes');
+  // import.meta.url -> file:///path/to/package/dist/process-registry.js
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  return path.resolve(__dirname, '..', '..', 'processes');
 }
 
 /**
