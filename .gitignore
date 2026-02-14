@@ -58,3 +58,5 @@ bmad-builder/
 
 # Plans and roadmaps (internal use only)
 plans/
+# NPM credentials
+.npmrc
