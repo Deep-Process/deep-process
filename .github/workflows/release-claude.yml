@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'packages/claude-plugin/.claude-plugin/plugin.json'
+      - '.claude-plugin/plugin.json'
 
 jobs:
   release:
@@ -17,7 +17,7 @@ jobs:
       - name: Extract version
         id: version
         run: |
-          VERSION=$(node -p "require('./packages/claude-plugin/.claude-plugin/plugin.json').version")
+          VERSION=$(node -p "require('./.claude-plugin/plugin.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=claude-plugin-v$VERSION" >> "$GITHUB_OUTPUT"
 
@@ -44,7 +44,7 @@ jobs:
             ### Installation
 
             ```bash
-            claude plugin install deep-process-org/deep-process --directory packages/claude-plugin
+            claude plugin install deep-process-org/deep-process
             ```
 
             Or browse on [Claude Marketplace](https://claudemarketplaces.com).

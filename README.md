@@ -202,28 +202,45 @@ You don't have to use them all. Each process works standalone. But when combined
 
 ```powershell
 # Build all packages (Core, CLI, VS Code Extension)
-.\build-all.ps1
+.\scripts\build\build-all.ps1
+
+# Build specific package
+.\scripts\build\build-npm.ps1       # NPM package only
+.\scripts\build\build-vscode.ps1    # VS Code extension only
 
 # Options
-.\build-all.ps1 -Clean           # Clean before build
-.\build-all.ps1 -SkipInstall     # Skip pnpm install
-.\build-all.ps1 -Verbose         # Detailed output
+.\scripts\build\build-all.ps1 -Clean           # Clean before build
+.\scripts\build\build-all.ps1 -SkipInstall     # Skip pnpm install
+.\scripts\build\build-all.ps1 -Verbose         # Detailed output
 ```
 
-### Testing VS Code Extension
+### Testing VS Code Extension Locally
 
 ```powershell
-# Method 1: Install .vsix file
-.\build-all.ps1
-code --install-extension packages/vscode/deep-process-vscode-1.0.0.vsix
+# Quick dev cycle: build + install locally
+.\scripts\dev\vscode-dev.ps1
 
-# Method 2: Extension Development Host (live debugging)
+# Then reload VS Code (Ctrl+Shift+P → Developer: Reload Window)
+
+# Or use Extension Development Host (live debugging)
 cd packages/vscode
 code .
-# Press F5 in VS Code
+# Press F5 in VS Code to launch debugger
 ```
 
-See [BUILD.md](BUILD.md) and [packages/vscode/TESTING.md](packages/vscode/TESTING.md) for detailed guides.
+### Publishing
+
+```powershell
+# Publish to npm
+.\scripts\publish\publish-npm.ps1
+
+# Publish to VS Code Marketplace
+.\scripts\publish\publish-vscode.ps1
+
+# See scripts/README.md for full documentation
+```
+
+See [scripts/README.md](scripts/README.md) for complete build/publish documentation.
 
 ### Monorepo Structure
 
@@ -233,9 +250,13 @@ deep-process/
 ├── packages/
 │   ├── core/              # Shared utilities (@deep-process/core)
 │   ├── cli/               # npm package (deep-process)
-│   ├── vscode/            # VS Code extension
-│   ├── claude-plugin/     # Claude Code plugin
-│   └── copilot-agents/    # GitHub Copilot agents
+│   └── vscode/            # VS Code extension
+├── scripts/               # Build, publish, and dev tools
+│   ├── build/            # Build scripts for all packages
+│   ├── publish/          # Publication scripts
+│   ├── dev/              # Local development tools
+│   └── config/           # Secrets and configuration
+├── .claude-plugin/        # Claude Code plugin config
 └── .github/workflows/     # CI/CD automation
 ```
 

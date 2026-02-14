@@ -23,6 +23,10 @@ packages/vscode/processes/
 .env
 .env.*
 
+# Secrets (tokens for publishing)
+scripts/config/.secrets
+.secrets
+
 # System files
 .DS_Store
 Thumbs.db
