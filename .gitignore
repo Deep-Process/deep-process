@@ -16,6 +16,7 @@ npm-debug.log*
 build/
 dist/
 packages/vscode/processes/
+packages/cli/processes/
 
 # Environment variables
 .env
