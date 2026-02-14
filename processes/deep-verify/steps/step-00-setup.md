@@ -109,9 +109,49 @@ not phase count.
 ```
 Configure Stakes & Bias settings, or use DEFAULT?
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EXPLANATION OF SETTINGS:
+
+1. STAKES — Impact of accepting a flawed artifact vs. rejecting a sound one
+
+   LOW: Minor rework, <$10K cost, <1 week delay, reversible changes
+        → More lenient thresholds, early ACCEPT allowed (S ≤ -3)
+
+   MEDIUM: Significant rework, $10K-$100K, 1-4 weeks
+        → Standard thresholds, balanced rigor
+
+   HIGH: Major damage, >$100K, >1 month, safety/reputation risks
+        → Strictest thresholds, UNCERTAIN always escalates
+        → NO early ACCEPT (forces full verification)
+        → Recommended for production systems, public APIs, safety-critical code
+
+2. BIAS MODE — How to handle pre-existing expectations about the artifact
+
+   Standard: You state your initial impression (Sound/Uncertain/Flawed)
+             Used in Quick/Standard modes
+
+   Blind: You do NOT state initial expectations (sets initial_assessment=BLIND)
+          Prevents confirmation bias in Deep Mode
+          Agent evaluates evidence without knowing your expectations
+
+3. INITIAL ASSESSMENT — Your gut feeling about the artifact (if not Blind)
+
+   Sound: You expect the artifact to be correct/valid
+   Uncertain: You're unsure, need verification
+   Flawed: You suspect issues exist
+   BLIND: No initial assessment (prevents bias)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 Options:
-- DEFAULT: Uses standard settings for [Selected Mode] (Recommended).
-- CUSTOM: Manually set Stakes, Initial Assessment, and Bias Check.
+- DEFAULT: Uses standard settings for [Selected Mode] (Recommended)
+            - Stakes: HIGH
+            - Bias Mode: Blind
+            - Initial Assessment: BLIND
+
+- CUSTOM: Manually configure each setting based on your context
+
+Your choice? (DEFAULT or CUSTOM)
 ```
 
 > **HALT** — Wait for user response.
