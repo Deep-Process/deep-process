@@ -30,23 +30,43 @@
   "contributes": {
     "commands": [
       {
+        "command": "deep-process.runWizard",
+        "title": "Run Setup Wizard",
+        "category": "Deep Process"
+      },
+      {
         "command": "deep-process.configure",
         "title": "Configure Deep Process",
         "category": "Deep Process"
       },
       {
         "command": "deep-process.install",
-        "title": "Install Processes",
+        "title": "Install All Processes",
         "category": "Deep Process"
       },
       {
         "command": "deep-process.update",
-        "title": "Update Processes",
+        "title": "Update All Processes",
         "category": "Deep Process"
       },
       {
         "command": "deep-process.uninstall",
-        "title": "Uninstall",
+        "title": "Uninstall All",
+        "category": "Deep Process"
+      },
+      {
+        "command": "deep-process.installProcess",
+        "title": "Install Process",
+        "category": "Deep Process"
+      },
+      {
+        "command": "deep-process.uninstallProcess",
+        "title": "Uninstall Process",
+        "category": "Deep Process"
+      },
+      {
+        "command": "deep-process.updateProcess",
+        "title": "Update Process",
         "category": "Deep Process"
       },
       {

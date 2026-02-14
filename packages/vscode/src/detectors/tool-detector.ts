@@ -1,5 +1,8 @@
 import * as vscode from 'vscode';
-import { execSync } from 'child_process';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 export interface DetectedTool {
   id: string;
@@ -7,20 +10,61 @@ export interface DetectedTool {
   type: 'extension' | 'cli';
   detected: boolean;
   version?: string;
+  description?: string;
+  installUrl?: string;
+  docsUrl?: string;
 }
 
+export type ProgressCallback = (message: string, increment?: number) => void;
+
+// Cache with TTL
+interface ToolCache {
+  data: DetectedTool[];
+  timestamp: number;
+}
+
+let toolsCache: ToolCache | null = null;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Detect tools with caching (synchronous, uses cache if available)
+ */
 export function detectTools(): DetectedTool[] {
+  const now = Date.now();
+
+  if (toolsCache && (now - toolsCache.timestamp) < CACHE_TTL) {
+    return toolsCache.data;
+  }
+
+  // If cache is stale/missing, return empty array and trigger async detection
+  // This prevents blocking the UI
+  if (!toolsCache) {
+    // Return empty array on first call, caller should use detectToolsAsync
+    return [];
+  }
+
+  return toolsCache.data;
+}
+
+/**
+ * Detect tools asynchronously with progress reporting
+ */
+export async function detectToolsAsync(
+  progress?: ProgressCallback
+): Promise<DetectedTool[]> {
   const tools: DetectedTool[] = [];
 
-  // Detect VS Code extensions
-  // Note: GitHub.copilot is deprecated, replaced by GitHub.copilot-chat
-  const copilotChat = detectExtension('GitHub.copilot-chat', 'GitHub Copilot Chat');
+  progress?.('Detecting VS Code extensions...', 20);
+
+  // Detect VS Code extensions (fast, synchronous)
+  const copilotChat = detectExtension('GitHub.copilot-chat', 'GitHub Copilot Chat', {
+    description: 'AI pair programmer from GitHub',
+    docsUrl: 'https://docs.github.com/copilot'
+  });
   const copilotLegacy = detectExtension('GitHub.copilot', 'GitHub Copilot (Legacy)');
 
-  // Only show Copilot Chat (the current one)
   tools.push(copilotChat);
 
-  // If legacy is installed but not chat, show warning
   if (copilotLegacy.detected && !copilotChat.detected) {
     tools.push({
       ...copilotLegacy,
@@ -28,19 +72,88 @@ export function detectTools(): DetectedTool[] {
     });
   }
 
-  tools.push(detectExtension('continue.continue', 'Continue.dev'));
-  tools.push(detectExtension('saoudrizwan.claude-dev', 'Cline'));
-  tools.push(detectExtension('Windsurf.windsurf', 'Windsurf'));
-  tools.push(detectExtension('RooVetGit.roo-cline', 'Roo Code'));
+  tools.push(detectExtension('continue.continue', 'Continue.dev', {
+    description: 'Open-source AI code assistant',
+    installUrl: 'vscode:extension/continue.continue',
+    docsUrl: 'https://continue.dev/docs'
+  }));
 
-  // Detect CLI tools (try multiple command variations)
-  tools.push(detectCLI('claude', 'Claude CLI'));
-  tools.push(detectCLIMultiple(['gemini', 'gemini-cli', 'gcloud', 'google-gemini'], 'Gemini CLI'));
+  tools.push(detectExtension('saoudrizwan.claude-dev', 'Cline', {
+    description: 'Claude-powered autonomous coding agent',
+    installUrl: 'vscode:extension/saoudrizwan.claude-dev',
+    docsUrl: 'https://github.com/saoudrizwan/claude-dev'
+  }));
+
+  tools.push(detectExtension('Windsurf.windsurf', 'Windsurf', {
+    description: 'AI-powered code editor',
+    installUrl: 'vscode:extension/Windsurf.windsurf'
+  }));
+
+  tools.push(detectExtension('RooVetGit.roo-cline', 'Roo Code', {
+    description: 'AI coding assistant',
+    installUrl: 'vscode:extension/RooVetGit.roo-cline'
+  }));
+
+  progress?.('Scanning for CLI tools...', 40);
+
+  // Detect CLI tools (slow, async)
+  const claudeCLI = await detectCLIAsync('claude', 'Claude CLI', {
+    description: 'Official Anthropic Claude CLI',
+    installUrl: 'https://github.com/anthropics/anthropic-quickstarts',
+    docsUrl: 'https://docs.anthropic.com/claude/docs'
+  });
+  tools.push(claudeCLI);
+
+  progress?.('Checking additional tools...', 20);
+
+  const geminiCLI = await detectCLIMultipleAsync(
+    ['gemini', 'gemini-cli', 'gcloud', 'google-gemini'],
+    'Gemini CLI',
+    {
+      description: 'Google Gemini CLI tool',
+      installUrl: 'https://ai.google.dev/gemini-api/docs/quickstart',
+      docsUrl: 'https://ai.google.dev/gemini-api/docs'
+    }
+  );
+  tools.push(geminiCLI);
+
+  progress?.('Detection complete', 20);
+
+  // Update cache
+  toolsCache = {
+    data: tools,
+    timestamp: Date.now()
+  };
 
   return tools;
 }
 
-function detectExtension(extensionId: string, name: string): DetectedTool {
+/**
+ * Force refresh cache
+ */
+export async function refreshToolCache(progress?: ProgressCallback): Promise<DetectedTool[]> {
+  toolsCache = null;
+  return detectToolsAsync(progress);
+}
+
+/**
+ * Get cached tools or empty array
+ */
+export function getCachedTools(): DetectedTool[] {
+  return toolsCache?.data ?? [];
+}
+
+interface ToolMetadata {
+  description?: string;
+  installUrl?: string;
+  docsUrl?: string;
+}
+
+function detectExtension(
+  extensionId: string,
+  name: string,
+  metadata?: ToolMetadata
+): DetectedTool {
   const extension = vscode.extensions.getExtension(extensionId);
 
   return {
@@ -48,50 +161,60 @@ function detectExtension(extensionId: string, name: string): DetectedTool {
     name,
     type: 'extension',
     detected: !!extension,
-    version: extension?.packageJSON?.version
+    version: extension?.packageJSON?.version,
+    ...metadata
   };
 }
 
-function detectCLI(command: string, name: string): DetectedTool {
+async function detectCLIAsync(
+  command: string,
+  name: string,
+  metadata?: ToolMetadata
+): Promise<DetectedTool> {
   try {
-    const version = execSync(`${command} --version`, {
-      encoding: 'utf-8',
+    const { stdout } = await execAsync(`${command} --version`, {
       timeout: 3000,
-      stdio: ['pipe', 'pipe', 'ignore']
-    }).trim();
+      encoding: 'utf-8'
+    });
 
     return {
       id: command,
       name,
       type: 'cli',
       detected: true,
-      version
+      version: stdout.trim(),
+      ...metadata
     };
   } catch {
     return {
       id: command,
       name,
       type: 'cli',
-      detected: false
+      detected: false,
+      ...metadata
     };
   }
 }
 
-function detectCLIMultiple(commands: string[], name: string): DetectedTool {
+async function detectCLIMultipleAsync(
+  commands: string[],
+  name: string,
+  metadata?: ToolMetadata
+): Promise<DetectedTool> {
   for (const command of commands) {
     try {
-      const version = execSync(`${command} --version`, {
-        encoding: 'utf-8',
+      const { stdout } = await execAsync(`${command} --version`, {
         timeout: 3000,
-        stdio: ['pipe', 'pipe', 'ignore']
-      }).trim();
+        encoding: 'utf-8'
+      });
 
       return {
         id: command,
         name,
         type: 'cli',
         detected: true,
-        version
+        version: stdout.trim(),
+        ...metadata
       };
     } catch {
       // Try next command
@@ -103,10 +226,37 @@ function detectCLIMultiple(commands: string[], name: string): DetectedTool {
     id: commands[0],
     name,
     type: 'cli',
-    detected: false
+    detected: false,
+    ...metadata
   };
 }
 
 export function getDetectedToolIds(tools: DetectedTool[]): string[] {
   return tools.filter(t => t.detected).map(t => t.id);
+}
+
+/**
+ * Get tools count by type and status
+ */
+export function getToolsStats(tools: DetectedTool[]): {
+  total: number;
+  detected: number;
+  extensions: { total: number; detected: number };
+  cli: { total: number; detected: number };
+} {
+  const extensions = tools.filter(t => t.type === 'extension');
+  const cliTools = tools.filter(t => t.type === 'cli');
+
+  return {
+    total: tools.length,
+    detected: tools.filter(t => t.detected).length,
+    extensions: {
+      total: extensions.length,
+      detected: extensions.filter(t => t.detected).length
+    },
+    cli: {
+      total: cliTools.length,
+      detected: cliTools.filter(t => t.detected).length
+    }
+  };
 }

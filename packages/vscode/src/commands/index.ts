@@ -4,6 +4,11 @@ import { installCommand } from './install';
 import { updateCommand } from './update';
 import { uninstallCommand } from './uninstall';
 import { processCommands } from './process-commands';
+import {
+  installProcessCommand,
+  uninstallProcessCommand,
+  updateProcessCommand
+} from './process-manager';
 
 export function registerCommands(context: vscode.ExtensionContext) {
   // Configuration commands
@@ -21,6 +26,28 @@ export function registerCommands(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand('deep-process.uninstall', () => uninstallCommand(context))
+  );
+
+  // Process management commands
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'deep-process.installProcess',
+      (processId: string) => installProcessCommand(context, processId)
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'deep-process.uninstallProcess',
+      (processId: string) => uninstallProcessCommand(context, processId)
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'deep-process.updateProcess',
+      (processId: string) => updateProcessCommand(context, processId)
+    )
   );
 
   // Process commands (verify, explore, document, feasibility, synthesis)
