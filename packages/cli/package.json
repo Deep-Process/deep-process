@@ -1,6 +1,6 @@
 {
   "name": "deep-process",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "Structured LLM workflows for verification, exploration, architecture, feasibility, risk, synthesis, and documentation — with interactive installer for 11 AI tools",
   "type": "module",
   "bin": {
@@ -9,7 +9,9 @@
   "main": "./dist/cli.js",
   "files": [
     "bin/",
-    "dist/"
+    "dist/",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc",
