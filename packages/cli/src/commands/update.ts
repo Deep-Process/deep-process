@@ -4,7 +4,7 @@ import { readConfig, writeConfig } from '@deep-process/core';
 import { checkForUpdates } from '@deep-process/core';
 import { copyProcessFiles } from '@deep-process/core';
 import { resolveProcessBaseDir, type PathContext } from '@deep-process/core';
-import { loadAllManifests } from '../core/process-registry.js';
+import { loadAllManifests, getProcessesDir } from '../core/process-registry.js';
 import { getAdapter, type ToolId } from '../adapters/index.js';
 import { log, createSpinner } from '../utils/logger.js';
 
@@ -54,12 +54,13 @@ export async function updateCommand(options: UpdateOptions): Promise<void> {
   const spinner = createSpinner('Updating process files...');
   spinner.start();
 
+  const processesDir = getProcessesDir();
   const updatedManifests = manifests.filter(m =>
     outdated.some(u => u.processId === m.id)
   );
 
   for (const manifest of updatedManifests) {
-    copyProcessFiles(manifest, targetDir);
+    copyProcessFiles(manifest, targetDir, processesDir);
     config.processes[manifest.id] = {
       installed: true,
       version: manifest.version,

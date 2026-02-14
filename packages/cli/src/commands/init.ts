@@ -3,7 +3,7 @@ import path from 'node:path';
 import { copyProcessFiles } from '@deep-process/core';
 import { resolveProcessBaseDir, type PathContext } from '@deep-process/core';
 import { createConfig, writeConfig, configExists } from '@deep-process/core';
-import { loadAllManifests } from '../core/process-registry.js';
+import { loadAllManifests, getProcessesDir } from '../core/process-registry.js';
 import { getAdapter, detectTools, isValidToolId, type ToolId } from '../adapters/index.js';
 import { runWizard, type WizardAnswers } from '../wizard/prompts.js';
 import { log, createSpinner } from '../utils/logger.js';
@@ -86,9 +86,10 @@ export async function initCommand(options: InitOptions): Promise<void> {
   const spinner = createSpinner('Copying process files...');
   spinner.start();
 
+  const processesDir = getProcessesDir();
   let totalFiles = 0;
   for (const manifest of selectedManifests) {
-    const count = copyProcessFiles(manifest, targetDir);
+    const count = copyProcessFiles(manifest, targetDir, processesDir);
     totalFiles += count;
   }
 

@@ -8,9 +8,11 @@ import { getProcessesDir, type ProcessManifest } from './process-registry.js';
  */
 export function copyProcessFiles(
   manifest: ProcessManifest,
-  targetBaseDir: string
+  targetBaseDir: string,
+  sourceBaseDir?: string
 ): number {
-  const sourceDir = path.join(getProcessesDir(), manifest.id);
+  const processesDir = sourceBaseDir ?? getProcessesDir();
+  const sourceDir = path.join(processesDir, manifest.id);
   const targetDir = path.join(targetBaseDir, manifest.id);
 
   if (!fs.existsSync(sourceDir)) {
