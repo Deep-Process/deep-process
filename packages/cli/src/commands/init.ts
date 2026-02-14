@@ -4,10 +4,10 @@ import { copyProcessFiles } from '@deep-process/core';
 import { resolveProcessBaseDir, type PathContext } from '@deep-process/core';
 import { createConfig, writeConfig, configExists } from '@deep-process/core';
 import { loadAllManifests, getProcessesDir } from '../core/process-registry.js';
-import { getAdapter, detectTools, isValidToolId, type ToolId } from '../adapters/index.js';
+import { getAdapter, detectTools, isValidToolId, type ToolId } from '@deep-process/core';
 import { runWizard, type WizardAnswers } from '../wizard/prompts.js';
 import { log, createSpinner } from '../utils/logger.js';
-import { addToGitignore } from '../utils/fs-helpers.js';
+import { addToGitignore } from '@deep-process/core';
 
 interface InitOptions {
   yes?: boolean;

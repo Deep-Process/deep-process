@@ -24,12 +24,15 @@ export interface DeepProcessConfig {
 }
 
 const CONFIG_FILENAME = 'deep-process.config.yaml';
+const OLD_CONFIG_PATH = CONFIG_FILENAME; // Root-level config (legacy)
+const NEW_CONFIG_DIR = '_deep-process'; // New config directory
 
 /**
  * Get the config file path for a given project root.
+ * Now uses _deep-process/deep-process.config.yaml instead of root-level.
  */
 export function getConfigPath(projectRoot: string): string {
-  return path.join(projectRoot, CONFIG_FILENAME);
+  return path.join(projectRoot, NEW_CONFIG_DIR, CONFIG_FILENAME);
 }
 
 /**
@@ -74,4 +77,45 @@ export function createConfig(
  */
 export function configExists(projectRoot: string): boolean {
   return fs.existsSync(getConfigPath(projectRoot));
+}
+
+/**
+ * Migrate config from root directory to _deep-process/ directory.
+ * Returns true if migration was performed, false otherwise.
+ */
+export function migrateConfigToNewLocation(projectRoot: string): boolean {
+  const oldPath = path.join(projectRoot, OLD_CONFIG_PATH);
+  const newPath = getConfigPath(projectRoot);
+
+  // If old config exists and new one doesn't, migrate
+  if (fs.existsSync(oldPath) && !fs.existsSync(newPath)) {
+    try {
+      // Ensure target directory exists
+      const newDir = path.dirname(newPath);
+      if (!fs.existsSync(newDir)) {
+        fs.mkdirSync(newDir, { recursive: true });
+      }
+
+      // Copy config file
+      fs.copyFileSync(oldPath, newPath);
+
+      // Remove old config
+      fs.unlinkSync(oldPath);
+
+      return true;
+    } catch (error) {
+      console.error('Failed to migrate config:', error);
+      return false;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Check if old root-level config exists (for migration detection).
+ */
+export function hasLegacyConfig(projectRoot: string): boolean {
+  const oldPath = path.join(projectRoot, OLD_CONFIG_PATH);
+  return fs.existsSync(oldPath);
 }

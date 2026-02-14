@@ -29,9 +29,9 @@ processes:
     installed: true
     version: 2.0.0
 tools:
-  claude:
+  gcloud:
     enabled: true
     files: []
-  gcloud:
+  claude:
     enabled: true
     files: []

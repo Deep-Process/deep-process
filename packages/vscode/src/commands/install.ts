@@ -11,6 +11,7 @@ import {
   configExists,
   type PathContext
 } from '@deep-process/core';
+import { installAdaptersForTools } from '../adapters/adapter-installer';
 
 export async function installCommand(context: vscode.ExtensionContext) {
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -107,18 +108,31 @@ export async function installCommand(context: vscode.ExtensionContext) {
             };
           }
 
-          // Record enabled tools (even if not installed yet)
+          // Step 2.5: Install AI tool adapters
+          progress.report({ message: 'Installing AI tool integrations...', increment: 15 });
+
+          const adapterFiles = await installAdaptersForTools(
+            enabledTools,
+            manifests,
+            pathCtx,
+            projectRoot,
+            (msg) => {
+              progress.report({ message: msg });
+            }
+          );
+
+          // Record enabled tools and their installed files
           for (const toolId of enabledTools) {
             deepConfig.tools[toolId] = {
               enabled: true,
-              files: [],
+              files: adapterFiles[toolId] || [],
             };
           }
 
           writeConfig(projectRoot, deepConfig);
 
           // Step 3: Add to gitignore
-          progress.report({ message: 'Updating .gitignore...', increment: 30 });
+          progress.report({ message: 'Updating .gitignore...', increment: 25 });
 
           await addToGitignore(projectRoot, processDir);
 

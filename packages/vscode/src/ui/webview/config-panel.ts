@@ -73,7 +73,7 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
           await this._uninstallProcess(data.processId);
           break;
         case 'runProcess':
-          await this._runProcess(data.processId);
+          await vscode.commands.executeCommand('deep-process.runProcess', data.processId);
           break;
         case 'switchTab':
           this._state.currentTab = data.tab;
@@ -84,6 +84,12 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
           break;
         case 'openExtension':
           vscode.env.openExternal(vscode.Uri.parse(data.url));
+          break;
+        case 'uninstallTool':
+          await this._uninstallTool(data.toolId);
+          break;
+        case 'viewDocs':
+          await vscode.commands.executeCommand('deep-process.viewDocs', data.processId);
           break;
       }
     });
@@ -281,6 +287,20 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
     await this._context.globalState.update('deep-process.setupCompleted', true);
     this._updateState({ setupCompleted: true });
     this._showSuccess('Setup completed! You can now use Deep Process workflows.');
+  }
+
+  private async _uninstallTool(toolId: string) {
+    try {
+      await vscode.commands.executeCommand('deep-process.uninstallTool', toolId);
+
+      // Update state - remove tool from enabled list
+      const enabledTools = this._state.enabledTools.filter(id => id !== toolId);
+      this._updateState({ enabledTools });
+
+      this._showSuccess(`${toolId} integration removed`);
+    } catch (error) {
+      this._showError(`Failed to uninstall ${toolId}: ${(error as Error).message}`);
+    }
   }
 
   private _updateState(updates: Partial<PanelState>) {
@@ -1187,6 +1207,13 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
                 \${tool.docsUrl ? \`<button class="button button-small button-link" onclick="openExtension('\${tool.docsUrl}')">Docs</button>\` : ''}
               </div>
             \` : ''}
+            \${isDetected && isEnabled ? \`
+              <div class="tool-actions">
+                <button class="button button-small button-danger" onclick="uninstallTool('\${tool.id}')">
+                  🗑️ Uninstall
+                </button>
+              </div>
+            \` : ''}
           </div>
         \`;
       }
@@ -1238,8 +1265,8 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
                 <button class="button button-small" onclick="runProcess('\${proc.id}')">
                   ▶️ Run
                 </button>
-                <button class="button button-small button-secondary" onclick="uninstallProcess('\${proc.id}')">
-                  🗑️ Uninstall
+                <button class="button button-small button-secondary" onclick="viewDocs('\${proc.id}')">
+                  📖 Docs
                 </button>
               </div>
             \` : \`
@@ -1417,12 +1444,22 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
         vscode.postMessage({ type: 'runProcess', processId });
       }
 
+      function viewDocs(processId) {
+        vscode.postMessage({ type: 'viewDocs', processId });
+      }
+
       function completeSetup() {
         vscode.postMessage({ type: 'completeSetup' });
       }
 
       function openExtension(url) {
         vscode.postMessage({ type: 'openExtension', url });
+      }
+
+      function uninstallTool(toolId) {
+        if (confirm('Remove all integration files for ' + toolId + '?\\n\\nThis will delete all adapter files created for this tool.')) {
+          vscode.postMessage({ type: 'uninstallTool', toolId });
+        }
       }
 
       function updateLoadingMessage(message) {

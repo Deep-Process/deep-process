@@ -203,10 +203,15 @@ async function detectCLIMultipleAsync(
 ): Promise<DetectedTool> {
   for (const command of commands) {
     try {
-      const { stdout } = await execAsync(`${command} --version`, {
-        timeout: 3000,
-        encoding: 'utf-8'
+      console.log(`[Tool Detector] Trying ${command} --version`);
+
+      const { stdout, stderr } = await execAsync(`${command} --version`, {
+        timeout: 5000,  // Increased timeout for Windows compatibility
+        encoding: 'utf-8',
+        shell: true     // Use shell for better Windows compatibility
       });
+
+      console.log(`[Tool Detector] ${command} detected: ${stdout.trim()}`);
 
       return {
         id: command,
@@ -216,12 +221,14 @@ async function detectCLIMultipleAsync(
         version: stdout.trim(),
         ...metadata
       };
-    } catch {
+    } catch (error) {
+      console.log(`[Tool Detector] ${command} failed:`, (error as Error).message);
       // Try next command
     }
   }
 
   // None worked
+  console.log(`[Tool Detector] ${name} not found, tried:`, commands);
   return {
     id: commands[0],
     name,

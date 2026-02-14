@@ -1,11 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ToolAdapter, InstalledFile, DetectionResult } from './base-adapter.js';
-import type { ProcessManifest } from '@deep-process/core';
-import type { PathContext } from '@deep-process/core';
-import { buildTemplateVars } from '@deep-process/core';
-import { renderTemplate } from '@deep-process/core';
-import { safeWriteFile, safeRemoveFile, toPosixPath } from '../utils/fs-helpers.js';
+import type { ProcessManifest } from '../index.js';
+import type { PathContext } from '../index.js';
+import { buildTemplateVars } from '../index.js';
+import { renderTemplate } from '../index.js';
+import { safeWriteFile, safeRemoveFile, toPosixPath } from '../fs-helpers.js';
 import { loadTemplate as loadTpl } from './template-loader.js';
 
 function loadTemplate(): string {

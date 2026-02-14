@@ -15,8 +15,8 @@ importers:
   packages/cli:
     dependencies:
       '@deep-process/core':
-        specifier: ^1.0.1
-        version: 1.0.1
+        specifier: workspace:*
+        version: link:../core
       '@inquirer/prompts':
         specifier: ^7.0.0
         version: 7.10.1(@types/node@22.19.11)
@@ -119,9 +119,6 @@ packages:
   '@azure/msal-node@3.8.7':
     resolution: {integrity: sha512-a+Xnrae+uwLnlw68bplS1X4kuJ9F/7K6afuMFyRkNIskhjgDezl5Fhrx+1pmAlDmC0VaaAxjRQMp1OmcqVwkIg==}
     engines: {node: '>=16'}
-
-  '@deep-process/core@1.0.1':
-    resolution: {integrity: sha512-s+ty2Rsa6h5ZBd530c63zUEmVs0tDrBFknJS4pQvjNKW23462ofKZEOAP0iPvSeqzk7tbgpJ5vs/PBOa/DEdUw==}
 
   '@esbuild/aix-ppc64@0.27.3':
     resolution: {integrity: sha512-9fJMTNFTWZMh5qwrBItuziu834eOCUcEqymSH7pY+zoMVEZg3gcPuBNxH1EvfVYe9h0x/Ptw8KBzv7qxb7l8dg==}
@@ -1291,10 +1288,6 @@ snapshots:
       '@azure/msal-common': 15.14.2
       jsonwebtoken: 9.0.3
       uuid: 8.3.2
-
-  '@deep-process/core@1.0.1':
-    dependencies:
-      yaml: 2.8.2
 
   '@esbuild/aix-ppc64@0.27.3':
     optional: true

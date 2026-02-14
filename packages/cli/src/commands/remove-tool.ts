@@ -1,5 +1,5 @@
 import { readConfig, writeConfig } from '@deep-process/core';
-import { getAdapter, isValidToolId, type ToolId } from '../adapters/index.js';
+import { getAdapter, isValidToolId, type ToolId } from '@deep-process/core';
 import { log, createSpinner } from '../utils/logger.js';
 import { confirm } from '@inquirer/prompts';
 

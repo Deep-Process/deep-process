@@ -9,6 +9,12 @@ import {
   uninstallProcessCommand,
   updateProcessCommand
 } from './process-manager';
+import {
+  installToolCommand,
+  uninstallToolCommand
+} from './tool-manager';
+import { viewDocsCommand } from './view-docs';
+import { runProcessCommand } from './run-process';
 
 export function registerCommands(context: vscode.ExtensionContext) {
   // Configuration commands
@@ -26,6 +32,21 @@ export function registerCommands(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand('deep-process.uninstall', () => uninstallCommand(context))
+  );
+
+  // Tool management commands
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'deep-process.installTool',
+      (toolId: string) => installToolCommand(toolId)
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'deep-process.uninstallTool',
+      (toolId: string) => uninstallToolCommand(toolId)
+    )
   );
 
   // Process management commands
@@ -47,6 +68,20 @@ export function registerCommands(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand(
       'deep-process.updateProcess',
       (processId: string) => updateProcessCommand(context, processId)
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'deep-process.viewDocs',
+      (processId: string) => viewDocsCommand(processId)
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'deep-process.runProcess',
+      (processId: string) => runProcessCommand(processId)
     )
   );
 

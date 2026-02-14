@@ -11,3 +11,10 @@ export * from './file-copier.js';
 
 // Version management
 export * from './version-manager.js';
+
+// Adapters (for AI tool integrations)
+export * from './adapters/base-adapter.js';
+export * from './adapters/index.js';
+
+// File system helpers
+export * from './fs-helpers.js';

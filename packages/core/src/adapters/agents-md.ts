@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ToolAdapter, InstalledFile } from './base-adapter.js';
-import type { ProcessManifest } from '@deep-process/core';
-import type { PathContext } from '@deep-process/core';
-import { buildTemplateVars } from '@deep-process/core';
-import { markerReplace, markerRemove } from '../utils/fs-helpers.js';
+import type { ProcessManifest } from '../index.js';
+import type { PathContext } from '../index.js';
+import { buildTemplateVars } from '../index.js';
+import { markerReplace, markerRemove } from '../fs-helpers.js';
 
 const START_MARKER = '<!-- deep-process:start -->';
 const END_MARKER = '<!-- deep-process:end -->';

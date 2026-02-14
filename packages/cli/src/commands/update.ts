@@ -5,7 +5,7 @@ import { checkForUpdates } from '@deep-process/core';
 import { copyProcessFiles } from '@deep-process/core';
 import { resolveProcessBaseDir, type PathContext } from '@deep-process/core';
 import { loadAllManifests, getProcessesDir } from '../core/process-registry.js';
-import { getAdapter, type ToolId } from '../adapters/index.js';
+import { getAdapter, type ToolId } from '@deep-process/core';
 import { log, createSpinner } from '../utils/logger.js';
 
 interface UpdateOptions {
