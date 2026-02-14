@@ -45,12 +45,23 @@ export function loadAllManifests(): ProcessManifest[] {
     const manifestPath = path.join(processesDir, entry.name, 'manifest.yaml');
     if (!fs.existsSync(manifestPath)) continue;
 
-    const content = fs.readFileSync(manifestPath, 'utf-8');
-    const data = parseYaml(content) as ProcessManifest;
-    manifests.push(data);
+    try {
+      const content = fs.readFileSync(manifestPath, 'utf-8');
+      const data = parseYaml(content) as ProcessManifest;
+
+      // Validate that manifest has required fields
+      if (!data || !data.id || !data.name) {
+        console.warn(`Invalid manifest at ${manifestPath}: missing id or name`);
+        continue;
+      }
+
+      manifests.push(data);
+    } catch (error) {
+      console.error(`Failed to load manifest at ${manifestPath}:`, error);
+    }
   }
 
-  return manifests.sort((a, b) => a.id.localeCompare(b.id));
+  return manifests.sort((a, b) => (a.id || '').localeCompare(b.id || ''));
 }
 
 /**

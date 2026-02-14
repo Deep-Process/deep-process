@@ -1,22 +1,20 @@
 import * as vscode from 'vscode';
 import {
   getAdapter,
-  type ToolId,
+  getAllAdapters,
   type ProcessManifest,
-  type PathContext,
-  type InstalledFile
+  type PathContext
 } from '@deep-process/core';
 
+export interface AdapterInstallResult {
+  toolId: string;
+  files: string[];
+  errors?: string[];
+}
+
 /**
- * Install adapters for the specified AI tools.
- * This creates integration files (commands/prompts) for each enabled tool.
- *
- * @param enabledToolIds - List of tool IDs to install adapters for
- * @param processes - Process manifests to install
- * @param pathCtx - Path context for template variables
- * @param projectRoot - Project root directory
- * @param progressCallback - Optional callback for progress updates
- * @returns Map of tool IDs to created file paths
+ * Install adapters for selected AI tools
+ * Creates tool-specific integration files (.claude/commands/, .gemini/commands/, etc.)
  */
 export async function installAdaptersForTools(
   enabledToolIds: string[],
@@ -28,37 +26,25 @@ export async function installAdaptersForTools(
   const results: Record<string, string[]> = {};
 
   for (const toolId of enabledToolIds) {
-    const adapter = getAdapter(toolId as ToolId);
-    if (!adapter) {
-      vscode.window.showWarningMessage(`Unknown tool adapter: ${toolId}`);
-      continue;
-    }
-
     try {
-      if (progressCallback) {
-        progressCallback(`Installing ${adapter.displayName} integration...`);
+      progressCallback?.(`Installing ${toolId} integration...`);
+
+      const adapter = getAdapter(toolId);
+      if (!adapter) {
+        console.warn(`[Adapter Installer] No adapter found for ${toolId}`);
+        continue;
       }
 
-      const installedFiles = await adapter.install(processes, pathCtx, projectRoot);
+      // Install adapter (creates tool-specific files)
+      const createdFiles = await adapter.install(processes, pathCtx, projectRoot);
 
-      // Guard against undefined or null results
-      if (!installedFiles || !Array.isArray(installedFiles)) {
-        throw new Error(`Adapter returned invalid result: ${installedFiles}`);
-      }
-
-      results[toolId] = installedFiles.map(f => f.path);
-
-      if (progressCallback) {
-        const fileCount = installedFiles.length;
-        progressCallback(
-          `✓ ${adapter.displayName}: ${fileCount} file${fileCount === 1 ? '' : 's'} created`
-        );
-      }
+      results[toolId] = createdFiles;
+      progressCallback?.(`✓ ${toolId}: ${createdFiles.length} file(s) created`);
     } catch (error) {
-      const message = `Failed to install ${adapter.displayName}: ${(error as Error).message}`;
-      vscode.window.showErrorMessage(message);
-      console.error(message, error);
-      console.error('Stack trace:', (error as Error).stack);
+      console.error(`[Adapter Installer] Failed to install ${toolId}:`, error);
+      vscode.window.showErrorMessage(
+        `Failed to install ${toolId} integration: ${(error as Error).message}`
+      );
     }
   }
 
@@ -66,26 +52,37 @@ export async function installAdaptersForTools(
 }
 
 /**
- * Uninstall adapters for a specific tool.
- *
- * @param toolId - Tool ID to uninstall
- * @param installedFiles - List of file paths that were installed
- * @param projectRoot - Project root directory
+ * Uninstall adapters for a specific tool
+ * Removes tool-specific integration files
  */
 export async function uninstallAdaptersForTool(
   toolId: string,
-  installedFiles: string[],
   projectRoot: string
 ): Promise<void> {
-  const adapter = getAdapter(toolId as ToolId);
-  if (!adapter) {
-    throw new Error(`Unknown tool adapter: ${toolId}`);
+  try {
+    const adapter = getAdapter(toolId);
+    if (!adapter) {
+      throw new Error(`No adapter found for ${toolId}`);
+    }
+
+    await adapter.uninstall(projectRoot);
+    console.log(`[Adapter Installer] Uninstalled ${toolId}`);
+  } catch (error) {
+    console.error(`[Adapter Installer] Failed to uninstall ${toolId}:`, error);
+    throw error;
   }
+}
 
-  const files: InstalledFile[] = installedFiles.map(path => ({
-    path,
-    type: 'created' as const
-  }));
+/**
+ * Get list of all available adapters
+ */
+export function getAvailableAdapters(): string[] {
+  return getAllAdapters().map(a => a.id);
+}
 
-  await adapter.uninstall(files, projectRoot);
+/**
+ * Check if adapter exists for a tool ID
+ */
+export function hasAdapter(toolId: string): boolean {
+  return !!getAdapter(toolId);
 }

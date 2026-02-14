@@ -280,6 +280,23 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
     }
   }
 
+  private async _uninstallTool(toolId: string) {
+    try {
+      await vscode.commands.executeCommand('deep-process.uninstallTool', toolId);
+
+      // Update state - remove from enabled tools
+      const enabledTools = this._state.enabledTools.filter(id => id !== toolId);
+      this._updateState({ enabledTools });
+
+      // Reload tools to refresh UI
+      await this._refreshTools();
+
+      this._showSuccess(`${toolId} integration removed`);
+    } catch (error) {
+      this._showError(`Failed to uninstall ${toolId}: ` + (error as Error).message);
+    }
+  }
+
   private async _runProcess(processId: string) {
     try {
       const process = this._state.processes.find(p => p.id === processId);

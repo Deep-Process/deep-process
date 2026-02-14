@@ -1,0 +1,219 @@
+# Severity Classification Rules
+# Used in step-03-analyze.md for gap severity scoring
+
+version: "1.0"
+last_updated: "2024-01-15"
+
+# Impact Scoring (1-5)
+impact_criteria:
+  CRITICAL:
+    score: 5
+    description: "Fundamental requirement - system cannot be compliant without this"
+    examples:
+      - "Core security controls missing (encryption, access control)"
+      - "Mandatory documentation absent"
+      - "Legal liability if not addressed"
+      - "Direct user harm possible"
+
+  HIGH:
+    score: 4
+    description: "Major requirement - significant compliance risk if missing"
+    examples:
+      - "Important safeguards missing"
+      - "Audit trail gaps"
+      - "Privacy controls insufficient"
+
+  MODERATE:
+    score: 3
+    description: "Standard requirement - should be present for full compliance"
+    examples:
+      - "Best practice controls missing"
+      - "Transparency features absent"
+      - "Some documentation gaps"
+
+  LOW:
+    score: 2
+    description: "Supporting requirement - enhances compliance posture"
+    examples:
+      - "Nice-to-have features"
+      - "Supplementary documentation"
+      - "Redundant controls"
+
+  MINIMAL:
+    score: 1
+    description: "Optional or contextual requirement"
+    examples:
+      - "Applies only in specific scenarios"
+      - "Already covered by other controls"
+
+# Urgency Scoring (1-5)
+urgency_criteria:
+  IMMEDIATE:
+    score: 5
+    description: "Must be addressed before deployment/launch"
+    triggers:
+      - "Regulation enforcement deadline < 3 months"
+      - "Blocking deployment"
+      - "Active audit in progress"
+
+  URGENT:
+    score: 4
+    description: "Must be addressed within next compliance cycle"
+    triggers:
+      - "Regulation enforcement deadline < 6 months"
+      - "Scheduled audit upcoming"
+      - "User-facing feature affected"
+
+  SOON:
+    score: 3
+    description: "Should be addressed in current planning period"
+    triggers:
+      - "Regulation enforcement deadline < 12 months"
+      - "Routine compliance review"
+
+  NORMAL:
+    score: 2
+    description: "Can be addressed in normal backlog prioritization"
+    triggers:
+      - "No specific deadline"
+      - "Part of ongoing compliance improvement"
+
+  LOW:
+    score: 1
+    description: "Address when convenient"
+    triggers:
+      - "Long-term compliance goal"
+      - "No enforcement pressure"
+
+# Detectability Scoring (1-5)
+detectability_criteria:
+  OBVIOUS:
+    score: 5
+    description: "Auditor will immediately notice this gap"
+    indicators:
+      - "Missing required documentation"
+      - "Obvious UI/UX absence"
+      - "Clear from system architecture"
+
+  LIKELY:
+    score: 4
+    description: "Auditor will likely find this during standard review"
+    indicators:
+      - "Found through documentation review"
+      - "Visible in code/config inspection"
+
+  POSSIBLE:
+    score: 3
+    description: "Auditor might find this with deeper investigation"
+    indicators:
+      - "Requires testing to uncover"
+      - "Not immediately apparent"
+
+  UNLIKELY:
+    score: 2
+    description: "Auditor unlikely to find without specific focus"
+    indicators:
+      - "Requires specialized knowledge"
+      - "Hidden in implementation details"
+
+  OBSCURE:
+    score: 1
+    description: "Auditor very unlikely to find this gap"
+    indicators:
+      - "Highly technical or obscure requirement"
+      - "Requires deep domain expertise"
+
+# Severity Calculation Algorithm
+severity_calculation:
+  formula: "MAX(impact_score, urgency_score) + detectability_score"
+
+  classification_thresholds:
+    CRITICAL:
+      min_score: 12
+      max_score: 15
+      description: "Drop everything and fix immediately"
+
+    HIGH:
+      min_score: 9
+      max_score: 11
+      description: "Must be in current sprint/milestone"
+
+    MEDIUM:
+      min_score: 6
+      max_score: 8
+      description: "Should be in next 2-3 sprints"
+
+    LOW:
+      min_score: 0
+      max_score: 5
+      description: "Backlog item for future work"
+
+# Remediation Effort Base Estimates (in person-hours)
+remediation_effort:
+  base_effort:
+    DOCUMENTATION_ONLY:
+      hours: 4
+      description: "Just need to write/update documentation"
+
+    CONFIGURATION_CHANGE:
+      hours: 8
+      description: "Config changes, no code required"
+
+    MINOR_CODE_CHANGE:
+      hours: 16
+      description: "Small code changes, single component"
+
+    MODERATE_CODE_CHANGE:
+      hours: 40
+      description: "Multiple components, some refactoring"
+
+    MAJOR_CODE_CHANGE:
+      hours: 80
+      description: "Significant feature development"
+
+    ARCHITECTURAL_CHANGE:
+      hours: 160
+      description: "Requires architecture changes"
+
+    FUNDAMENTAL_REDESIGN:
+      hours: 320
+      description: "Core system redesign needed"
+
+  complexity_multipliers:
+    SIMPLE:
+      multiplier: 1.0
+      description: "Straightforward implementation"
+
+    MODERATE:
+      multiplier: 1.5
+      description: "Some complexity or dependencies"
+
+    COMPLEX:
+      multiplier: 2.0
+      description: "High complexity or many dependencies"
+
+    VERY_COMPLEX:
+      multiplier: 3.0
+      description: "Extreme complexity, system-wide impact"
+
+# Prioritization Tiers
+prioritization_tiers:
+  TIER_1_IMMEDIATE:
+    criteria: "severity = CRITICAL"
+    action: "Start work within 1 week"
+    review_frequency: "Daily standup"
+
+  TIER_2_URGENT:
+    criteria: "severity = HIGH"
+    action: "Plan for current sprint/month"
+    review_frequency: "Weekly sprint planning"
+
+  TIER_3_SCHEDULED:
+    criteria: "severity = MEDIUM"
+    action: "Schedule for next 2-3 sprints"
+    review_frequency: "Monthly roadmap review"
+
+  TIER_4_BACKLOG:
+    criteria: "severity = LOW"
+    action: "Add to backlog, prioritize later"
+    review_frequency: "Quarterly planning"

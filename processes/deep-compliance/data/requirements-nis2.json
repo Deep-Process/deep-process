@@ -1,0 +1,143 @@
+{
+  "regulation_id": "nis2",
+  "regulation_name": "NIS2 Directive (EU) 2022/2555",
+  "version": "1.0",
+  "last_updated": "2024-10-17",
+  "requirements": [
+    {
+      "id": "NIS2-ART21-1",
+      "article": "Article 21",
+      "section": "21.1",
+      "text": "Essential and important entities shall take appropriate technical, operational and organizational measures to manage cybersecurity risks",
+      "keywords": ["cybersecurity", "risk management", "technical measures", "operational", "organizational"],
+      "annex_iii_categories": [],
+      "general_purpose_applicable": true
+    },
+    {
+      "id": "NIS2-ART21-2A",
+      "article": "Article 21",
+      "section": "21.2.a",
+      "text": "Entities shall implement policies on risk analysis and information system security",
+      "keywords": ["risk analysis", "policies", "information system", "security", "assessment"],
+      "annex_iii_categories": [],
+      "general_purpose_applicable": true
+    },
+    {
+      "id": "NIS2-ART21-2B",
+      "article": "Article 21",
+      "section": "21.2.b",
+      "text": "Entities shall implement incident handling procedures including prevention, detection, response and recovery",
+      "keywords": ["incident handling", "prevention", "detection", "response", "recovery"],
+      "annex_iii_categories": [],
+      "general_purpose_applicable": true
+    },
+    {
+      "id": "NIS2-ART21-2C",
+      "article": "Article 21",
+      "section": "21.2.c",
+      "text": "Entities shall implement business continuity and crisis management including backup and disaster recovery",
+      "keywords": ["business continuity", "crisis management", "backup", "disaster recovery", "resilience"],
+      "annex_iii_categories": [],
+      "general_purpose_applicable": true
+    },
+    {
+      "id": "NIS2-ART21-2D",
+      "article": "Article 21",
+      "section": "21.2.d",
+      "text": "Entities shall implement supply chain security including security-related aspects of supplier relationships",
+      "keywords": ["supply chain", "vendor security", "third party", "supplier", "relationships"],
+      "annex_iii_categories": [],
+      "general_purpose_applicable": true
+    },
+    {
+      "id": "NIS2-ART21-2E",
+      "article": "Article 21",
+      "section": "21.2.e",
+      "text": "Entities shall implement security in network and information systems acquisition, development and maintenance",
+      "keywords": ["acquisition", "development", "maintenance", "SDLC", "security lifecycle"],
+      "annex_iii_categories": [],
+      "general_purpose_applicable": true
+    },
+    {
+      "id": "NIS2-ART21-2F",
+      "article": "Article 21",
+      "section": "21.2.f",
+      "text": "Entities shall implement policies and procedures to assess effectiveness of cybersecurity risk-management measures",
+      "keywords": ["assessment", "effectiveness", "evaluation", "measures", "validation"],
+      "annex_iii_categories": [],
+      "general_purpose_applicable": true
+    },
+    {
+      "id": "NIS2-ART21-2G",
+      "article": "Article 21",
+      "section": "21.2.g",
+      "text": "Entities shall implement basic cyber hygiene practices and cybersecurity training",
+      "keywords": ["cyber hygiene", "training", "awareness", "education", "practices"],
+      "annex_iii_categories": [],
+      "general_purpose_applicable": true
+    },
+    {
+      "id": "NIS2-ART21-2H",
+      "article": "Article 21",
+      "section": "21.2.h",
+      "text": "Entities shall implement policies and procedures regarding use of cryptography and encryption",
+      "keywords": ["cryptography", "encryption", "cryptographic controls", "data protection"],
+      "annex_iii_categories": [],
+      "general_purpose_applicable": true
+    },
+    {
+      "id": "NIS2-ART21-2I",
+      "article": "Article 21",
+      "section": "21.2.i",
+      "text": "Entities shall implement human resources security, access control policies and asset management",
+      "keywords": ["human resources", "access control", "asset management", "workforce", "authorization"],
+      "annex_iii_categories": [],
+      "general_purpose_applicable": true
+    },
+    {
+      "id": "NIS2-ART21-2J",
+      "article": "Article 21",
+      "section": "21.2.j",
+      "text": "Entities shall implement use of multi-factor authentication or continuous authentication solutions",
+      "keywords": ["multi-factor", "MFA", "authentication", "continuous authentication", "identity"],
+      "annex_iii_categories": [],
+      "general_purpose_applicable": true
+    },
+    {
+      "id": "NIS2-ART23-1",
+      "article": "Article 23",
+      "section": "23.1",
+      "text": "Entities shall notify CSIRT and competent authority of significant incidents without undue delay and in any event within 24 hours",
+      "keywords": ["notification", "incident reporting", "24 hours", "CSIRT", "authorities"],
+      "annex_iii_categories": [],
+      "general_purpose_applicable": true
+    },
+    {
+      "id": "NIS2-ART23-4",
+      "article": "Article 23",
+      "section": "23.4",
+      "text": "Entities shall provide early warning notification within 24 hours, incident notification within 72 hours, and final report within one month",
+      "keywords": ["early warning", "incident notification", "72 hours", "final report", "timeline"],
+      "annex_iii_categories": [],
+      "general_purpose_applicable": true
+    },
+    {
+      "id": "NIS2-ART20-1",
+      "article": "Article 20",
+      "section": "20.1",
+      "text": "Management bodies shall approve cybersecurity risk-management measures, oversee implementation, and be trained",
+      "keywords": ["management", "governance", "approval", "oversight", "accountability"],
+      "annex_iii_categories": [],
+      "general_purpose_applicable": true
+    },
+    {
+      "id": "NIS2-ART28-1",
+      "article": "Article 28",
+      "section": "28.1",
+      "text": "Entities shall ensure vulnerabilities and security of network and information systems are disclosed to entities providing related services",
+      "keywords": ["vulnerability disclosure", "coordinated disclosure", "security advisories", "transparency"],
+      "annex_iii_categories": [],
+      "general_purpose_applicable": true
+    }
+  ]
+}
