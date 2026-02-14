@@ -6,12 +6,10 @@ import type { PathContext } from '@deep-process/core';
 import { buildTemplateVars } from '@deep-process/core';
 import { renderTemplate } from '@deep-process/core';
 import { safeWriteFile, safeRemoveFile, toPosixPath } from '../utils/fs-helpers.js';
+import { loadTemplate as loadTpl } from './template-loader.js';
 
 function loadTemplate(): string {
-  return fs.readFileSync(
-    path.resolve(import.meta.dirname, '..', '..', 'templates', 'claude.md.tpl'),
-    'utf-8'
-  );
+  return loadTpl('claude.md.tpl');
 }
 
 export const claudeAdapter: ToolAdapter = {
