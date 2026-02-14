@@ -1,3 +1,4 @@
+import { loadTemplate as loadTpl } from './template-loader.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ToolAdapter, InstalledFile } from './base-adapter.js';
@@ -11,10 +12,7 @@ const START_MARKER = '<!-- deep-process:start -->';
 const END_MARKER = '<!-- deep-process:end -->';
 
 function loadTemplate(): string {
-  return fs.readFileSync(
-    path.resolve(import.meta.dirname, '..', '..', 'templates', 'copilot-section.md.tpl'),
-    'utf-8'
-  );
+  return loadTpl('copilot-section.md.tpl');
 }
 
 export const copilotAdapter: ToolAdapter = {

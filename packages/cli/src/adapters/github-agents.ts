@@ -1,3 +1,4 @@
+import { loadTemplate as loadTpl } from './template-loader.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ToolAdapter, InstalledFile } from './base-adapter.js';
@@ -8,10 +9,7 @@ import { renderTemplate } from '@deep-process/core';
 import { safeWriteFile, safeRemoveFile, toPosixPath } from '../utils/fs-helpers.js';
 
 function loadTemplate(): string {
-  return fs.readFileSync(
-    path.resolve(import.meta.dirname, '..', '..', 'templates', 'github-agent.md.tpl'),
-    'utf-8'
-  );
+  return loadTpl('github-agent.md.tpl');
 }
 
 export const githubAgentsAdapter: ToolAdapter = {
