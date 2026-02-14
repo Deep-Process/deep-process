@@ -1,6 +1,6 @@
 {
   "name": "deep-process-monorepo",
-  "version": "1.1.2",
+  "version": "1.1.4",
   "description": "Deep Process monorepo — structured LLM workflows for multiple platforms",
   "private": true,
   "type": "module",

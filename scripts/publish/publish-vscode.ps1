@@ -107,7 +107,7 @@ try {
 
         # Publish
         Write-Host "`n> [5/5] Publishing to Visual Studio Marketplace..." -ForegroundColor Yellow
-        vsce publish -p $env:VSCE_PAT
+        npx vsce publish -p $env:VSCE_PAT
         if ($LASTEXITCODE -ne 0) { throw "Publish failed" }
 
         Write-Host "`n========================================" -ForegroundColor Green

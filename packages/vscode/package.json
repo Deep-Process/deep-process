@@ -2,7 +2,7 @@
   "name": "deep-process-vscode",
   "displayName": "Deep Process",
   "description": "Structured LLM workflows for verification, exploration, architecture, feasibility, synthesis, and documentation",
-  "version": "1.0.2",
+  "version": "1.0.0",
   "publisher": "deep-process",
   "icon": "media/icon.png",
   "engines": {
@@ -152,8 +152,8 @@
     "build": "node esbuild.js --production",
     "compile": "tsc -p ./",
     "watch": "node esbuild.js --watch",
-    "package": "vsce package --no-dependencies",
-    "publish": "vsce publish --no-dependencies"
+    "package": "npx vsce package --no-dependencies",
+    "publish": "npx vsce publish --no-dependencies"
   },
   "dependencies": {
     "@deep-process/core": "workspace:*"
