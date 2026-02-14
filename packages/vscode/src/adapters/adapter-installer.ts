@@ -40,6 +40,12 @@ export async function installAdaptersForTools(
       }
 
       const installedFiles = await adapter.install(processes, pathCtx, projectRoot);
+
+      // Guard against undefined or null results
+      if (!installedFiles || !Array.isArray(installedFiles)) {
+        throw new Error(`Adapter returned invalid result: ${installedFiles}`);
+      }
+
       results[toolId] = installedFiles.map(f => f.path);
 
       if (progressCallback) {
@@ -52,6 +58,7 @@ export async function installAdaptersForTools(
       const message = `Failed to install ${adapter.displayName}: ${(error as Error).message}`;
       vscode.window.showErrorMessage(message);
       console.error(message, error);
+      console.error('Stack trace:', (error as Error).stack);
     }
   }
 

@@ -1,18 +1,42 @@
 id: deep-compliance
 name: "Deep Compliance"
 version: "1.0.0"
-description: "EU AI Act compliance assessment with automated requirement mapping, gap analysis, and audit-ready evidence generation"
-shortDescription: "Assess AI systems for regulatory compliance"
+description: "EU AI Act compliance assessment with requirement mapping gap analysis evidence collection and remediation planning"
+
 workflowFile: "workflow.md"
-firstStepFile: "steps/step-00-inventory.md"
-firstStepLabel: "Phase 0"
-agentName: "Deep Compliance Agent"
-agentInstruction: "Follow the systematic compliance assessment workflow. Use Method #327 (Regulatory Requirement Mapper) for requirements mapping, Method #329 (Gap Analyzer) for gap detection, and Method #331 (Evidence Packager) for audit preparation. EU AI Act deadline: August 2026."
-githubAgentTools:
-  - read
-  - search
-  - edit
-  - terminal
-slashCommand: "deep-compliance"
-excludeFromInstall:
-  - "docs/**"
+firstStepFile: "steps/step-01-inventory.md"
+
+agentInstruction: "Execute EU AI Act compliance workflow. Extract system capabilities BEFORE requirement mapping. Apply counter-checks to all gap assessments. EU AI Act deadline August 2026."
+
+methods:
+  - id: 327
+    name: "Regulatory Requirement Mapper"
+    phase: "step-02-map"
+  - id: 336
+    name: "Compliance Gap Analyzer"
+    phase: "step-03-analyze"
+  - id: 328
+    name: "Audit Trail Generator"
+    phase: "step-04-collect"
+  - id: 329
+    name: "Risk Heat Map Generator"
+    phase: "step-05-plan"
+  - id: 332
+    name: "High-Risk AI Classifier"
+    phase: "step-01-inventory"
+
+gates:
+  - GATE_1: "systems_identified = TRUE AND capabilities_count >= 3 AND counter_check_executed = TRUE"
+  - GATE_2: "requirements_mapped >= 90% AND mapping_verified = TRUE AND counter_check_executed = TRUE"
+  - GATE_3: "gaps_classified = TRUE AND severity_assigned = TRUE AND counter_check_executed = TRUE"
+  - GATE_4: "evidence_collected >= covered_requirements_count AND evidence_verified = TRUE AND counter_check_executed = TRUE"
+  - GATE_5: "remediation_plans >= critical_gaps_count AND timeline_realistic = TRUE AND counter_check_executed = TRUE"
+  - GATE_6: "report_complete = TRUE AND compliance_percentage_calculated = TRUE AND counter_check_executed = TRUE"
+
+outputs:
+  - "system_inventory"
+  - "requirements_mapping"
+  - "gap_analysis"
+  - "evidence_inventory"
+  - "remediation_roadmap"
+  - "compliance_report"

@@ -1,10 +1,10 @@
-# Deep-Compliance Execution Program
+# Deep-Orchestration Execution Program
 
 ## ENTRY
 
 ```
-READ: steps/step-01-inventory.md
-EXECUTE: step-01-inventory.md ENFORCED SEQUENCE
+READ: steps/step-01-define.md
+EXECUTE: step-01-define.md ENFORCED SEQUENCE
 EVALUATE: GATE_1
 IF GATE_1 = OPEN → READ steps/step-02-map.md
 IF GATE_1 = CLOSED → HALT
@@ -12,10 +12,10 @@ IF GATE_1 = CLOSED → HALT
 
 ## EXECUTION SEQUENCE
 
-### STEP 1: INVENTORY
+### STEP 1: DEFINE
 ```
 PRECONDITION: NONE
-FILE: steps/step-01-inventory.md
+FILE: steps/step-01-define.md
 GATE: GATE_1
 VIOLATION: Reading step-02 before GATE_1 = OPEN is VIOLATION
 ```
@@ -28,46 +28,46 @@ GATE: GATE_2
 VIOLATION: Reading step-03 before GATE_2 = OPEN is VIOLATION
 ```
 
-### STEP 3: ANALYZE
+### STEP 3: SEQUENCE
 ```
 PRECONDITION: GATE_2 = OPEN
-FILE: steps/step-03-analyze.md
+FILE: steps/step-03-sequence.md
 GATE: GATE_3
 VIOLATION: Reading step-04 before GATE_3 = OPEN is VIOLATION
 ```
 
-### STEP 4: COLLECT
+### STEP 4: EXECUTE
 ```
 PRECONDITION: GATE_3 = OPEN
-FILE: steps/step-04-collect.md
+FILE: steps/step-04-execute.md
 GATE: GATE_4
 VIOLATION: Reading step-05 before GATE_4 = OPEN is VIOLATION
 ```
 
-### STEP 5: PLAN
+### STEP 5: MONITOR
 ```
 PRECONDITION: GATE_4 = OPEN
-FILE: steps/step-05-plan.md
+FILE: steps/step-05-monitor.md
 GATE: GATE_5
 VIOLATION: Reading step-06 before GATE_5 = OPEN is VIOLATION
 ```
 
-### STEP 6: REPORT
+### STEP 6: AGGREGATE
 ```
 PRECONDITION: GATE_5 = OPEN
-FILE: steps/step-06-report.md
+FILE: steps/step-06-aggregate.md
 GATE: GATE_6
 VIOLATION: Proceeding before GATE_6 = OPEN is VIOLATION
 ```
 
 ## GATES
 
-GATE_1: systems_identified = TRUE AND capabilities_count >= 3 AND counter_check_executed = TRUE
-GATE_2: requirements_mapped >= 90% AND mapping_verified = TRUE AND counter_check_executed = TRUE
-GATE_3: gaps_classified = TRUE AND severity_assigned = TRUE AND counter_check_executed = TRUE
-GATE_4: evidence_collected >= covered_requirements_count AND evidence_verified = TRUE AND counter_check_executed = TRUE
-GATE_5: remediation_plans >= critical_gaps_count AND timeline_realistic = TRUE AND counter_check_executed = TRUE
-GATE_6: report_complete = TRUE AND compliance_percentage_calculated = TRUE AND counter_check_executed = TRUE
+GATE_1: workflow_defined = TRUE AND tasks_count >= 1 AND counter_check_executed = TRUE
+GATE_2: dependencies_mapped = TRUE AND resources_allocated = TRUE AND counter_check_executed = TRUE
+GATE_3: execution_sequence_defined = TRUE AND parallelization_optimized = TRUE AND counter_check_executed = TRUE
+GATE_4: execution_started = TRUE AND state_tracking_active = TRUE AND counter_check_executed = TRUE
+GATE_5: monitoring_complete = TRUE AND failures_handled = TRUE AND counter_check_executed = TRUE
+GATE_6: results_aggregated = TRUE AND workflow_complete = TRUE AND counter_check_executed = TRUE
 
 ## VIOLATION HANDLING
 
@@ -81,7 +81,7 @@ IF agent skips counter-check:
   OUTPUT: "VIOLATION: Counter-check required"
   EXECUTE counter-check
 
-IF agent proceeds without system inventory:
+IF agent proceeds without dependency mapping:
   HALT execution
-  OUTPUT: "VIOLATION: System inventory required before mapping"
-  RETURN to STEP 1
+  OUTPUT: "VIOLATION: Dependency mapping required before execution"
+  RETURN to STEP 2
