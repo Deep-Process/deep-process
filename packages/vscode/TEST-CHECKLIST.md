@@ -121,7 +121,7 @@ code --install-extension deep-process-vscode-1.0.0.vsix
   - `_deep-process/deep-document/`
   - `_deep-process/deep-feasibility/`
   - `_deep-process/deep-synthesis/`
-  - `deep-process.config.yaml`
+  - `_deep-process/deep-process.config.yaml`
 - ✅ `.gitignore` updated with `_deep-process/`
 - ✅ Status bar changes to "✓ Deep Process" (green)
 - ✅ Status bar tooltip shows: "Deep Process ✓\nX processes installed\nY tools configured"
@@ -143,7 +143,7 @@ code --install-extension deep-process-vscode-1.0.0.vsix
 - [ ] `Deep Process: Uninstall`
   - Shows confirmation modal with details
   - Removes `_deep-process/`
-  - Removes `deep-process.config.yaml`
+  - Removes `_deep-process/deep-process.config.yaml`
   - Updates `.gitignore`
   - Clears settings
   - Status bar reverts to "not installed"
@@ -208,7 +208,7 @@ function add(a, b) {
 **Setup:**
 ```powershell
 # Manually change version in config to test update
-# Edit deep-process.config.yaml
+# Edit _deep-process/deep-process.config.yaml
 processes:
   deep-verify:
     installed: true
@@ -248,7 +248,7 @@ processes:
 - ✅ Progress notification: "Uninstalling Deep Process"
 - ✅ Files removed:
   - `_deep-process/` directory deleted
-  - `deep-process.config.yaml` deleted
+  - `_deep-process/deep-process.config.yaml` deleted
 - ✅ `.gitignore` cleaned up (no more `_deep-process/`)
 - ✅ Settings cleared (`enabledTools` = [])
 - ✅ Status bar: "🚀 Deep Process" (no checkmark)

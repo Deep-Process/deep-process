@@ -6,7 +6,7 @@ import {
   copyProcessFiles,
   resolveProcessBaseDir,
   readConfig,
-  writeConfig,
+  updateConfig,
   type PathContext
 } from '@deep-process/core';
 
@@ -59,20 +59,19 @@ export async function installProcessCommand(context: vscode.ExtensionContext, pr
 
       progress.report({ message: 'Updating configuration...', increment: 40 });
 
-      // Update config
-      let deepConfig = readConfig(projectRoot);
-      if (!deepConfig) {
-        // Initialize config if it doesn't exist
-        const { createConfig } = await import('@deep-process/core');
-        deepConfig = createConfig('project', processDir, '1.0.0');
+      // Update config atomically
+      try {
+        await updateConfig(projectRoot, (deepConfig) => {
+          deepConfig.processes[manifest.id] = {
+            installed: true,
+            version: manifest.version,
+          };
+          return deepConfig;
+        });
+      } catch (error) {
+        // Config doesn't exist yet - this shouldn't happen if install was run first
+        throw new Error('Deep Process not installed. Run install command first.');
       }
-
-      deepConfig.processes[manifest.id] = {
-        installed: true,
-        version: manifest.version,
-      };
-
-      writeConfig(projectRoot, deepConfig);
 
       progress.report({ message: 'Done!', increment: 30 });
 
@@ -143,11 +142,17 @@ export async function uninstallProcessCommand(context: vscode.ExtensionContext, 
 
       progress.report({ message: 'Updating configuration...', increment: 40 });
 
-      // Update config
-      const deepConfig = readConfig(projectRoot);
-      if (deepConfig && deepConfig.processes[processId]) {
-        delete deepConfig.processes[processId];
-        writeConfig(projectRoot, deepConfig);
+      // Update config atomically
+      try {
+        await updateConfig(projectRoot, (deepConfig) => {
+          if (deepConfig.processes[processId]) {
+            delete deepConfig.processes[processId];
+          }
+          return deepConfig;
+        });
+      } catch (error) {
+        // Config might not exist, which is fine during uninstall
+        console.log('Config not found during uninstall, skipping update');
       }
 
       progress.report({ message: 'Done!', increment: 20 });
@@ -247,13 +252,17 @@ export async function updateProcessCommand(context: vscode.ExtensionContext, pro
 
       progress.report({ message: 'Updating configuration...', increment: 30 });
 
-      // Update config with new version
-      if (deepConfig) {
-        deepConfig.processes[manifest.id] = {
-          installed: true,
-          version: manifest.version,
-        };
-        writeConfig(projectRoot, deepConfig);
+      // Update config with new version atomically
+      try {
+        await updateConfig(projectRoot, (cfg) => {
+          cfg.processes[manifest.id] = {
+            installed: true,
+            version: manifest.version,
+          };
+          return cfg;
+        });
+      } catch (error) {
+        console.error('Failed to update config:', error);
       }
 
       progress.report({ message: 'Done!', increment: 10 });

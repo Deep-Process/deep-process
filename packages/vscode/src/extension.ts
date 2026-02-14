@@ -6,7 +6,7 @@ import { detectTools } from './detectors/tool-detector';
 import { ConfigPanelProvider } from './ui/webview/config-panel';
 import { shouldShowWizard, showSetupWizard, markWizardAsShown, markSetupCompleted } from './ui/setup-wizard';
 import { setExtensionPath } from './core/extension-context';
-import { migrateConfigToNewLocation, setTemplateBasePath } from '@deep-process/core';
+import { migrateConfigToNewLocation, setTemplateBasePath, cleanupStaleLocks } from '@deep-process/core';
 
 export function activate(context: vscode.ExtensionContext) {
   // Initialize extension path for process loading (needed for esbuild bundles)
@@ -21,12 +21,17 @@ export function activate(context: vscode.ExtensionContext) {
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (workspaceFolder) {
     const projectRoot = workspaceFolder.uri.fsPath;
+
+    // Migrate config location if needed
     const migrated = migrateConfigToNewLocation(projectRoot);
     if (migrated) {
       vscode.window.showInformationMessage(
         'Deep Process: Configuration migrated to _deep-process/ directory'
       );
     }
+
+    // Clean up stale lock files from crashed processes
+    cleanupStaleLocks(projectRoot);
   }
 
   // 1. Detect installed AI tools
@@ -92,7 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // 6. Watch for config file changes to update status bar
   const configFileWatcher = vscode.workspace.createFileSystemWatcher(
-    '**/deep-process.config.yaml'
+    '**/_deep-process/deep-process.config.yaml'
   );
 
   configFileWatcher.onDidChange(() => updateStatusBar(statusBar, tools));

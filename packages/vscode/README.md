@@ -188,24 +188,24 @@ After installation, your workspace contains:
 
 ```
 your-workspace/
-├── _deep-process/              # Process files (in .gitignore)
-│   ├── deep-verify/
-│   │   ├── workflow.md         # Master workflow
-│   │   ├── steps/              # Step files
-│   │   │   ├── step-00-setup.md
-│   │   │   ├── step-01-extract.md
-│   │   │   └── ...
-│   │   └── data/               # Reference data
-│   ├── deep-explore/
-│   ├── deep-document/
-│   ├── deep-feasibility/
-│   └── deep-synthesis/
-└── deep-process.config.yaml    # Configuration file
+└── _deep-process/              # Process files (in .gitignore)
+    ├── deep-process.config.yaml    # Configuration file
+    ├── deep-verify/
+    │   ├── workflow.md         # Master workflow
+    │   ├── steps/              # Step files
+    │   │   ├── step-00-setup.md
+    │   │   ├── step-01-extract.md
+    │   │   └── ...
+    │   └── data/               # Reference data
+    ├── deep-explore/
+    ├── deep-document/
+    ├── deep-feasibility/
+    └── deep-synthesis/
 ```
 
 ### Configuration File
 
-`deep-process.config.yaml` tracks installation state:
+`_deep-process/deep-process.config.yaml` tracks installation state:
 
 ```yaml
 version: "1.0.0"
@@ -235,7 +235,7 @@ tools:
 ### Processes Not Found
 1. Run **Deep Process: Install Processes**
 2. Verify `_deep-process/` directory exists
-3. Check `deep-process.config.yaml` exists
+3. Check `_deep-process/deep-process.config.yaml` exists
 
 ### Tools Not Detected
 1. Install the AI tool extensions you want

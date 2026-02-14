@@ -333,20 +333,16 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
       }
 
       const projectRoot = workspaceFolder.uri.fsPath;
-      const { readConfig, writeConfig } = await import('@deep-process/core');
-      const config = readConfig(projectRoot);
+      const { updateConfig } = await import('@deep-process/core');
 
-      if (!config) {
-        throw new Error('Deep Process is not installed in this workspace');
-      }
-
-      // Update CLI flags for the tool
-      if (!config.tools[toolId]) {
-        config.tools[toolId] = { enabled: true, files: [] };
-      }
-      config.tools[toolId].cliFlags = flags.trim() || undefined;
-
-      writeConfig(projectRoot, config);
+      // Update CLI flags atomically
+      await updateConfig(projectRoot, (config) => {
+        if (!config.tools[toolId]) {
+          config.tools[toolId] = { enabled: true, files: [] };
+        }
+        config.tools[toolId].cliFlags = flags.trim() || undefined;
+        return config;
+      });
 
       // Update local state
       const toolConfigs = { ...this._state.toolConfigs };

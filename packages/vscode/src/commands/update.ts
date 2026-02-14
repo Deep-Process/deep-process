@@ -6,7 +6,7 @@ import {
   copyProcessFiles,
   resolveProcessBaseDir,
   readConfig,
-  writeConfig,
+  updateConfig,
   type PathContext
 } from '@deep-process/core';
 
@@ -96,13 +96,16 @@ export async function updateCommand(context: vscode.ExtensionContext) {
         const count = copyProcessFiles(manifest, targetDir, processesDir);
         totalFiles += count;
 
-        // Update version in config
-        config.processes[manifest.id].version = manifest.version;
         updatedCount++;
       }
 
-      // Save updated config
-      writeConfig(projectRoot, config);
+      // Save updated config atomically
+      await updateConfig(projectRoot, (cfg) => {
+        for (const manifest of outdatedProcesses) {
+          cfg.processes[manifest.id].version = manifest.version;
+        }
+        return cfg;
+      });
 
       progress.report({ message: 'Done!', increment: 10 });
 

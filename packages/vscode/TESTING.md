@@ -92,7 +92,7 @@ Run `Deep Process: Install Processes`:
 - [ ] Shows progress indicator
 - [ ] Creates `_deep-process/` directory in workspace
 - [ ] Copies all process files (verify with File Explorer)
-- [ ] Creates `deep-process.config.yaml` in workspace root
+- [ ] Creates `_deep-process/deep-process.config.yaml` in workspace root
 - [ ] Adds `_deep-process/` to `.gitignore`
 - [ ] Shows success message with count
 - [ ] Status bar updates to show ✓ with green color
@@ -119,7 +119,7 @@ Run `Deep Process: Update Processes`:
 Run `Deep Process: Uninstall`:
 - [ ] Shows confirmation dialog with details
 - [ ] Removes `_deep-process/` directory
-- [ ] Removes `deep-process.config.yaml`
+- [ ] Removes `_deep-process/deep-process.config.yaml`
 - [ ] Removes entry from `.gitignore`
 - [ ] Clears workspace configuration
 - [ ] Status bar reverts to "not installed" state
@@ -156,7 +156,7 @@ In GitHub Copilot Chat:
 
 ### Configuration File
 
-Verify `deep-process.config.yaml` structure:
+Verify `_deep-process/deep-process.config.yaml` structure:
 ```yaml
 version: "1.0.0"
 packageVersion: "1.0.0"
@@ -215,7 +215,7 @@ workspace/
 │   ├── deep-document/
 │   ├── deep-feasibility/
 │   └── deep-synthesis/
-├── deep-process.config.yaml
+├── _deep-process/deep-process.config.yaml
 └── .gitignore (should contain _deep-process/)
 ```
 

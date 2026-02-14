@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { readConfig, writeConfig } from '@deep-process/core';
+import { readConfig, updateConfig } from '@deep-process/core';
 import { uninstallAdaptersForTool, installAdaptersForTools } from '../adapters/adapter-installer';
 import { loadAllManifests } from '../core/process-registry';
 import type { PathContext } from '@deep-process/core';
@@ -44,9 +44,11 @@ export async function uninstallToolCommand(toolId: string): Promise<void> {
         // Uninstall adapter files
         await uninstallAdaptersForTool(toolId, toolConfig.files, projectRoot);
 
-        // Update config
-        delete config.tools[toolId];
-        writeConfig(projectRoot, config);
+        // Update config atomically
+        await updateConfig(projectRoot, (cfg) => {
+          delete cfg.tools[toolId];
+          return cfg;
+        });
 
         progress.report({ message: 'Done!' });
       }
@@ -108,12 +110,14 @@ export async function installToolCommand(toolId: string): Promise<void> {
           projectRoot
         );
 
-        // Update config
-        config.tools[toolId] = {
-          enabled: true,
-          files: adapterFiles[toolId] || [],
-        };
-        writeConfig(projectRoot, config);
+        // Update config atomically
+        await updateConfig(projectRoot, (cfg) => {
+          cfg.tools[toolId] = {
+            enabled: true,
+            files: adapterFiles[toolId] || [],
+          };
+          return cfg;
+        });
 
         progress.report({ message: 'Done!' });
       }

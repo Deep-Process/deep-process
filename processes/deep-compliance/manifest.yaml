@@ -1,12 +1,42 @@
 id: deep-compliance
 name: "Deep Compliance"
 version: "1.0.0"
-description: "EU AI Act compliance assessment with requirement mapping gap analysis evidence collection and remediation planning"
+description: "Universal regulatory compliance assessment with requirement mapping gap analysis evidence collection and remediation planning"
 
 workflowFile: "workflow.md"
 firstStepFile: "steps/step-01-inventory.md"
 
-agentInstruction: "Execute EU AI Act compliance workflow. Extract system capabilities BEFORE requirement mapping. Apply counter-checks to all gap assessments. EU AI Act deadline August 2026."
+agentInstruction: "Execute compliance workflow for selected regulation. Extract system capabilities BEFORE requirement mapping. Apply counter-checks to all gap assessments. Regulation specified in input."
+
+compliancePatterns:
+  - id: "eu-ai-act"
+    name: "EU AI Act 2024"
+    focus: "High-risk AI classification, Articles 9-15, Annex III"
+    methods: [327, 332, 336, 328, 329]
+  - id: "gdpr"
+    name: "GDPR (General Data Protection Regulation)"
+    focus: "Data protection, privacy rights, consent, data minimization"
+    methods: [327, 336, 328]
+  - id: "hipaa"
+    name: "HIPAA (Health Insurance Portability and Accountability Act)"
+    focus: "Protected health information, security rule, privacy rule"
+    methods: [327, 336, 328, 329]
+  - id: "soc2"
+    name: "SOC 2 Type II"
+    focus: "Security, availability, processing integrity, confidentiality, privacy"
+    methods: [327, 336, 328]
+  - id: "iso27001"
+    name: "ISO 27001"
+    focus: "Information security management system"
+    methods: [327, 336, 328, 329]
+  - id: "nis2"
+    name: "NIS2 Directive"
+    focus: "Network and information security for essential services"
+    methods: [327, 336, 328, 329]
+  - id: "multi"
+    name: "Multi-Regulation Assessment"
+    focus: "Combined assessment across multiple regulations"
+    methods: [327, 332, 336, 328, 329]
 
 methods:
   - id: 327

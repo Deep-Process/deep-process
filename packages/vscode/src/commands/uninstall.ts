@@ -58,8 +58,25 @@ export async function uninstallCommand(context: vscode.ExtensionContext) {
       cancellable: false,
     },
     async (progress) => {
-      // Step 1: Remove process directory
-      progress.report({ message: 'Removing process files...', increment: 50 });
+      // Step 1: Remove adapter files (tool integrations)
+      progress.report({ message: 'Removing tool integrations...', increment: 25 });
+
+      for (const [toolId, toolConfig] of Object.entries(config.tools)) {
+        if (toolConfig.enabled && toolConfig.files && toolConfig.files.length > 0) {
+          try {
+            for (const filePath of toolConfig.files) {
+              const fileUri = vscode.Uri.file(path.join(projectRoot, filePath));
+              await vscode.workspace.fs.delete(fileUri, { useTrash: false });
+            }
+            console.log(`Removed ${toolConfig.files.length} files for ${toolId}`);
+          } catch (error) {
+            console.error(`Failed to remove adapter files for ${toolId}:`, error);
+          }
+        }
+      }
+
+      // Step 2: Remove process directory
+      progress.report({ message: 'Removing process files...', increment: 35 });
 
       try {
         const processUri = vscode.Uri.file(targetDir);
@@ -68,8 +85,8 @@ export async function uninstallCommand(context: vscode.ExtensionContext) {
         console.error('Failed to remove process directory:', error);
       }
 
-      // Step 2: Remove config file
-      progress.report({ message: 'Removing configuration...', increment: 30 });
+      // Step 3: Remove config file
+      progress.report({ message: 'Removing configuration...', increment: 20 });
 
       try {
         const configUri = vscode.Uri.file(getConfigPath(projectRoot));
@@ -78,7 +95,7 @@ export async function uninstallCommand(context: vscode.ExtensionContext) {
         console.error('Failed to remove config file:', error);
       }
 
-      // Step 3: Remove from gitignore
+      // Step 4: Remove from gitignore
       progress.report({ message: 'Updating .gitignore...', increment: 20 });
 
       await removeFromGitignore(projectRoot, config.installation.processDir);
