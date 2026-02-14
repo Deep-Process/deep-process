@@ -6,11 +6,14 @@ import { detectTools } from './detectors/tool-detector';
 import { ConfigPanelProvider } from './ui/webview/config-panel';
 import { shouldShowWizard, showSetupWizard, markWizardAsShown, markSetupCompleted } from './ui/setup-wizard';
 import { setExtensionPath } from './core/extension-context';
-import { migrateConfigToNewLocation } from '@deep-process/core';
+import { migrateConfigToNewLocation, setTemplateBasePath } from '@deep-process/core';
 
 export function activate(context: vscode.ExtensionContext) {
   // Initialize extension path for process loading (needed for esbuild bundles)
   setExtensionPath(context.extensionPath);
+
+  // Initialize template base path for adapter loading (needed for esbuild bundles)
+  setTemplateBasePath(context.extensionPath);
 
   console.log('Deep Process extension activated');
 

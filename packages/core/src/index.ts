@@ -15,6 +15,7 @@ export * from './version-manager.js';
 // Adapters (for AI tool integrations)
 export * from './adapters/base-adapter.js';
 export * from './adapters/index.js';
+export { setTemplateBasePath } from './adapters/template-loader.js';
 
 // File system helpers
 export * from './fs-helpers.js';
