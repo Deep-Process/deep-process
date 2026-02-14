@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     Publish VS Code Extension to Marketplace
@@ -26,14 +26,14 @@ $rootDir = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 Push-Location $rootDir
 
 try {
-    Write-Host "`n═══════════════════════════════════" -ForegroundColor Cyan
+    Write-Host "`nâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•" -ForegroundColor Cyan
     Write-Host "  Publishing VS Code Extension" -ForegroundColor Cyan
-    Write-Host "═══════════════════════════════════`n" -ForegroundColor Cyan
+    Write-Host "â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•`n" -ForegroundColor Cyan
 
     # Load secrets if available
     $secretsFile = "$PSScriptRoot/../config/.secrets"
     if (Test-Path $secretsFile) {
-        Write-Host "→ Loading secrets from config..." -ForegroundColor Yellow
+        Write-Host "â†’ Loading secrets from config..." -ForegroundColor Yellow
         $secrets = Get-Content $secretsFile | ConvertFrom-Json
         if ($secrets.VSCE_PAT) {
             $env:VSCE_PAT = $secrets.VSCE_PAT
@@ -42,7 +42,7 @@ try {
 
     # Check for VSCE token
     if (-not $env:VSCE_PAT) {
-        Write-Host "✗ VSCE_PAT not found" -ForegroundColor Red
+        Write-Host "âś— VSCE_PAT not found" -ForegroundColor Red
         Write-Host "`nSet token with:" -ForegroundColor Yellow
         Write-Host '  $env:VSCE_PAT="your-personal-access-token"' -ForegroundColor Gray
         Write-Host "Or create: scripts/config/.secrets (see secrets.example.json)" -ForegroundColor Gray
@@ -53,22 +53,22 @@ try {
     Push-Location "packages/vscode"
     try {
         # Bump version
-        Write-Host "→ Bumping version ($BumpType)..." -ForegroundColor Yellow
+        Write-Host "â†’ Bumping version ($BumpType)..." -ForegroundColor Yellow
         $currentVersion = (Get-Content package.json | ConvertFrom-Json).version
         npm version $BumpType --no-git-tag-version 2>&1 | Out-Null
         $newVersion = (Get-Content package.json | ConvertFrom-Json).version
-        Write-Host "  $currentVersion → $newVersion" -ForegroundColor Green
+        Write-Host "  $currentVersion â†’ $newVersion" -ForegroundColor Green
 
         # Build
         if (-not $SkipBuild) {
-            Write-Host "→ Building extension..." -ForegroundColor Yellow
+            Write-Host "â†’ Building extension..." -ForegroundColor Yellow
             pnpm run build
             if ($LASTEXITCODE -ne 0) { throw "Build failed" }
-            Write-Host "✓ Build complete" -ForegroundColor Green
+            Write-Host "âś“ Build complete" -ForegroundColor Green
         }
 
         # Package
-        Write-Host "→ Packaging extension..." -ForegroundColor Yellow
+        Write-Host "â†’ Packaging extension..." -ForegroundColor Yellow
         pnpm run package
         if ($LASTEXITCODE -ne 0) { throw "Packaging failed" }
 
@@ -76,10 +76,10 @@ try {
         if (-not $vsixFile) {
             throw "VSIX file not found"
         }
-        Write-Host "✓ Packaged: $($vsixFile.Name)" -ForegroundColor Green
+        Write-Host "âś“ Packaged: $($vsixFile.Name)" -ForegroundColor Green
 
         if ($DryRun) {
-            Write-Host "`n✓ DRY RUN complete (would publish $newVersion)" -ForegroundColor Yellow
+            Write-Host "`nâś“ DRY RUN complete (would publish $newVersion)" -ForegroundColor Yellow
             exit 0
         }
 
@@ -91,11 +91,11 @@ try {
         }
 
         # Publish
-        Write-Host "`n→ Publishing to Visual Studio Marketplace..." -ForegroundColor Yellow
+        Write-Host "`nâ†’ Publishing to Visual Studio Marketplace..." -ForegroundColor Yellow
         vsce publish -p $env:VSCE_PAT
         if ($LASTEXITCODE -ne 0) { throw "Publish failed" }
 
-        Write-Host "`n✓ Published deep-process-vscode@$newVersion" -ForegroundColor Green
+        Write-Host "`nâś“ Published deep-process-vscode@$newVersion" -ForegroundColor Green
         Write-Host "`nView at: https://marketplace.visualstudio.com/items?itemName=deep-process.deep-process-vscode" -ForegroundColor Cyan
     }
     finally {
@@ -103,9 +103,10 @@ try {
     }
 }
 catch {
-    Write-Host "`n✗ Publish failed: $_" -ForegroundColor Red
+    Write-Host "`nâś— Publish failed: $_" -ForegroundColor Red
     exit 1
 }
 finally {
     Pop-Location
 }
+
