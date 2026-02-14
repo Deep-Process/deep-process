@@ -76,52 +76,69 @@ export async function installCommand(context: vscode.ExtensionContext) {
   const targetDir = resolveProcessBaseDir(pathCtx);
 
   // Show progress
-  await vscode.window.withProgress(
-    {
-      location: vscode.ProgressLocation.Notification,
-      title: 'Installing Deep Process',
-      cancellable: false,
-    },
-    async (progress) => {
-      // Step 1: Copy process files
-      progress.report({ message: 'Copying process files...', increment: 20 });
+  try {
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: 'Installing Deep Process',
+        cancellable: false,
+      },
+      async (progress) => {
+        try {
+          // Step 1: Copy process files
+          progress.report({ message: 'Copying process files...', increment: 20 });
 
-      let totalFiles = 0;
-      for (const manifest of manifests) {
-        const count = copyProcessFiles(manifest, targetDir);
-        totalFiles += count;
+          let totalFiles = 0;
+          for (const manifest of manifests) {
+            const count = copyProcessFiles(manifest, targetDir);
+            totalFiles += count;
+          }
+
+          // Step 2: Create config
+          progress.report({ message: 'Creating configuration...', increment: 40 });
+
+          const deepConfig = createConfig('project', processDir, '1.0.0');
+
+          for (const manifest of manifests) {
+            deepConfig.processes[manifest.id] = {
+              installed: true,
+              version: manifest.version,
+            };
+          }
+
+          // Record enabled tools (even if not installed yet)
+          for (const toolId of enabledTools) {
+            deepConfig.tools[toolId] = {
+              enabled: true,
+              files: [],
+            };
+          }
+
+          writeConfig(projectRoot, deepConfig);
+
+          // Step 3: Add to gitignore
+          progress.report({ message: 'Updating .gitignore...', increment: 30 });
+
+          await addToGitignore(projectRoot, processDir);
+
+          progress.report({ message: 'Done!', increment: 10 });
+        } catch (error) {
+          throw new Error(`Installation failed: ${(error as Error).message}`);
+        }
       }
-
-      // Step 2: Create config
-      progress.report({ message: 'Creating configuration...', increment: 40 });
-
-      const deepConfig = createConfig('project', processDir, '1.0.0');
-
-      for (const manifest of manifests) {
-        deepConfig.processes[manifest.id] = {
-          installed: true,
-          version: manifest.version,
-        };
+    );
+  } catch (error) {
+    vscode.window.showErrorMessage(
+      `Deep Process installation failed: ${(error as Error).message}\n\n` +
+      'Please check file permissions and try again.',
+      'View Logs'
+    ).then(selection => {
+      if (selection === 'View Logs') {
+        vscode.commands.executeCommand('workbench.action.toggleDevTools');
       }
-
-      // Record enabled tools (even if not installed yet)
-      for (const toolId of enabledTools) {
-        deepConfig.tools[toolId] = {
-          enabled: true,
-          files: [],
-        };
-      }
-
-      writeConfig(projectRoot, deepConfig);
-
-      // Step 3: Add to gitignore
-      progress.report({ message: 'Updating .gitignore...', increment: 30 });
-
-      await addToGitignore(projectRoot, processDir);
-
-      progress.report({ message: 'Done!', increment: 10 });
-    }
-  );
+    });
+    return;
+  }
 
   // Show success message
   const detectedNames = detectedTools.map(t => t.name).join(', ');
@@ -164,5 +181,9 @@ async function addToGitignore(projectRoot: string, processDir: string): Promise<
     }
   } catch (error) {
     console.error('Failed to update .gitignore:', error);
+    // Non-critical error, just notify user
+    vscode.window.showWarningMessage(
+      `Note: Could not update .gitignore automatically. Please add "${entry}" manually to ignore process files.`
+    );
   }
 }

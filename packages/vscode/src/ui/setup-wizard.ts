@@ -54,6 +54,17 @@ export async function showSetupWizard(context: vscode.ExtensionContext): Promise
 }
 
 async function showWelcomeStep(): Promise<boolean> {
+  // Check VSCode version for Chat API support
+  const vscodeAny = vscode as any;
+  const hasChatAPI = !!(vscodeAny.chat && vscodeAny.chat.createChatParticipant);
+
+  let versionNote = '';
+  if (!hasChatAPI) {
+    versionNote = '\n\n⚠️ **Note:** Your VSCode version does not support the Chat Participant API (requires VSCode 1.85+). ' +
+      'You can still install and use workflows via Command Palette, but interactive chat features will not be available. ' +
+      'Consider updating VSCode for the full experience.';
+  }
+
   const response = await vscode.window.showInformationMessage(
     '🎯 Welcome to Deep Process!\n\n' +
     'This wizard will help you set up structured LLM workflows for verification, exploration, and more.\n\n' +
@@ -61,7 +72,7 @@ async function showWelcomeStep(): Promise<boolean> {
     '1. Detecting AI tools (like Copilot, Claude, etc.)\n' +
     '2. Selecting which tools to use\n' +
     '3. Installing process workflows\n\n' +
-    'Ready to get started?',
+    'Ready to get started?' + versionNote,
     { modal: true },
     'Continue',
     'Skip Setup'
@@ -231,17 +242,30 @@ async function showInstallStep(toolIds: string[], processIds: string[]): Promise
   }
 
   // Save tool configuration
-  const config = vscode.workspace.getConfiguration('deep-process');
-  await config.update('enabledTools', toolIds, vscode.ConfigurationTarget.Workspace);
+  try {
+    const config = vscode.workspace.getConfiguration('deep-process');
+    await config.update('enabledTools', toolIds, vscode.ConfigurationTarget.Workspace);
+  } catch (error) {
+    vscode.window.showErrorMessage(
+      `Failed to save configuration: ${(error as Error).message}\n\nPlease check workspace settings permissions.`
+    );
+    return false;
+  }
 
   // Run install command if any processes selected
   if (processIds.length > 0) {
     try {
       await vscode.commands.executeCommand('deep-process.install');
     } catch (error) {
-      vscode.window.showErrorMessage(
-        `Installation failed: ${(error as Error).message}`
+      const retry = await vscode.window.showErrorMessage(
+        `Installation failed: ${(error as Error).message}\n\nWould you like to try installing processes manually?`,
+        'Open Process Manager',
+        'Skip'
       );
+
+      if (retry === 'Open Process Manager') {
+        await vscode.commands.executeCommand('workbench.view.extension.deep-process-sidebar');
+      }
       return false;
     }
   }
@@ -250,14 +274,26 @@ async function showInstallStep(toolIds: string[], processIds: string[]): Promise
 }
 
 async function showSuccessStep(): Promise<void> {
+  const vscodeAny = vscode as any;
+  const hasChatAPI = !!(vscodeAny.chat && vscodeAny.chat.createChatParticipant);
+
+  let nextSteps = '**Next Steps:**\n' +
+    '• Open the Deep Process panel to manage your configuration\n' +
+    '• Try a workflow: Command Palette → "Deep Process: Verify"\n';
+
+  if (hasChatAPI) {
+    nextSteps += '• Use chat: Type @deep-process /verify <your question>\n';
+  } else {
+    nextSteps += '• For chat workflows: Update to VSCode 1.85+ to enable Chat Participant API\n';
+  }
+
+  nextSteps += '\n**Documentation:** VSCode 1.85+ required for full chat integration.';
+
   const openPanel = await vscode.window.showInformationMessage(
     '🎉 Setup Complete!\n\n' +
     'Deep Process is now configured and ready to use.\n\n' +
-    '**Next Steps:**\n' +
-    '• Open the Deep Process panel to manage your configuration\n' +
-    '• Try a workflow: Command Palette → "Deep Process: Verify"\n' +
-    '• Use chat: Type @deep-process /verify <your question>\n\n' +
-    'Happy coding!',
+    nextSteps +
+    '\n\nHappy coding!',
     { modal: true },
     'Open Panel',
     'Done'

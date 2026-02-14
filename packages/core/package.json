@@ -1,6 +1,6 @@
 {
   "name": "@deep-process/core",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Core utilities and loaders for deep-process packages",
   "type": "module",
   "main": "./dist/index.js",

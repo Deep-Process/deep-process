@@ -61,7 +61,16 @@ export function registerChatParticipant(context: vscode.ExtensionContext) {
       try {
         await handleChatRequest(request, chatContext, stream, token);
       } catch (error) {
-        stream.markdown(`\n\n❌ Error: ${error instanceof Error ? error.message : String(error)}\n`);
+        console.error('Chat participant error:', error);
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        stream.markdown(`\n\n❌ **Error executing workflow:** ${errorMsg}\n\n`);
+        stream.markdown(
+          'This may be due to:\n' +
+          '- Process files not installed (run `Deep Process: Install`)\n' +
+          '- Corrupted process files (try reinstalling)\n' +
+          '- File permission issues\n\n' +
+          'Check the Output panel for more details.'
+        );
       }
     }
   );

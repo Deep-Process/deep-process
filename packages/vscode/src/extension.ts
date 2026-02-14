@@ -31,7 +31,38 @@ export function activate(context: vscode.ExtensionContext) {
       registerChatParticipant(context);
       console.log('Chat participant registered');
     } catch (error) {
-      console.log('Chat API not available:', error);
+      console.error('Failed to register chat participant:', error);
+      vscode.window.showErrorMessage(
+        'Deep Process: Failed to register chat participant. Some features may be unavailable.',
+        'Learn More'
+      ).then(selection => {
+        if (selection === 'Learn More') {
+          vscode.env.openExternal(vscode.Uri.parse('https://github.com/deep-process-org/deep-process#chat-participant'));
+        }
+      });
+    }
+  } else {
+    // Chat API not available - likely older VSCode version
+    console.warn('Chat Participant API not available. VSCode 1.85+ required for chat features.');
+
+    // Show warning if not already dismissed
+    const dismissedKey = 'deep-process.chatApiWarningDismissed';
+    const wasDismissed = context.globalState.get<boolean>(dismissedKey, false);
+
+    if (!wasDismissed) {
+      vscode.window.showWarningMessage(
+        'Deep Process: Chat workflows require VSCode 1.85 or later with Chat Participant API. ' +
+        'Please update VSCode to use @deep-process chat commands. ' +
+        'You can still use command palette workflows.',
+        'Update VSCode',
+        'Dismiss'
+      ).then(selection => {
+        if (selection === 'Update VSCode') {
+          vscode.env.openExternal(vscode.Uri.parse('https://code.visualstudio.com/download'));
+        } else if (selection === 'Dismiss') {
+          context.globalState.update(dismissedKey, true);
+        }
+      });
     }
   }
 

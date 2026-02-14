@@ -1073,6 +1073,27 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
             </div>
           </div>
 
+          \${detectedTools.length === 0 && state.lastSync > 0 ? \`
+            <div class="help-section" style="background: var(--vscode-inputValidation-warningBackground); border-left: 3px solid var(--vscode-inputValidation-warningBorder);">
+              <h3>⚠️ No AI Tools Detected</h3>
+              <p style="margin-bottom: 12px;">
+                Deep Process works with AI assistants like GitHub Copilot, Continue.dev, Cline, and others.
+                No compatible tools were found on your system.
+              </p>
+              <p style="margin-bottom: 12px;">
+                <strong>What to do:</strong>
+              </p>
+              <ul style="margin-left: 20px; margin-bottom: 12px;">
+                <li>Install an AI assistant extension from the Extensions panel</li>
+                <li>Restart VSCode after installing</li>
+                <li>Click the refresh button (🔄) to detect newly installed tools</li>
+              </ul>
+              <p style="font-size: 11px; opacity: 0.8;">
+                You can still install and use Deep Process workflows manually via Command Palette even without AI tools.
+              </p>
+            </div>
+          \` : ''}
+
           <div class="help-section">
             <h3>📊 Status</h3>
             <div class="activity-list">
@@ -1100,6 +1121,11 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
               </div>
             </div>
             \${extensions.length > 0 ? extensions.map(tool => renderToolItem(tool)).join('') : '<div class="empty-state"><div class="empty-state-icon">📦</div><div class="empty-state-text">No extensions available</div></div>'}
+            \${extensions.filter(t => t.detected).length === 0 && extensions.length > 0 ? \`
+              <div style="padding: 12px; background: var(--vscode-textBlockQuote-background); border-radius: 4px; margin-top: 8px; font-size: 12px;">
+                <strong>💡 Tip:</strong> Install a supported AI extension like GitHub Copilot or Continue.dev from the Extensions marketplace, then click the refresh button (🔄) above.
+              </div>
+            \` : ''}
           </div>
 
           <div class="section">
@@ -1110,6 +1136,11 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
               </div>
             </div>
             \${cliTools.length > 0 ? cliTools.map(tool => renderToolItem(tool)).join('') : '<div class="empty-state"><div class="empty-state-icon">📦</div><div class="empty-state-text">No CLI tools available</div></div>'}
+            \${cliTools.filter(t => t.detected).length === 0 && cliTools.length > 0 ? \`
+              <div style="padding: 12px; background: var(--vscode-textBlockQuote-background); border-radius: 4px; margin-top: 8px; font-size: 12px;">
+                <strong>💡 Tip:</strong> CLI tools are optional. You can use Deep Process workflows with VSCode AI extensions only.
+              </div>
+            \` : ''}
           </div>
         \`;
       }
@@ -1258,16 +1289,33 @@ export class ConfigPanelProvider implements vscode.WebviewViewProvider {
             <ul>
               <li>
                 <strong>AI tool not detected?</strong><br>
-                Try clicking the refresh button or manually install the extension
+                Try clicking the refresh button (🔄) or manually install the extension from the marketplace. Restart VSCode after installing new extensions.
+              </li>
+              <li>
+                <strong>Chat workflows not available?</strong><br>
+                VSCode 1.85+ required for Chat Participant API. Update VSCode or use Command Palette workflows instead.
               </li>
               <li>
                 <strong>Process not working?</strong><br>
-                Check AI tool compatibility and ensure process is installed
+                Ensure the process is installed in the Processes tab and your AI tool is configured properly.
               </li>
               <li>
                 <strong>Installation failed?</strong><br>
-                Check workspace permissions and ensure folder is writable
+                Check workspace permissions and ensure the folder is writable. View developer console (Help → Toggle Developer Tools) for detailed errors.
               </li>
+              <li>
+                <strong>Commands redirect to chat?</strong><br>
+                This is expected behavior. For direct execution, workflows load in a markdown document. For interactive execution, use the Chat Participant with <code>@deep-process /command</code>.
+              </li>
+            </ul>
+          </div>
+
+          <div class="help-section" style="background: var(--vscode-textBlockQuote-background); padding: 12px; border-radius: 4px;">
+            <h3>⚙️ Requirements</h3>
+            <ul>
+              <li><strong>VSCode Version:</strong> 1.85.0 or later (for Chat Participant features)</li>
+              <li><strong>AI Tools:</strong> At least one compatible AI assistant (Copilot, Continue, Cline, etc.)</li>
+              <li><strong>Workspace:</strong> Open workspace folder (required for installation)</li>
             </ul>
           </div>
         \`;
