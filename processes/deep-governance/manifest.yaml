@@ -1,0 +1,48 @@
+id: deep-governance
+name: "Deep Governance"
+version: "1.0.0"
+description: "Systematic policy enforcement with access control compliance monitoring and audit generation"
+
+workflowFile: "workflow.md"
+firstStepFile: "steps/step-01-inventory.md"
+
+agentInstruction: "Execute governance workflow. Extract requirements BEFORE policy creation. Apply counter-checks to all compliance assessments."
+
+methods:
+  - id: 333
+    name: "Policy-as-Code Framework"
+    phase: "step-02-policy"
+  - id: 334
+    name: "Access Control Matrix Generator"
+    phase: "step-03-enforce"
+  - id: 335
+    name: "Stakeholder Requirement Extractor"
+    phase: "step-01-inventory"
+  - id: 336
+    name: "Compliance Gap Analyzer"
+    phase: "step-04-monitor"
+  - id: 327
+    name: "Regulatory Requirement Mapper"
+    phase: "step-01-inventory"
+  - id: 328
+    name: "Audit Trail Generator"
+    phase: "step-05-audit"
+  - id: 329
+    name: "Risk Heat Map Generator"
+    phase: "step-06-remediate"
+
+gates:
+  - GATE_1: "requirements_extracted = TRUE AND stakeholders_count >= 1 AND counter_check_executed = TRUE"
+  - GATE_2: "policies_created >= requirements_count AND policy_conflicts_resolved = TRUE AND counter_check_executed = TRUE"
+  - GATE_3: "controls_implemented >= policies_count AND enforcement_verified = TRUE AND counter_check_executed = TRUE"
+  - GATE_4: "monitoring_active = TRUE AND violations_count >= 0 AND counter_check_executed = TRUE"
+  - GATE_5: "audit_trail_generated = TRUE AND evidence_count >= violations_count AND counter_check_executed = TRUE"
+  - GATE_6: "remediation_count >= critical_violations_count AND risk_reduced = TRUE AND counter_check_executed = TRUE"
+
+outputs:
+  - "governance_requirements"
+  - "policy_definitions"
+  - "access_control_matrix"
+  - "compliance_status"
+  - "audit_trail"
+  - "remediation_plan"

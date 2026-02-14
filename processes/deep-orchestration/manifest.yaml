@@ -1,0 +1,39 @@
+id: deep-orchestration
+name: "Deep Orchestration"
+version: "1.0.0"
+description: "Systematic workflow coordination with dependency mapping parallel execution and result aggregation"
+
+workflowFile: "workflow.md"
+firstStepFile: "steps/step-01-define.md"
+
+agentInstruction: "Execute orchestration workflow. Extract dependencies BEFORE execution. Apply counter-checks to all coordination decisions."
+
+methods:
+  - id: 347
+    name: "Process Dependency Mapper"
+    phase: "step-02-map"
+  - id: 348
+    name: "Parallel Execution Optimizer"
+    phase: "step-03-sequence"
+  - id: 349
+    name: "Result Aggregator"
+    phase: "step-06-aggregate"
+  - id: 350
+    name: "Workflow State Manager"
+    phase: "step-04-execute"
+
+gates:
+  - GATE_1: "workflow_defined = TRUE AND tasks_count >= 1 AND counter_check_executed = TRUE"
+  - GATE_2: "dependencies_mapped = TRUE AND resources_allocated = TRUE AND counter_check_executed = TRUE"
+  - GATE_3: "execution_sequence_defined = TRUE AND parallelization_optimized = TRUE AND counter_check_executed = TRUE"
+  - GATE_4: "execution_started = TRUE AND state_tracking_active = TRUE AND counter_check_executed = TRUE"
+  - GATE_5: "monitoring_complete = TRUE AND failures_handled = TRUE AND counter_check_executed = TRUE"
+  - GATE_6: "results_aggregated = TRUE AND workflow_complete = TRUE AND counter_check_executed = TRUE"
+
+outputs:
+  - "workflow_definition"
+  - "dependency_graph"
+  - "execution_plan"
+  - "execution_state"
+  - "monitoring_results"
+  - "aggregated_results"

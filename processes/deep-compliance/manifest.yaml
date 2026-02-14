@@ -1,0 +1,18 @@
+id: deep-compliance
+name: "Deep Compliance"
+version: "1.0.0"
+description: "EU AI Act compliance assessment with automated requirement mapping, gap analysis, and audit-ready evidence generation"
+shortDescription: "Assess AI systems for regulatory compliance"
+workflowFile: "workflow.md"
+firstStepFile: "steps/step-00-inventory.md"
+firstStepLabel: "Phase 0"
+agentName: "Deep Compliance Agent"
+agentInstruction: "Follow the systematic compliance assessment workflow. Use Method #327 (Regulatory Requirement Mapper) for requirements mapping, Method #329 (Gap Analyzer) for gap detection, and Method #331 (Evidence Packager) for audit preparation. EU AI Act deadline: August 2026."
+githubAgentTools:
+  - read
+  - search
+  - edit
+  - terminal
+slashCommand: "deep-compliance"
+excludeFromInstall:
+  - "docs/**"
