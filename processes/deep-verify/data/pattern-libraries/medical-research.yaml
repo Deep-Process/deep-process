@@ -1,0 +1,162 @@
+# Medical Research Pattern Library — Clinical and Regulatory Impossibilities
+# LOAD: When medical-research domain is selected in deep-verify-config.yaml
+# PURPOSE: Detect contradictions in clinical trials, statistical claims, and regulatory compliance
+
+---
+library_metadata:
+  id: "medical-research"
+  version: "1.0.0"
+  last_updated: "2025-01-29"
+  patterns_count: 8
+  description: "Patterns for clinical trials, medical statistics, and regulatory compliance"
+---
+clinical_trials:
+  BLINDING_CONTRADICTION:
+    id: MR-001
+    name: "Double-Blind + Obvious Treatment"
+    signals:
+      - "double-blind"
+      - "blinded study"
+      - "obvious side effects"
+      - "distinguishable treatment"
+      - "surgical intervention"
+    why_impossible: |
+      Double-blinding requires treatment and placebo to be indistinguishable.
+      Treatments with obvious effects (surgery, visible side effects) cannot be truly blinded.
+      Functional unblinding compromises study validity.
+    detection_methods: ["154_Definitional_Contradiction_Detector.md", "071_First_Principles_Analysis.md"]
+    severity: CRITICAL
+    check: "Does study claim double-blind while using distinguishable intervention?"
+
+  RANDOMIZATION_BIAS:
+    id: MR-002
+    name: "Randomization Claim + Selection Bias"
+    signals:
+      - "randomized"
+      - "random assignment"
+      - "selected patients"
+      - "eligible if"
+      - "excluded if"
+    why_problematic: |
+      Strict inclusion/exclusion criteria can introduce selection bias.
+      "Randomized among selected" is not the same as "randomly sampled from population."
+      Generalizability claims must match recruitment reality.
+    detection_methods: ["085_Grounding_Check.md", "100_Vocabulary_Consistency.md"]
+    severity: IMPORTANT
+    check: "Do generalizability claims acknowledge selection criteria limitations?"
+
+  INTENT_TO_TREAT_VIOLATION:
+    id: MR-003
+    name: "Intent-to-Treat + Per-Protocol Confusion"
+    signals:
+      - "intent to treat"
+      - "ITT analysis"
+      - "per protocol"
+      - "completers only"
+      - "excluded dropouts"
+    why_problematic: |
+      ITT and per-protocol analyses answer different questions.
+      Claiming ITT while excluding dropouts is contradictory.
+      Analysis type must match actual inclusion criteria.
+    detection_methods: ["154_Definitional_Contradiction_Detector.md", "100_Vocabulary_Consistency.md"]
+    severity: CRITICAL
+    check: "Does analysis claim ITT while using per-protocol exclusions?"
+---
+statistical_validity:
+  P_HACKING_INDICATORS:
+    id: MR-004
+    name: "Multiple Comparisons Without Correction"
+    signals:
+      - "p < 0.05"
+      - "statistically significant"
+      - "multiple endpoints"
+      - "subgroup analysis"
+      - no Bonferroni/FDR mention
+    why_problematic: |
+      Multiple comparisons inflate false positive rate.
+      20 comparisons at p=0.05 expects 1 false positive.
+      Uncorrected p-values in multiple comparison context are misleading.
+    detection_methods: ["153_Theoretical_Impossibility_Check.md", "085_Grounding_Check.md"]
+    severity: CRITICAL
+    check: "Are multiple comparisons made without statistical correction?"
+
+  UNDERPOWERED_CLAIMS:
+    id: MR-005
+    name: "Strong Claims from Underpowered Study"
+    signals:
+      - "no significant difference"
+      - "equivalent"
+      - "non-inferior"
+      - small sample size
+      - "pilot study"
+    why_problematic: |
+      Absence of evidence is not evidence of absence.
+      Underpowered studies cannot support non-inferiority claims.
+      Pilot studies are hypothesis-generating, not confirming.
+    detection_methods: ["153_Theoretical_Impossibility_Check.md", "085_Grounding_Check.md"]
+    severity: CRITICAL
+    check: "Does study make strong negative claims without adequate power?"
+---
+regulatory_compliance:
+  FDA_LEARNING_DEVICE:
+    id: MR-006
+    name: "FDA Class III + Continuous Learning"
+    signals:
+      - "FDA Class III"
+      - "PMA"
+      - "high-risk device"
+      - "continuous learning"
+      - "adaptive algorithm"
+      - "self-updating"
+    why_impossible: |
+      FDA Class III devices require Premarket Approval (PMA) for each model change.
+      Continuous learning means constant model changes.
+      Each change would require new PMA submission.
+    exception: "Class II with PCCP (Predetermined Change Control Plan) allows pre-specified changes"
+    detection_methods: ["153_Theoretical_Impossibility_Check.md"]
+    severity: CRITICAL
+    check: "Does artifact claim Class III approval AND continuous learning?"
+
+  HIPAA_RICH_ANALYTICS:
+    id: MR-007
+    name: "HIPAA Compliance + Rich Analytics"
+    signals:
+      - "HIPAA compliant"
+      - "patient data analytics"
+      - "health insights"
+      - "medical records analysis"
+    why_problematic: |
+      De-identification is required for analytics without patient consent.
+      Rich analytics may enable re-identification.
+      Must specify: Expert Determination or Safe Harbor method?
+    detection_methods: ["085_Grounding_Check.md"]
+    severity: IMPORTANT
+    severity_if_unspecified: CRITICAL
+    check: "Does artifact claim HIPAA compliance with analytics without de-identification method?"
+
+  OFF_LABEL_PROMOTION:
+    id: MR-008
+    name: "Off-Label Use Promotion"
+    signals:
+      - "FDA approved for"
+      - "also effective for"
+      - "additional uses"
+      - "recommended for"
+    why_problematic: |
+      Promoting off-label uses violates FDA regulations.
+      Approved indication must match promotional claims.
+      "Evidence suggests" for unapproved uses is promotional language.
+    detection_methods: ["071_First_Principles_Analysis.md", "085_Grounding_Check.md"]
+    severity: CRITICAL
+    check: "Does artifact promote uses beyond approved indications?"
+---
+# USAGE SUMMARY:
+#
+# Medical research patterns focus on:
+# - Clinical trial design validity
+# - Statistical methodology soundness
+# - Regulatory compliance (FDA, HIPAA)
+# - Evidence quality assessment
+#
+# Use with core.yaml for comprehensive coverage.
+# These patterns help verify clinical protocols, research papers, and medical device documents.

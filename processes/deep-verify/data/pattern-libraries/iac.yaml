@@ -1,0 +1,145 @@
+# Infrastructure as Code Pattern Library — IaC Impossibilities
+# LOAD: When iac domain is selected in deep-verify-config.yaml
+# PURPOSE: Detect contradictions in Terraform, CloudFormation, and infrastructure management
+
+---
+library_metadata:
+  id: "iac"
+  version: "1.0.0"
+  last_updated: "2025-01-29"
+  patterns_count: 7
+  description: "Patterns for Infrastructure as Code, state management, and drift detection"
+---
+state_management:
+  STATELESS_STATE:
+    id: IC-001
+    name: "Stateless IaC with State Requirements"
+    signals:
+      - "stateless infrastructure"
+      - "no state file"
+      - "terraform state"
+      - "drift detection"
+      - "idempotent"
+    why_impossible: |
+      IaC tools require state to detect drift and plan changes.
+      Without state, the tool cannot know what exists vs. what's declared.
+      "Stateless IaC" while also "detecting drift" is contradictory.
+    detection_methods: ["154_Definitional_Contradiction_Detector.md", "071_First_Principles_Analysis.md"]
+    severity: CRITICAL
+    check: "Does artifact claim stateless IaC while also detecting drift?"
+
+  CONCURRENT_STATE_SAFETY:
+    id: IC-002
+    name: "Concurrent State Modification Safety"
+    signals:
+      - "concurrent applies"
+      - "parallel terraform"
+      - "no locking"
+      - "safe concurrent access"
+      - "multiple operators"
+    why_impossible: |
+      Concurrent state modifications without locking cause race conditions.
+      Terraform state is not CRDT; concurrent writes corrupt it.
+      Safe concurrent access requires locking mechanism.
+    detection_methods: ["153_Theoretical_Impossibility_Check.md", "084_Coherence_Check.md"]
+    severity: CRITICAL
+    check: "Does artifact claim safe concurrent state modification without locking?"
+
+  INSTANT_CONVERGENCE:
+    id: IC-003
+    name: "Instant Infrastructure Convergence"
+    signals:
+      - "instant provisioning"
+      - "immediate convergence"
+      - "zero wait time"
+      - "real-time infrastructure"
+    why_impossible: |
+      Cloud resource provisioning has inherent latency:
+      - API calls take time
+      - Resources have provisioning time (VMs, databases, etc.)
+      - Eventual consistency in cloud control planes
+      "Instant" convergence ignores physical and API constraints.
+    detection_methods: ["071_First_Principles_Analysis.md", "085_Grounding_Check.md"]
+    severity: IMPORTANT
+    check: "Does artifact claim instant or zero-latency infrastructure provisioning?"
+---
+drift_detection:
+  COMPLETE_DRIFT_DETECTION:
+    id: IC-004
+    name: "Complete Drift Detection"
+    signals:
+      - "detects all drift"
+      - "100% drift coverage"
+      - "no blind spots"
+      - "complete visibility"
+    why_impossible: |
+      IaC tools can only detect drift in resources they manage.
+      Out-of-band changes, unmanaged resources, and provider limitations create blind spots.
+      Complete drift detection requires complete resource graph knowledge.
+    detection_methods: ["153_Theoretical_Impossibility_Check.md", "087_Falsifiability_Check.md"]
+    severity: IMPORTANT
+    check: "Does artifact claim complete drift detection without caveats?"
+
+  AUTOMATIC_DRIFT_RESOLUTION:
+    id: IC-005
+    name: "Automatic Drift Resolution Without Risk"
+    signals:
+      - "auto-remediation"
+      - "automatic drift fix"
+      - "self-healing infrastructure"
+      - "no manual intervention"
+      - "safe auto-apply"
+    why_problematic: |
+      Automatic drift resolution can destroy intentional changes.
+      Without understanding change intent, auto-remediation is risky.
+      "Safe" auto-apply requires human judgment or explicit policy.
+    detection_methods: ["078_Assumption_Excavation.md", "084_Coherence_Check.md"]
+    severity: IMPORTANT
+    check: "Does artifact claim safe automatic drift resolution without governance?"
+---
+resource_conflicts:
+  DEPENDENCY_FREE_DESTROY:
+    id: IC-006
+    name: "Dependency-Free Resource Destruction"
+    signals:
+      - "destroy any resource"
+      - "no dependency issues"
+      - "independent deletion"
+      - "parallel destroy"
+    why_impossible: |
+      Resources have dependencies (security groups, IAM roles, etc.).
+      Deleting in wrong order causes failures.
+      "Dependency-free" destruction ignores infrastructure graph.
+    detection_methods: ["159_Transitive_Dependency_Closure.md", "116_Strange_Loop_Detection.md"]
+    severity: CRITICAL
+    check: "Does artifact claim resources can be destroyed without considering dependencies?"
+
+  MULTI_CLOUD_ABSTRACTION:
+    id: IC-007
+    name: "Perfect Multi-Cloud Abstraction"
+    signals:
+      - "cloud agnostic"
+      - "write once run anywhere"
+      - "identical behavior"
+      - "no cloud-specific code"
+      - "universal abstraction"
+    why_problematic: |
+      Cloud providers have different:
+      - Resource models and APIs
+      - Feature sets and limitations
+      - Pricing and availability
+      Perfect abstraction loses provider-specific capabilities.
+      Leaky abstraction is inevitable for non-trivial infrastructure.
+    detection_methods: ["085_Grounding_Check.md", "071_First_Principles_Analysis.md"]
+    severity: IMPORTANT
+    check: "Does artifact claim perfect multi-cloud abstraction without acknowledging tradeoffs?"
+---
+# USAGE SUMMARY:
+#
+# IaC patterns focus on:
+# - State management realities
+# - Drift detection limitations
+# - Resource dependency requirements
+# - Multi-cloud abstraction limits
+#
+# Use with core.yaml for comprehensive coverage.

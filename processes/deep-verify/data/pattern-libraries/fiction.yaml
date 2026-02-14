@@ -1,0 +1,158 @@
+# Fiction Writing Pattern Library — Narrative Impossibilities
+# LOAD: When fiction domain is selected in deep-verify-config.yaml
+# PURPOSE: Detect contradictions in timeline, character consistency, and world-building
+
+---
+library_metadata:
+  id: "fiction"
+  version: "1.0.0"
+  last_updated: "2025-01-29"
+  patterns_count: 8
+  description: "Patterns for narrative consistency, timeline logic, and world-building coherence"
+---
+timeline_consistency:
+  TEMPORAL_PARADOX:
+    id: FW-001
+    name: "Unresolved Temporal Paradox"
+    signals:
+      - "before X happened"
+      - "after the event"
+      - "meanwhile"
+      - "at the same time"
+      - conflicting timestamps
+      - age inconsistencies
+    why_impossible: |
+      Events cannot occur both before AND after each other.
+      Character ages must progress consistently with timeline.
+      Simultaneous events in different locations need travel time consideration.
+    detection_methods: ["084_Coherence_Check.md", "159_Transitive_Dependency_Closure.md"]
+    severity: CRITICAL
+    check: "Do events contradict each other temporally without in-world explanation?"
+
+  IMPOSSIBLE_TRAVEL_TIME:
+    id: FW-002
+    name: "Impossible Travel/Communication Time"
+    signals:
+      - "arrived immediately"
+      - "instant message"
+      - distance references
+      - travel time claims
+    why_problematic: |
+      Unless world has established fast-travel/communication, physical limits apply.
+      Characters cannot traverse large distances without time passing.
+      Consistency with established in-world physics required.
+    exception: "Valid if world establishes teleportation, faster-than-light, etc."
+    detection_methods: ["071_First_Principles_Analysis.md", "085_Grounding_Check.md"]
+    severity: IMPORTANT
+    check: "Does travel/communication time violate established world physics?"
+
+  FLASHBACK_PARADOX:
+    id: FW-003
+    name: "Flashback/Memory Contradiction"
+    signals:
+      - "remembered"
+      - "flashback"
+      - "recalled"
+      - "years ago"
+    why_problematic: |
+      Flashback content must be consistent with established past events.
+      Characters cannot remember events differently than shown.
+      Memory details must not contradict documented history.
+    detection_methods: ["084_Coherence_Check.md", "100_Vocabulary_Consistency.md"]
+    severity: IMPORTANT
+    check: "Do flashbacks contradict previously established events?"
+---
+character_consistency:
+  KNOWLEDGE_PARADOX:
+    id: FW-004
+    name: "Character Knowledge Paradox"
+    signals:
+      - "knew about"
+      - "didn't know"
+      - "surprised to learn"
+      - "already knew"
+    why_impossible: |
+      Characters cannot know information they haven't received.
+      Characters cannot be surprised by information they already have.
+      Knowledge state must be traceable through narrative.
+    detection_methods: ["159_Transitive_Dependency_Closure.md", "116_Strange_Loop_Detection.md"]
+    severity: CRITICAL
+    check: "Does a character know something they couldn't know, or not know something they should?"
+
+  CAPABILITY_INCONSISTENCY:
+    id: FW-005
+    name: "Inconsistent Character Capabilities"
+    signals:
+      - "suddenly able to"
+      - "couldn't do before"
+      - "expert at"
+      - "never learned"
+    why_problematic: |
+      Character abilities must be established or developed on-page.
+      Sudden expertise without training or explanation breaks consistency.
+      Power levels should progress logically.
+    exception: "Valid if story establishes sudden power gain mechanism"
+    detection_methods: ["085_Grounding_Check.md", "084_Coherence_Check.md"]
+    severity: IMPORTANT
+    check: "Do character capabilities change without in-story justification?"
+
+  MOTIVATION_CONTRADICTION:
+    id: FW-006
+    name: "Contradictory Character Motivation"
+    signals:
+      - "wanted to"
+      - "refused to"
+      - "goal was"
+      - "decided to"
+    why_problematic: |
+      Character motivations should be internally consistent.
+      Actions contradicting stated goals need explanation.
+      Character arcs should show logical progression.
+    detection_methods: ["084_Coherence_Check.md", "154_Definitional_Contradiction_Detector.md"]
+    severity: IMPORTANT
+    check: "Do character actions contradict their established motivations without reason?"
+---
+world_building:
+  RULE_VIOLATION:
+    id: FW-007
+    name: "World Rule Violation"
+    signals:
+      - "magic cannot"
+      - "technology allows"
+      - "impossible in this world"
+      - "the rules state"
+    why_impossible: |
+      Established world rules must be followed or explicitly broken with consequence.
+      If magic cannot do X, characters cannot use magic to do X.
+      Technology limitations must be consistent.
+    detection_methods: ["071_First_Principles_Analysis.md", "154_Definitional_Contradiction_Detector.md"]
+    severity: CRITICAL
+    check: "Do events violate explicitly established world rules?"
+
+  ECONOMY_IMPOSSIBILITY:
+    id: FW-008
+    name: "Economic/Resource Impossibility"
+    signals:
+      - "unlimited resources"
+      - "no cost"
+      - "abundance"
+      - "scarcity"
+      - "trade"
+    why_problematic: |
+      Resource economics must be internally consistent.
+      Scarcity and abundance claims must not contradict.
+      Trade relationships need logical basis.
+    detection_methods: ["084_Coherence_Check.md", "085_Grounding_Check.md"]
+    severity: IMPORTANT
+    check: "Are resource/economic claims internally consistent?"
+---
+# USAGE SUMMARY:
+#
+# Fiction patterns focus on:
+# - Timeline and causality consistency
+# - Character knowledge and capability tracking
+# - World rule adherence
+# - Internal logic of fictional systems
+#
+# Use with core.yaml for comprehensive coverage.
+# These patterns help verify narrative documents, story outlines, and fiction manuscripts.

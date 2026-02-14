@@ -1,0 +1,170 @@
+# Microservices Pattern Library — Distributed Systems Impossibilities
+# LOAD: When microservices domain is selected in deep-verify-config.yaml
+# PURPOSE: Detect contradictions in distributed systems, API contracts, and service mesh designs
+
+---
+library_metadata:
+  id: "microservices"
+  version: "1.0.0"
+  last_updated: "2025-01-29"
+  patterns_count: 8
+  description: "Patterns for distributed systems, API contracts, and service mesh architectures"
+---
+distributed_systems:
+  SYNC_ASYNC_GUARANTEE:
+    id: MS-001
+    name: "Synchronous Semantics in Async System"
+    signals:
+      - "exactly-once delivery"
+      - "guaranteed order"
+      - "synchronous behavior"
+      - "async messaging"
+      - "event-driven"
+      - "message queue"
+    why_impossible: |
+      Asynchronous systems cannot guarantee synchronous semantics without coordination.
+      Network partitions, node failures, and message delays break ordering guarantees.
+      "Exactly-once" requires idempotency at receiver, not a messaging property.
+    detection_methods: ["153_Theoretical_Impossibility_Check.md", "071_First_Principles_Analysis.md"]
+    severity: CRITICAL
+    check: "Does artifact claim synchronous guarantees in an async architecture?"
+
+  DISTRIBUTED_ACID:
+    id: MS-002
+    name: "Distributed ACID Without Coordination"
+    signals:
+      - "distributed transactions"
+      - "ACID across services"
+      - "no coordinator"
+      - "no 2PC"
+      - "zero latency"
+      - "no blocking"
+    why_impossible: |
+      ACID transactions across services require coordination (2PC, Saga, etc.).
+      Coordination introduces latency and potential blocking.
+      Cannot have distributed ACID that is also fast and non-blocking.
+    theorem: "2PC blocking theorem"
+    detection_methods: ["153_Theoretical_Impossibility_Check.md", "084_Coherence_Check.md"]
+    severity: CRITICAL
+    check: "Does artifact claim distributed ACID without acknowledging coordination overhead?"
+
+  ZERO_DOWNTIME_MIGRATION:
+    id: MS-003
+    name: "Zero Downtime Schema Migration"
+    signals:
+      - "zero downtime"
+      - "no service interruption"
+      - "schema migration"
+      - "breaking change"
+      - "incompatible API"
+    why_impossible: |
+      Breaking schema changes require either:
+      - Downtime to update all consumers simultaneously
+      - Versioning strategy (dual-write, shadow, etc.)
+      Claims of zero downtime with breaking changes and no versioning are contradictory.
+    detection_methods: ["071_First_Principles_Analysis.md", "154_Definitional_Contradiction_Detector.md"]
+    severity: IMPORTANT
+    check: "Does artifact claim zero downtime for breaking changes without migration strategy?"
+---
+api_contracts:
+  BREAKING_BACKWARD_COMPAT:
+    id: MS-004
+    name: "Breaking Change + Backward Compatibility"
+    signals:
+      - "breaking change"
+      - "backward compatible"
+      - "remove field"
+      - "change type"
+      - "existing clients"
+    why_impossible: |
+      A breaking change by definition breaks backward compatibility.
+      Cannot simultaneously introduce breaking changes and maintain compatibility.
+      Must choose: version the API or maintain compatibility.
+    detection_methods: ["154_Definitional_Contradiction_Detector.md", "100_Vocabulary_Consistency.md"]
+    severity: CRITICAL
+    check: "Does artifact claim a change is both breaking AND backward compatible?"
+
+  UNIVERSAL_API_CONTRACT:
+    id: MS-005
+    name: "One API Fits All Consumers"
+    signals:
+      - "single API"
+      - "all consumers"
+      - "no customization"
+      - "BFF pattern rejected"
+      - "universal contract"
+    why_problematic: |
+      Different consumers (web, mobile, IoT) have different needs.
+      Over-fetching for simple consumers, under-fetching for complex ones.
+      Claims of perfect fit for all consumers ignore consumer diversity.
+    detection_methods: ["085_Grounding_Check.md", "078_Assumption_Excavation.md"]
+    severity: IMPORTANT
+    check: "Does artifact claim a single API optimally serves all consumer types?"
+---
+service_mesh:
+  ZERO_OVERHEAD_PROXY:
+    id: MS-006
+    name: "Zero Overhead Service Mesh"
+    signals:
+      - "zero latency overhead"
+      - "no performance impact"
+      - "sidecar proxy"
+      - "service mesh"
+      - "transparent"
+    why_impossible: |
+      Sidecar proxies add network hops, TLS termination, and processing.
+      Any proxy adds latency, even if small.
+      "Zero overhead" is physically impossible; at best it's "minimal overhead."
+    detection_methods: ["071_First_Principles_Analysis.md", "087_Falsifiability_Check.md"]
+    severity: IMPORTANT
+    check: "Does artifact claim zero latency/overhead from service mesh components?"
+
+  AUTOMATIC_RESILIENCE:
+    id: MS-007
+    name: "Automatic Resilience Without Configuration"
+    signals:
+      - "automatic retry"
+      - "self-healing"
+      - "no configuration"
+      - "zero touch"
+      - "intelligent failover"
+    why_problematic: |
+      Resilience patterns require context-specific configuration:
+      - Retry counts depend on idempotency
+      - Timeouts depend on SLOs
+      - Circuit breaker thresholds depend on failure characteristics
+      "Automatic" without configuration means default values, not optimal resilience.
+    detection_methods: ["085_Grounding_Check.md", "078_Assumption_Excavation.md"]
+    severity: IMPORTANT
+    check: "Does artifact claim automatic resilience without acknowledging configuration needs?"
+
+  INFINITE_SCALE:
+    id: MS-008
+    name: "Infinite Horizontal Scale"
+    signals:
+      - "infinitely scalable"
+      - "unlimited scale"
+      - "linear scaling"
+      - "no bottlenecks"
+      - "stateless"
+    why_impossible: |
+      All systems have scaling limits:
+      - Database connections
+      - Network bandwidth
+      - Coordination overhead
+      - State management (even "stateless" services have external state)
+      Linear scaling has bounds; infinite scale is impossible.
+    theorem: "Amdahl's Law / Universal Scalability Law"
+    detection_methods: ["153_Theoretical_Impossibility_Check.md", "085_Grounding_Check.md"]
+    severity: CRITICAL
+    check: "Does artifact claim infinite or unlimited scalability?"
+---
+# USAGE SUMMARY:
+#
+# Microservices patterns focus on:
+# - Distributed systems theoretical limits (CAP, FLP applied to services)
+# - API contract consistency and versioning
+# - Service mesh overhead and configuration reality
+# - Scalability bounds
+#
+# Use with core.yaml for comprehensive coverage.

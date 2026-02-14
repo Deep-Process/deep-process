@@ -1,0 +1,124 @@
+# Documentation Pattern Library — Code-Doc Mismatch Impossibilities
+# LOAD: When documentation domain is selected in deep-verify-config.yaml
+# PURPOSE: Detect contradictions between documentation and code/API reality
+
+---
+library_metadata:
+  id: "documentation"
+  version: "1.0.0"
+  last_updated: "2025-01-29"
+  patterns_count: 6
+  description: "Patterns for technical documentation, API docs, and code-doc consistency"
+---
+api_documentation:
+  ENDPOINT_MISMATCH:
+    id: DOC-001
+    name: "Documented Endpoint != Actual Endpoint"
+    signals:
+      - "endpoint:"
+      - "URL:"
+      - "route:"
+      - "/api/"
+      - documented paths
+    why_problematic: |
+      Documented endpoints must match actual implementation.
+      Stale documentation leads to integration failures.
+      Version mismatches between docs and code are common failure modes.
+    detection_methods: ["085_Grounding_Check.md", "084_Coherence_Check.md"]
+    severity: CRITICAL
+    check: "Can documented endpoints be verified against actual implementation?"
+
+  SCHEMA_DOC_DRIFT:
+    id: DOC-002
+    name: "Request/Response Schema Drift"
+    signals:
+      - "request body"
+      - "response format"
+      - "schema:"
+      - "required fields"
+      - "optional fields"
+    why_problematic: |
+      Schema documentation must match actual API behavior.
+      Required fields that aren't actually required cause confusion.
+      Missing field documentation leads to runtime surprises.
+    detection_methods: ["084_Coherence_Check.md", "100_Vocabulary_Consistency.md"]
+    severity: CRITICAL
+    check: "Do documented schemas match actual request/response formats?"
+
+  ERROR_COVERAGE_GAP:
+    id: DOC-003
+    name: "Incomplete Error Documentation"
+    signals:
+      - "error codes"
+      - "status codes"
+      - "400 Bad Request"
+      - "error handling"
+    why_problematic: |
+      Undocumented errors leave consumers unprepared.
+      Documented errors that never occur waste implementation effort.
+      Error semantics must be accurate for proper handling.
+    detection_methods: ["086_Topological_Hole_Detection.md", "078_Assumption_Excavation.md"]
+    severity: IMPORTANT
+    check: "Are all possible error conditions documented with accurate descriptions?"
+---
+code_doc_mismatch:
+  EXAMPLE_OUTDATED:
+    id: DOC-004
+    name: "Non-Functional Code Examples"
+    signals:
+      - "example:"
+      - "code sample"
+      - "usage:"
+      - "```"
+    why_problematic: |
+      Code examples should be executable and produce documented results.
+      Outdated examples teach wrong patterns.
+      Untested examples may contain syntax or logic errors.
+    detection_methods: ["085_Grounding_Check.md", "087_Falsifiability_Check.md"]
+    severity: IMPORTANT
+    check: "Do code examples actually work as documented?"
+
+  BEHAVIOR_DOCUMENTATION:
+    id: DOC-005
+    name: "Documented Behavior != Actual Behavior"
+    signals:
+      - "will return"
+      - "throws exception"
+      - "triggers event"
+      - "side effect"
+    why_problematic: |
+      Behavioral claims must match implementation.
+      Documented side effects that don't occur break expectations.
+      Missing documentation of actual side effects causes bugs.
+    detection_methods: ["084_Coherence_Check.md", "154_Definitional_Contradiction_Detector.md"]
+    severity: CRITICAL
+    check: "Do documented behaviors match actual implementation behavior?"
+---
+versioning:
+  VERSION_FEATURE_MISMATCH:
+    id: DOC-006
+    name: "Version-Feature Inconsistency"
+    signals:
+      - "since version"
+      - "deprecated in"
+      - "removed in"
+      - "added in"
+      - version numbers
+    why_problematic: |
+      Feature availability must match version claims.
+      "Since v2.0" features must not appear in v1.x docs without warning.
+      Deprecation timelines must be consistent across documentation.
+    detection_methods: ["159_Transitive_Dependency_Closure.md", "084_Coherence_Check.md"]
+    severity: IMPORTANT
+    check: "Are version-feature associations consistent throughout documentation?"
+---
+# USAGE SUMMARY:
+#
+# Documentation patterns focus on:
+# - API documentation accuracy
+# - Code example validity
+# - Version consistency
+# - Behavior documentation correctness
+#
+# Use with core.yaml for comprehensive coverage.
+# These patterns help verify technical documentation, API references, and developer guides.

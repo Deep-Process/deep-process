@@ -1,15 +1,16 @@
 ---
 step: 4
 name: "Verdict"
-time_estimate: "2 minutes"
-goal: "Calculate final score, determine verdict, assess confidence"
-requires_completion: [0]
-requires_one_of: [[1], [1, 2, 3]]
+time_estimate: "3-5 minutes"
+goal: "Calculate final score, determine verdict, assess confidence, check escalation"
+requires_completion: [0, 1, 2, 3]
 next_steps:
   DEFAULT: "steps/step-05-report.md"
+gate: "GATE_4"
 data_dependencies:
   - "data/decision-thresholds.yaml"
   - "data/severity-scoring.yaml"
+  - "data/calibration.yaml"
 outputs:
   - verdict
   - confidence
@@ -18,299 +19,315 @@ outputs:
 
 # Phase 4: Verdict
 
-## MANDATORY EXECUTION RULES
+## ENFORCEMENT RULES
 
-1. **LOAD DATA FILES FIRST** — Read all `data_dependencies` before proceeding
-2. **Calculate final score accurately** — Use all adjustments
-3. **Apply verdict rules consistently** — From data/decision-thresholds.yaml
-4. **Validate verdict** — Use appropriate checklist
-5. **Assess confidence honestly** — Based on evidence quality
-6. **Check escalation criteria** — Before finalizing
+```
+1. Calculate final score accurately using ALL adjustments.
+2. Apply verdict rules from decision-thresholds.yaml consistently.
+3. Validate verdict using appropriate checklist.
+4. Assess confidence honestly based on evidence quality.
+5. Check escalation criteria before finalizing.
+6. COMPLETE binding checklist before GATE_4.
+7. NO early exits. ALL phases run.
+```
 
 ---
 
 ## 4.0 Load Required Data
 
-**Before verdict determination, load these files:**
+**Execute:**
 
-```
-1. data/decision-thresholds.yaml
-   → Load final_verdict_rules
-   → Load confidence_levels
-   → Load escalation_criteria
+1. Read `data/decision-thresholds.yaml`
+   - Load final_verdict_rules
+   - Load confidence_levels
+   - Load escalation_criteria
+2. Read `data/severity-scoring.yaml` for score verification
+3. Read `data/calibration.yaml` for confidence assessment
 
-2. data/severity-scoring.yaml
-   → Reference for score verification
-```
-
-→ **HALT** — Confirm data files loaded
+> **HALT** — Confirm all data files loaded.
 
 ---
 
-## 4.1 Final Evidence Score Calculation
+## 4.1 Final Score Calculation
 
-**Verify score is correct:**
+**Recalculate score from scratch to verify:**
 
 ```
 ═══════════════════════════════════════════════════════════════
-EVIDENCE SCORE CALCULATION
+FINAL EVIDENCE SCORE CALCULATION
 ═══════════════════════════════════════════════════════════════
 
 Phase 1 contributions:
-  CRITICAL findings: _____ × 3 = _____
-  IMPORTANT findings: _____ × 1 = _____
-  MINOR findings: _____ × 0.3 = _____
-  Clean passes: _____ × -0.5 = _____
-  Pattern bonuses: _____ × 1 = _____
+  Tier 1 findings:
+    CRITICAL: [count] × 3 = [points]
+    IMPORTANT: [count] × 1 = [points]
+    MINOR: [count] × 0.3 = [points]
+  Pattern bonuses: [count] × 1 = [points]
+  Clean passes: [count] × -0.5 = [points]
   ─────────────────────────────────
-  Phase 1 subtotal: _____
+  Phase 1 subtotal: [sum]
 
-Phase 2 contributions (if executed):
-  New CRITICAL: _____ × 3 = _____
-  New IMPORTANT: _____ × 1 = _____
-  New MINOR: _____ × 0.3 = _____
-  Confirmations: _____ × 1 = _____
-  Clean passes: _____ × -0.5 = _____
+Phase 2 contributions:
+  Tier 2 findings:
+    CRITICAL: [count] × 3 = [points]
+    IMPORTANT: [count] × 1 = [points]
+    MINOR: [count] × 0.3 = [points]
+  Pattern bonuses: [count] × 1 = [points]
+  Clean passes: [count] × -0.5 = [points]
   ─────────────────────────────────
-  Phase 2 subtotal: _____
+  Phase 2 subtotal: [sum]
 
-Phase 3 adjustments (if executed):
-  Findings removed: -_____
-  Downgrades (CRITICAL→IMPORTANT): _____ × -2 = _____
-  Downgrades (IMPORTANT→MINOR): _____ × -0.7 = _____
+Phase 3 adjustments:
+  Findings removed: -[points from removed findings]
+  Downgrades CRITICAL→IMPORTANT: [count] × -2 = [points]
+  Downgrades IMPORTANT→MINOR: [count] × -0.7 = [points]
   ─────────────────────────────────
-  Phase 3 adjustment: _____
+  Phase 3 adjustment: [sum]
 
 ═══════════════════════════════════════════════════════════════
-FINAL EVIDENCE SCORE: S = _____
+FINAL SCORE (S): [Phase 1] + [Phase 2] + [Phase 3] = [TOTAL]
 ═══════════════════════════════════════════════════════════════
+```
+
+**Verification:**
+- Matches frontmatter.currentScore? [ ] Yes [ ] No
+- If No: Recalculate and update frontmatter
+
+> **HALT** — Confirm score calculation verified.
+
+---
+
+## 4.2 Verdict Determination
+
+**Apply decision rules from data/decision-thresholds.yaml:**
+
+```
+VERDICT DETERMINATION
+
+Final Score (S): [value]
+
+Threshold Analysis:
+  [ ] S ≥ 6     → REJECT (artifact contains fatal flaws)
+  [ ] -3 < S < 6 → UNCERTAIN (cannot determine validity)
+  [ ] S ≤ -3    → ACCEPT (artifact appears sound)
+
+Escalation Check:
+  [ ] Escalation flag raised in Phase 0-3?
+  [ ] High stakes + borderline score (4 < S < 7)?
+  [ ] Conflicting evidence (mix of CRITICAL + clean passes)?
+
+If ANY escalation trigger: Verdict = ESCALATE
+
+─────────────────────────────────
+VERDICT: [ACCEPT / UNCERTAIN / REJECT / ESCALATE]
+─────────────────────────────────
 ```
 
 ---
 
-## 4.2 Determine Verdict
+## 4.3 Verdict Validation
 
-**From `data/decision-thresholds.yaml` → `final_verdict_rules`:**
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  S ≥ 6           → REJECT                                           │
-│  S ≤ -3          → ACCEPT                                           │
-│  -3 < S < 6      → UNCERTAIN                                        │
-└─────────────────────────────────────────────────────────────────────┘
-
-Current S = _____
-
-VERDICT: _______________
-```
-
----
-
-## 4.3 Validate Verdict
-
-**Complete the appropriate checklist:**
+**Execute the checklist for your verdict:**
 
 ### If REJECT:
 
 ```
-□ At least one CRITICAL finding survived Phase 3
-  (SKIP if Quick Mode)
-  Finding: _____________________
+□ At least ONE CRITICAL finding survived Phase 3?
+  Answer: ________________________________
 
-□ Pattern Library match exists OR Phase 2 confirmation obtained
-  (Pattern match required if Quick Mode)
-  Evidence: _____________________
+□ Quote(s) directly support impossibility/contradiction?
+  Quotes: ________________________________
 
-□ False Positive Checklist completed (from Phase 3)
-  (SKIP if Quick Mode)
-  Result: _____/5 checked
+□ Could NOT construct steel-man that held up?
+  Confirmed in Phase 3: [ ] Yes [ ] No
 
-□ Steel-man arguments addressed
-  (SKIP if Quick Mode)
-  Arguments that held: _____/3
-
-If any unchecked → Document exception:
-Exception: _____________________
-```
-
-### If ACCEPT:
-
-```
-□ All Tier 1 methods passed clean
-  Result: [ ] Yes [ ] No (had findings that were resolved)
-
-□ No CRITICAL findings at any phase
-  Confirm: _____________________
-
-□ If IMPORTANT findings existed, all were resolved in Phase 3
-  (N/A for Quick Mode - should not have IMPORTANT findings)
-  Confirm: _____________________
-
-□ Steel-man for REJECT was attempted and failed
-  (SKIP if Quick Mode)
-  Confirm: _____________________
-
-If any unchecked → Document exception:
-Exception: _____________________
+□ False Positive Checklist passed?
+  Confirmed in Phase 3: [ ] Yes [ ] No
 ```
 
 ### If UNCERTAIN:
 
 ```
-□ Score is genuinely in uncertain range (-3 < S < 6)
-  S = _____
+□ Score is in uncertain range (-3 < S < 6)?
+  S = [value]: [ ] Yes [ ] No
 
-□ Escalation criteria checked (see 4.5)
+□ Mixed evidence (both issues and clean passes)?
+  CRITICAL: [count], IMPORTANT: [count], Clean: [count]
 
-□ Specific uncertainties documented
-  1. _____________________
-  2. _____________________
-
-□ If S is negative AND no CRITICAL/IMPORTANT findings remain:
-  → Include recommendation: "ACCEPT with caveats"
-  → Document the caveats from remaining MINOR findings
-  Note: UNCERTAIN with negative S is the expected outcome for sound
-        artifacts that have minor observations. The ACCEPT threshold
-        (S ≤ -3) is intentionally conservative.
+□ Ambiguity in artifact prevents clear determination?
+  Examples: ________________________________
 ```
 
-→ **HALT** — Wait for validation checklist completion
+### If ACCEPT:
+
+```
+□ Score ≤ -3 OR no CRITICAL/IMPORTANT findings?
+  S = [value], CRITICAL: [count], IMPORTANT: [count]
+
+□ All Tier 1 methods passed OR findings removed in Phase 3?
+  Summary: ________________________________
+
+□ Steel-man did NOT reveal unaddressed issues?
+  Confirmed in Phase 3: [ ] Yes [ ] No
+```
+
+### If ESCALATE:
+
+```
+□ Escalation trigger identified?
+  Trigger: ________________________________
+
+□ Justification for human expert?
+  Reason: ________________________________
+```
+
+> **HALT** — Complete validation checklist for verdict.
 
 ---
 
-## 4.4 Assess Confidence
+## 4.4 Confidence Assessment
 
-**From `data/decision-thresholds.yaml` → `confidence_levels`:**
+**Assess confidence using data/calibration.yaml guidance:**
 
 ```
-Check applicable conditions:
+CONFIDENCE ASSESSMENT
 
-[ ] HIGH confidence
-    Conditions:
-    - |S| > 10: [ ] Yes (S = _____) [ ] No
-    - Methods agree: [ ] Yes [ ] No
-    - Adversarial attacks failed: [ ] Yes [ ] No
-    All conditions met? [ ] Yes → HIGH confidence
+Evidence Quality:
+  [ ] HIGH - All findings have strong quotes, patterns matched,
+             counter-checks passed, steel-man failed
+  [ ] MEDIUM - Most findings have quotes, some ambiguity,
+               counter-checks mostly passed
+  [ ] LOW - Weak quotes, high ambiguity, steel-man partially succeeded,
+            or insufficient coverage
 
-[ ] MEDIUM confidence
-    Conditions:
-    - 6 ≤ |S| ≤ 10: [ ] Yes (S = _____) [ ] No
-    - Most methods agree: [ ] Yes [ ] No
-    Met? [ ] Yes → MEDIUM confidence
+Hypothesis Testing:
+  Hypotheses generated in Phase 0-1: [count]
+  Hypotheses tested: [count]
+  Hypotheses untested: [count]
+  Untested % = [percentage]
 
-[ ] LOW confidence
-    Conditions:
-    - |S| near threshold: [ ] Yes [ ] No
-    - Methods disagree: [ ] Yes [ ] No
-    - Findings weakened in Phase 3: [ ] Yes [ ] No
-    Any condition met? [ ] Yes → LOW confidence
+Coverage:
+  Phases completed: [0-5 or 0-6]
+  Tier 2 methods: [count executed]
+  Scope reductions: [count]
 
-CONFIDENCE: _______________
+─────────────────────────────────
+CONFIDENCE: [HIGH / MEDIUM / LOW]
+─────────────────────────────────
+
+Confidence Basis:
+  [1-2 sentences explaining why this confidence level]
 ```
+
+> **HALT** — Confirm confidence assessed.
 
 ---
 
-## 4.5 Check Escalation Criteria
+## 4.5 Escalation Decision
 
-**From `data/decision-thresholds.yaml` → `escalation_criteria`:**
-
-### Mandatory Escalation (ANY triggers escalation):
+**Check escalation criteria from data/decision-thresholds.yaml:**
 
 ```
-[ ] UNCERTAIN verdict AND stakes are HIGH
-    Stakes: _____ Verdict: _____
+ESCALATION CRITERIA CHECK
 
-[ ] Methods strongly disagree (some REJECT, some ACCEPT)
-    Method agreement: _____
+□ Stakes = HIGH AND Score borderline (4 < S < 7)?
+  Stakes: [LOW/MEDIUM/HIGH], S: [value]
+  Triggers: [ ] Yes [ ] No
 
-[ ] False Positive Checklist has 2+ unchecked items
-    Unchecked items: _____
-```
+□ Conflicting CRITICAL findings (one says X, one says NOT X)?
+  Check findings list: [ ] Yes [ ] No
 
-### Recommended Escalation (consider if ANY apply):
+□ Domain-specific issue requiring expert judgment?
+  Examples: ________________________________
+  Triggers: [ ] Yes [ ] No
 
-```
-[ ] Findings require domain expertise you lack
-    Domain: _____________________
+□ Explicit escalation flag raised in Phase 0-3?
+  Check frontmatter: [ ] Yes [ ] No
 
-[ ] Novel pattern not in library, uncertain severity
-    Pattern: _____________________
+─────────────────────────────────
+ESCALATION NEEDED: [true / false]
+─────────────────────────────────
 
-[ ] Multiple steel-man arguments hold
-    Count: _____/3
-```
+If true, override verdict to ESCALATE.
+If false, keep determined verdict.
 
-### Escalation Decision
-
-```
-Escalation needed? [ ] Yes [ ] No
-
-If Yes:
-  Reason: _____________________
-
-  Specific question for reviewer:
-  _____________________
-
-  What information would resolve:
-  _____________________
+FINAL VERDICT: [ACCEPT / UNCERTAIN / REJECT / ESCALATE]
 ```
 
 ---
 
 ## 4.6 Update Frontmatter
 
+**Execute:**
+
 ```yaml
-stepsCompleted: [0, 1, 2, 3, 4]  # or [0, 1, 4] for early exit
-currentStep: 5
-currentScore: [final S]
-
-verdict: [REJECT / ACCEPT / UNCERTAIN / ESCALATE]
+verdict: [ACCEPT / UNCERTAIN / REJECT / ESCALATE]
 confidence: [HIGH / MEDIUM / LOW]
-earlyExit: [true/false]
-earlyExitReason: [reason or null]
-
 escalation:
-  needed: [true/false]
-  reason: "[reason or null]"
-  question: "[question or null]"
-  information_needed: "[info or null]"
+  needed: [true / false]
+  triggers: [list of triggers if needed]
+  reason: "[explanation if needed]"
 
-validation:
-  checklist_completed: true
-  exceptions_documented: "[any exceptions]"
+verdict_summary:
+  final_score: [S]
+  threshold_applied: "[which threshold rule]"
+  validation_checklist: "[which checklist used]"
+  confidence_basis: "[brief explanation]"
 ```
 
 ---
 
-## 4.7 Proceed to Report
+## GATE_4: Verdict → Report
 
-**Next step:** Load `steps/step-05-report.md`
+**ENFORCEMENT:** ALL items MUST be DONE or SCOPE_REDUCED before proceeding.
 
-**Before loading, verify:**
-- [ ] Final score calculated and verified
-- [ ] Verdict determined per thresholds
-- [ ] Validation checklist completed
-- [ ] Confidence level assigned
-- [ ] Escalation criteria checked
-- [ ] Frontmatter updated
+Load `data/gate-definitions.yaml` → GATE_4 for complete requirements.
+
+### Gate Checklist
+
+```
+[ ] G4.1: Score recalculated from scratch and verified
+[ ] G4.2: Score matches frontmatter.currentScore
+[ ] G4.3: Verdict determined per decision-thresholds.yaml rules
+[ ] G4.4: Verdict validation checklist completed
+[ ] G4.5: Confidence assessed (HIGH/MEDIUM/LOW)
+[ ] G4.6: Confidence basis documented
+[ ] G4.7: Escalation criteria checked
+[ ] G4.8: Escalation decision made (if applicable)
+[ ] G4.9: Frontmatter updated with verdict, confidence, escalation
+```
+
+### SCOPE_REDUCTION (if needed)
+
+If ANY item cannot be completed:
+
+```yaml
+SCOPE_REDUCTION_RECORD:
+  gate_item: "G4.X"
+  what_omitted: "[exact description]"
+  why: "[justification]"
+  impact_assessment: "[how affects verdict]"
+  user_approved: [true/false]
+```
+
+**IF user_approved = false:** HALT and request approval.
 
 ---
 
-## Quick Reference: Verdict Summary
+### Gate Passage
 
-| Condition | Verdict | Action |
-|-----------|---------|--------|
-| S ≥ 6 | REJECT | Document critical findings |
-| S ≤ -3 | ACCEPT | Document clean passes |
-| -3 < S < 6 | UNCERTAIN | Document uncertainties, consider escalation |
-| Any mandatory escalation | ESCALATE | Hand off to human reviewer |
+1. Review all checklist items.
+2. Confirm ALL are DONE or formally SCOPE_REDUCED.
+3. IF ALL DONE: Output `"GATE_4 PASSED"`
+4. IF ANY SCOPE_REDUCED: Output `"GATE_4 PASSED (with scope reductions)"`
+5. Proceed to Phase 5.
+
+**ENFORCEMENT:** ALL phases run. NO early exits.
+
+**HALT** — Do NOT load Phase 5 until GATE_4 passes.
 
 ---
 
-## Output Checklist
+**END OF PHASE 4**
 
-- [ ] `verdict` is set (REJECT / ACCEPT / UNCERTAIN / ESCALATE)
-- [ ] `confidence` is set (HIGH / MEDIUM / LOW)
-- [ ] Validation checklist completed for verdict type
-- [ ] Escalation decision made and documented
-- [ ] Ready to generate final report
+**Next action:** Load `steps/step-05-report.md`

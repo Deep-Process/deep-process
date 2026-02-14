@@ -1,0 +1,145 @@
+# PRD Pattern Library — Requirements Impossibilities
+# LOAD: When prd domain is selected in deep-verify-config.yaml
+# PURPOSE: Detect contradictions in product requirements, scope definition, and stakeholder alignment
+
+---
+library_metadata:
+  id: "prd"
+  version: "1.0.0"
+  last_updated: "2025-01-29"
+  patterns_count: 7
+  description: "Patterns for product requirements, feature specs, and scope management"
+---
+requirements_conflicts:
+  CONTRADICTORY_REQUIREMENTS:
+    id: PRD-001
+    name: "Mutually Exclusive Requirements"
+    signals:
+      - "must be"
+      - "shall not"
+      - "required"
+      - "mandatory"
+      - opposing statements
+    why_impossible: |
+      Requirements that directly contradict cannot both be satisfied.
+      "Must be fast" + "Must process every request synchronously at scale" may conflict.
+      Hidden contradictions emerge from interaction of seemingly independent requirements.
+    detection_methods: ["154_Definitional_Contradiction_Detector.md", "084_Coherence_Check.md"]
+    severity: CRITICAL
+    check: "Do any requirements directly or indirectly contradict each other?"
+
+  UNMEASURABLE_REQUIREMENT:
+    id: PRD-002
+    name: "Unmeasurable Success Criteria"
+    signals:
+      - "user-friendly"
+      - "intuitive"
+      - "fast"
+      - "reliable"
+      - "secure"
+      - no metrics
+    why_problematic: |
+      Requirements without measurable criteria cannot be verified.
+      "User-friendly" is not testable without operational definition.
+      Acceptance criteria must be objective and measurable.
+    detection_methods: ["085_Grounding_Check.md", "100_Vocabulary_Consistency.md"]
+    severity: IMPORTANT
+    severity_if_acceptance: CRITICAL
+    check: "Are key requirements missing measurable acceptance criteria?"
+
+  FEATURE_DEPENDENCY_CYCLE:
+    id: PRD-003
+    name: "Circular Feature Dependencies"
+    signals:
+      - "depends on"
+      - "requires"
+      - "prerequisite"
+      - "blocked by"
+    why_impossible: |
+      Circular dependencies create implementation deadlock.
+      If A requires B and B requires A, neither can be built first.
+      Dependency graphs must be acyclic.
+    detection_methods: ["116_Strange_Loop_Detection.md", "159_Transitive_Dependency_Closure.md"]
+    severity: CRITICAL
+    check: "Do feature dependencies form any cycles?"
+---
+scope_creep:
+  SCOPE_BOUNDARY_ABSENCE:
+    id: PRD-004
+    name: "Missing Scope Boundaries"
+    signals:
+      - "and more"
+      - "including but not limited to"
+      - "etc."
+      - "future enhancements"
+      - open-ended lists
+    why_problematic: |
+      Open-ended scope enables unlimited expansion.
+      "Including but not limited to" means anything can be added.
+      Clear boundaries needed for resource planning and timeline.
+    detection_methods: ["078_Assumption_Excavation.md", "085_Grounding_Check.md"]
+    severity: IMPORTANT
+    check: "Does scope have clear, finite boundaries?"
+
+  RESOURCE_SCOPE_MISMATCH:
+    id: PRD-005
+    name: "Scope vs Resource Impossibility"
+    signals:
+      - "timeline:"
+      - "budget:"
+      - "team size:"
+      - feature count
+      - complexity indicators
+    why_problematic: |
+      Scope must be achievable with available resources.
+      Large scope + small team + short timeline = impossible.
+      Project triangle (scope, time, cost) constraints must balance.
+    detection_methods: ["071_First_Principles_Analysis.md", "085_Grounding_Check.md"]
+    severity: CRITICAL
+    check: "Is the scope achievable with stated resources and timeline?"
+---
+stakeholder_alignment:
+  CONFLICTING_STAKEHOLDER_NEEDS:
+    id: PRD-006
+    name: "Conflicting Stakeholder Requirements"
+    signals:
+      - "stakeholder:"
+      - "user needs"
+      - "business requirement"
+      - "technical constraint"
+    why_problematic: |
+      Different stakeholders may have conflicting priorities.
+      User wants simplicity; business wants features; tech wants maintainability.
+      Unresolved conflicts lead to scope creep and dissatisfaction.
+    detection_methods: ["084_Coherence_Check.md", "078_Assumption_Excavation.md"]
+    severity: IMPORTANT
+    check: "Are stakeholder requirements prioritized and conflicts resolved?"
+
+  PRIORITY_INVERSION:
+    id: PRD-007
+    name: "Priority Inversion"
+    signals:
+      - "P0"
+      - "P1"
+      - "must have"
+      - "nice to have"
+      - "critical"
+      - priority labels
+    why_problematic: |
+      If everything is P0, nothing is P0.
+      Priority inflation defeats the purpose of prioritization.
+      Dependencies between items of different priorities create confusion.
+    detection_methods: ["100_Vocabulary_Consistency.md", "085_Grounding_Check.md"]
+    severity: IMPORTANT
+    check: "Is priority distribution realistic and consistent?"
+---
+# USAGE SUMMARY:
+#
+# PRD patterns focus on:
+# - Requirement consistency and measurability
+# - Scope boundary clarity
+# - Resource-scope alignment
+# - Stakeholder conflict resolution
+#
+# Use with core.yaml for comprehensive coverage.
+# These patterns help verify PRDs, feature specs, and product briefs.

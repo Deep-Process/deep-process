@@ -2,333 +2,248 @@
 step: 6
 name: "Pattern Candidate Evaluation"
 time_estimate: "5-10 minutes"
-goal: "Evaluate whether deep-verify findings warrant new pattern-library entries"
-requires_completion: [0, 4, 5]
+goal: "Evaluate CRITICAL findings without pattern match for new pattern library entries"
+requires_completion: [0, 1, 2, 3, 4, 5]
 optional: true
-trigger: "User requests pattern evaluation after report, OR CRITICAL finding with no pattern match"
+trigger: "Deep Mode only - CRITICAL findings without pattern match"
 next_steps: null
+gate: "GATE_6"
 data_dependencies:
   - "data/pattern-update-protocol.yaml"
   - "data/pattern-library.yaml"
+outputs:
+  - pattern_candidates
 ---
 
-# Phase 6: Pattern Candidate Evaluation (OPTIONAL)
+# Phase 6: Pattern Candidate Evaluation
 
-## When This Phase Activates
+## ⚠️ OPTIONAL - Deep Mode Only
 
-This phase is **optional** and runs only when:
+**This phase runs ONLY when:**
+- Execution mode = Deep
+- At least ONE CRITICAL finding survived Phase 3
+- That finding has NO pattern match
 
-1. **User explicitly requests** pattern evaluation after receiving the report
-2. **Auto-suggested** when ALL of these conditions are met:
-   - CRITICAL finding survived Phase 3
-   - No Pattern Library match was found
-   - Finding is grounded in a theorem, definition, or regulation (not opinion)
-
-**This phase does NOT activate for:**
-- MINOR findings (insufficient impact)
-- Findings already covered by existing patterns
-- One-off issues unlikely to recur
+**Otherwise:** SKIP this phase. Verification complete.
 
 ---
 
-## 6.0 Load Required Data
-
-**Before ANY evaluation, load these files:**
+## ENFORCEMENT RULES
 
 ```
-1. data/pattern-update-protocol.yaml
-   -> Load significance_checklist
-   -> Load proposal_template
-
-2. data/pattern-library.yaml
-   -> Load to check for existing coverage
-```
-
-> **HALT** -- Confirm data files loaded
-
----
-
-## 6.1 Identify Pattern Candidates
-
-**Review findings from the completed verification:**
-
-```
-For each finding with severity >= IMPORTANT that survived Phase 3:
-
-  Finding: [F_id] -- [description]
-  Severity: [CRITICAL / IMPORTANT]
-  Quote: "[exact text]"
-  Method: #[method_id]
-  Pattern match: [Yes/No]
-
-  If pattern match = No:
-    -> This is a POTENTIAL pattern candidate
-    -> Proceed to 6.2 for this finding
-```
-
-List candidates:
-
-```
-Candidate 1: F___ -- ________________________________
-Candidate 2: F___ -- ________________________________
+1. OPTIONAL phase. Only Deep mode.
+2. Only evaluate CRITICAL findings without pattern match.
+3. Check existing patterns first (avoid duplicates).
+4. Use significance checklist from pattern-update-protocol.yaml.
+5. Propose pattern only if passes ALL significance checks.
+6. COMPLETE binding checklist before GATE_6.
 ```
 
 ---
 
-## 6.2 Existing Pattern Coverage Check
+## 6.0 Check Activation
 
-**BEFORE evaluating significance, verify this isn't a detection failure of an existing pattern:**
+**Execute:**
 
 ```
-Candidate: F___ -- [description]
+Activation Check:
+  [ ] Mode = Deep?
+  [ ] CRITICAL findings exist?
+  [ ] Any CRITICAL without pattern match?
 
-Check each existing pattern category:
-  □ definitional_contradictions (DC-001 to DC-004): Match? ________
-  □ theorem_violations (TV-001 to TV-005): Match? ________
-  □ statistical_impossibilities (SI-001 to SI-004): Match? ________
-  □ regulatory_contradictions (RC-001 to RC-003): Match? ________
-  □ ungrounded_core_concepts (UG-001 to UG-003): Match? ________
-
-If EXISTING pattern covers this with different signal keywords:
-  -> DO NOT propose new pattern
-  -> Instead, recommend expanding signals of existing pattern
-  -> Note: "Existing pattern [ID] covers this case. Suggest adding signals: [keywords]"
-  -> STOP here for this candidate.
-
-If no existing pattern covers this:
-  -> Proceed to 6.3 Significance Pre-Check
+If ALL Yes: Continue to 6.1
+If ANY No: SKIP Phase 6 → Verification COMPLETE
 ```
 
-> **HALT** -- Complete for each candidate before proceeding
+> **HALT** — Confirm activation or skip.
 
 ---
 
-## 6.3 Significance Pre-Check
+## 6.1 Load Required Data
 
-**CRITICAL DISTINCTION: Pattern Library contains IMPOSSIBILITIES, not INCOMPLETENESS.**
-- "Missing details about X" = incompleteness -> does NOT qualify
-- "X contradicts Y by theorem/definition" = impossibility -> QUALIFIES
+**If activated, execute:**
 
-**Is this finding an impossibility or incompleteness?**
-```
-[ ] IMPOSSIBILITY (proceed with questions below)
-[ ] INCOMPLETENESS (STOP — not pattern-library material)
-```
+1. Read `data/pattern-update-protocol.yaml`
+   - Load significance_checklist
+   - Load proposal_template
+2. Read `data/pattern-library.yaml`
+   - Check existing patterns
 
-**For each candidate, answer ALL five questions (all must be YES):**
-
-```
-Candidate: F___ -- [description]
-
-[ ] 1. Is this pattern likely to appear in future artifacts (not one-off)?
-       Answer: ________________________________
-       Reasoning: ________________________________
-
-[ ] 2. Would detecting this pattern early change a verdict direction?
-       Answer: ________________________________
-       Expected impact: [ ] Would cause REJECT  [ ] Would prevent false ACCEPT
-       Impact thought experiment: "Imagine 3 typical artifacts from this domain.
-       Would this pattern change the verdict for at least one?"
-       Result: ________________________________
-
-[ ] 3. Is this grounded in a theorem, definition, regulation, or statistical proof?
-       Answer: ________________________________
-       Type: [ ] THEOREM  [ ] DEFINITION  [ ] REGULATION  [ ] STATISTICAL  [ ] HEURISTIC
-       If HEURISTIC: Do you have 3+ independent confirmed cases? ________
-
-[ ] 4. Do existing patterns NOT already cover this case?
-       Answer: ________________________________
-       Nearest existing pattern: ________________________________
-       Why it's different: ________________________________
-
-[ ] 5. Can you write signal keywords that won't match valid artifacts?
-       Answer: ________________________________
-       Proposed signals: ________________________________
-       Risk of over-matching: [ ] Low  [ ] Medium  [ ] High
-
-ALL YES? [ ] Yes -> Proceed to 6.4 (Draft Pattern Proposal)
-          [ ] No  -> STOP. Finding is valuable but not pattern-library material.
-                     Document in report as "potential future pattern" only.
-```
-
-> **HALT** -- Complete pre-check for each candidate
+> **HALT** — Confirm data loaded.
 
 ---
 
-## 6.4 Draft Pattern Proposal
+## 6.2 Identify Candidates
 
-**For candidates that passed pre-check, fill the proposal template:**
+**Review findings:**
+
+```
+For each CRITICAL finding that survived Phase 3:
+
+Finding F[N]:
+  Severity: CRITICAL
+  Pattern match: [ID or null]
+
+If pattern_match = null:
+  → Candidate for pattern evaluation
+  → List below
+
+Candidates:
+  - F[N]: [description]
+  - F[M]: [description]
+  ...
+```
+
+---
+
+## 6.3 Existing Pattern Check
+
+**For EACH candidate:**
+
+```
+Candidate: F[N] — [description]
+
+Check existing pattern categories:
+  [ ] Definitional Contradictions: Match? [Yes/No]
+  [ ] Theorem Violations: Match? [Yes/No]
+  [ ] Statistical Impossibilities: Match? [Yes/No]
+  [ ] Regulatory Contradictions: Match? [Yes/No]
+  [ ] Ungrounded Core Concepts: Match? [Yes/No]
+
+If existing pattern covers this:
+  → Do NOT propose new pattern
+  → Note: "Covered by [pattern_id]. Suggest signal expansion: [keywords]"
+  → SKIP to next candidate
+
+If NO existing pattern covers:
+  → Proceed to 6.4 Significance Check
+```
+
+---
+
+## 6.4 Significance Check
+
+**Apply checklist from pattern-update-protocol.yaml:**
+
+```
+Candidate: F[N]
+
+Significance Checklist:
+  [ ] Grounded in theorem/law/definition (not opinion)?
+      Evidence: ________________________________
+
+  [ ] Likely to recur in other artifacts?
+      Evidence: ________________________________
+
+  [ ] Detectable through observable signals?
+      Keywords: ________________________________
+
+  [ ] Not domain-specific edge case?
+      Evidence: ________________________________
+
+  [ ] CRITICAL severity (not just IMPORTANT)?
+      Confirmed: [ ] Yes [ ] No
+
+Result:
+  [ ] PASS (all checks Yes) → Propose pattern
+  [ ] FAIL (any check No) → Do NOT propose
+```
+
+---
+
+## 6.5 Pattern Proposal
+
+**If candidate PASSED significance check:**
 
 ```yaml
-proposal:
-  proposed_date: "[today ISO]"
-  source: "deep-verify"
-  source_artifact: "[artifact name from this verification]"
-  source_finding_id: "[F_id]"
-  status: "PROPOSED"
+pattern_candidate:
+  id: "[Category]-[Next Number]"
+  name: "[Descriptive Name]"
+  category: "[which category]"
 
-  pattern:
-    id: "[suggest: CATEGORY-NNN]"
-    category: "[select category]"
-    name: "[descriptive name]"
-    type: "[THEOREM | DEFINITION | REGULATION | STATISTICAL | HEURISTIC]"
+  description: |
+    [1-2 sentences: what this pattern detects]
 
-    signals:
-      - "[keyword 1]"
-      - "[keyword 2]"
+  trigger_signals:
+    - "[keyword 1]"
+    - "[keyword 2]"
+    - "[keyword 3]"
 
-    why_impossible: |
-      [explanation]
+  example_quote: "[quote from F[N] that exemplifies this]"
 
-    theorem: "[if applicable]"
-    theorem_source: "[if applicable]"
-    exception: "[if applicable]"
-    severity: "[CRITICAL | IMPORTANT]"
-    detection_methods: ["[NNN_Method.md]"]
-    check: "[yes/no verification question]"
+  grounding:
+    type: "[THEOREM / LAW / DEFINITION / REGULATION]"
+    reference: "[specific theorem/law name]"
 
-    falsified_if: |
-      [MANDATORY — what would disprove this pattern?]
+  severity: CRITICAL
+
+  notes: |
+    [Any implementation notes for future detection]
+```
+
+**Repeat for each candidate that passed.**
+
+---
+
+## 6.6 Output Candidates
+
+**Execute:**
+
+```
+PATTERN CANDIDATES PROPOSED: [count]
+
+[For each proposal, output full YAML above]
+
+Next Steps:
+  - Human review required before adding to pattern-library.yaml
+  - If approved, update pattern-library.yaml with new entries
+  - Re-run verification to confirm detection
 ```
 
 ---
 
-## 6.5 Self-Challenge (Adversarial — Triangular Validation)
+## GATE_6: Pattern Candidate → Complete
 
-**You MUST attempt to break your own proposed pattern.**
+**ENFORCEMENT:** ALL items MUST be DONE or SCOPE_REDUCED.
 
-Switch to adversarial mode and attempt to construct a counterexample:
+Load `data/gate-definitions.yaml` → GATE_6 for complete requirements.
 
-```
-Pattern claim: [what the pattern says is impossible]
-
-Counterexample attempt:
-  "Can I construct a system/situation where BOTH sides coexist validly?"
-
-  Attempt 1: ________________________________
-  Result: [ ] Breaks pattern  [ ] Fails (pattern holds)
-
-  Attempt 2: ________________________________
-  Result: [ ] Breaks pattern  [ ] Fails (pattern holds)
-
-  If counterexample breaks pattern:
-    [ ] Add exception field and refine pattern
-    [ ] Abandon pattern — it's not a true impossibility
-
-  If no counterexample possible:
-    Explain why: ________________________________
-```
-
----
-
-## 6.6 Signal Specificity Check
-
-**Verify signals won't cause false matches:**
+### Gate Checklist
 
 ```
-Mentally apply signals to 3 types of VALID artifacts:
-
-  Valid artifact 1 (same domain, no issues):
-    Would signals match? [ ] Yes (BAD -> refine) [ ] No (GOOD)
-
-  Valid artifact 2 (similar domain, no issues):
-    Would signals match? [ ] Yes (BAD -> refine) [ ] No (GOOD)
-
-  Valid artifact 3 (different domain, similar keywords):
-    Would signals match? [ ] Yes (BAD -> refine) [ ] No (GOOD)
-
-If ANY match valid artifacts:
-  -> Narrow signals or add distinguishing conditions
-  -> Re-check after narrowing
+[ ] G6.1: Activation check completed (Deep mode + CRITICAL w/o pattern)
+[ ] G6.2: All candidates identified
+[ ] G6.3: Existing pattern check completed for each
+[ ] G6.4: Significance checklist applied to each
+[ ] G6.5: Pattern proposals generated (if any passed)
+[ ] G6.6: Proposals documented in YAML format
 ```
 
----
+### SCOPE_REDUCTION (if needed)
 
-## 6.7 Recommendation
-
-**Based on steps 6.3-6.6 (significance + proposal + challenge + signal test), make a recommendation:**
-
-```
-Pattern candidate: [name]
-
-Recommendation:
-  [ ] VALIDATED — Add to pattern-library.yaml immediately
-      Confidence: [ ] High (theorem/definition based)
-                  [ ] Medium (regulation/statistical based)
-
-  [ ] PROVISIONAL — Add with PROVISIONAL status
-      Promote to VALIDATED after: 5+ true matches
-      Reason for provisional: ________________________________
-
-  [ ] DEFERRED — Promising but needs more evidence
-      What's needed: ________________________________
-
-  [ ] REJECTED — Does not meet pattern-library criteria
-      Reason: ________________________________
-```
-
----
-
-## 6.8 Output Pattern Candidate Report
-
-**If recommending VALIDATED or PROVISIONAL, output:**
-
-```
-═══════════════════════════════════════════════════════════════
-PATTERN CANDIDATE REPORT
-═══════════════════════════════════════════════════════════════
-
-Source: Deep Verify report for [artifact name]
-Finding: [F_id] — [description]
-Date: [ISO date]
-
-PROPOSED PATTERN:
-  Name: [name]
-  Category: [category]
-  Type: [type]
-  Severity: [severity]
-
-  Signals: [list]
-  Why impossible: [explanation]
-  Check: [question]
-  Falsified if: [condition]
-  Exception: [if any]
-
-VERIFICATION:
-  Significance check: PASSED (5/5)
-  Counterexample: [IMPOSSIBLE / FOUND_WITH_EXCEPTION]
-  Signal specificity: [PASSED / REFINED]
-
-RECOMMENDATION: [VALIDATED / PROVISIONAL / DEFERRED / REJECTED]
-
-ACTION REQUIRED:
-  [ ] Human review before adding to pattern-library.yaml
-  [ ] Add to pattern-library.yaml with status field
-  [ ] Track usage in calibration.yaml
-═══════════════════════════════════════════════════════════════
-```
-
----
-
-## 6.9 Update Frontmatter
+If ANY item cannot be completed:
 
 ```yaml
-stepsCompleted: [0, 1, 2, 3, 4, 5, 6]
-currentStep: null  # Complete
-pattern_candidates:
-  - finding_id: "[F_id]"
-    proposed_pattern: "[name]"
-    recommendation: "[VALIDATED / PROVISIONAL / DEFERRED / REJECTED]"
-    added_to_library: false  # Updated after human review
+SCOPE_REDUCTION_RECORD:
+  gate_item: "G6.X"
+  what_omitted: "[exact description]"
+  why: "[justification]"
+  impact_assessment: "[how affects pattern library]"
+  user_approved: [true/false]
 ```
+
+**IF user_approved = false:** HALT and request approval.
 
 ---
 
-## Output Checklist
+### Gate Passage
 
-- [ ] All IMPORTANT+ findings without pattern match evaluated
-- [ ] Significance pre-check completed for each candidate
-- [ ] Counterexample attempted for each proposed pattern
-- [ ] Signal specificity verified
-- [ ] Recommendation documented
-- [ ] Pattern Candidate Report output (if applicable)
+1. Review all checklist items.
+2. Confirm ALL are DONE or formally SCOPE_REDUCED.
+3. Output `"GATE_6 PASSED - Verification COMPLETE"`
+
+---
+
+**END OF PHASE 6**
+
+**VERIFICATION COMPLETE**

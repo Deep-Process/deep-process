@@ -1,0 +1,122 @@
+# Pattern Libraries Manifest
+# LOAD: Step-01 and Step-02 for modular pattern library loading
+# PURPOSE: Defines available pattern libraries and loading rules
+
+---
+manifest_metadata:
+  version: "1.0.0"
+  created: "2025-01-29"
+  description: "Modular pattern library system for domain-specific verification"
+---
+# LOADING RULES:
+# 1. Core library (core.yaml) is ALWAYS loaded
+# 2. Domain libraries are loaded based on _bmad/dv/deep-verify-config.yaml
+# 3. If config file not found, default to core only
+# 4. Max +1 pattern match bonus per finding (prevents score inflation)
+
+---
+libraries:
+  core:
+    file: "core.yaml"
+    required: true
+    description: "Universal patterns applicable to all domains"
+    patterns_count: 15
+    categories:
+      - definitional_contradictions
+      - theorem_violations
+      - statistical_impossibilities
+      - ungrounded_core_concepts
+
+  microservices:
+    file: "microservices.yaml"
+    required: false
+    description: "Distributed systems, API contracts, service mesh patterns"
+    patterns_count: 8
+    categories:
+      - distributed_systems
+      - api_contracts
+      - service_mesh
+
+  iac:
+    file: "iac.yaml"
+    required: false
+    description: "Infrastructure as Code patterns - Terraform, CloudFormation, drift"
+    patterns_count: 7
+    categories:
+      - state_management
+      - drift_detection
+      - resource_conflicts
+
+  fiction:
+    file: "fiction.yaml"
+    required: false
+    description: "Fiction writing patterns - timeline, character, world-building"
+    patterns_count: 8
+    categories:
+      - timeline_consistency
+      - character_consistency
+      - world_building
+
+  medical-research:
+    file: "medical-research.yaml"
+    required: false
+    description: "Clinical trials, statistics, regulatory compliance"
+    patterns_count: 8
+    categories:
+      - clinical_trials
+      - statistical_validity
+      - regulatory_compliance
+
+  documentation:
+    file: "documentation.yaml"
+    required: false
+    description: "Technical documentation vs code mismatch patterns"
+    patterns_count: 6
+    categories:
+      - api_documentation
+      - code_doc_mismatch
+      - versioning
+
+  prd:
+    file: "prd.yaml"
+    required: false
+    description: "Product requirements conflicts and scope issues"
+    patterns_count: 7
+    categories:
+      - requirements_conflicts
+      - scope_creep
+      - stakeholder_alignment
+
+  agile-process:
+    file: "agile-process.yaml"
+    required: false
+    description: "Agile artifacts - stories, sprints, definitions"
+    patterns_count: 6
+    categories:
+      - story_definition
+      - sprint_artifacts
+      - estimation
+---
+# LOADING ALGORITHM:
+#
+# 1. Read _bmad/dv/deep-verify-config.yaml
+#    - If not found: pattern_domains = ['core']
+# 2. patterns = []
+# 3. For each domain in pattern_domains:
+#    a. Load pattern-libraries/{domain}.yaml
+#    b. Merge into patterns array
+# 4. Return consolidated patterns for use in step-01 and step-02
+#
+# NOTE: Pattern IDs must be unique across all libraries
+# Naming convention: {DOMAIN_PREFIX}-{NNN}
+#   - DC = Definitional Contradiction (core)
+#   - TV = Theorem Violation (core)
+#   - SI = Statistical Impossibility (core)
+#   - UG = Ungrounded Concept (core)
+#   - MS = Microservices
+#   - IC = Infrastructure as Code
+#   - FW = Fiction Writing
+#   - MR = Medical Research
+#   - DOC = Documentation
+#   - PRD = Product Requirements
+#   - AG = Agile Process

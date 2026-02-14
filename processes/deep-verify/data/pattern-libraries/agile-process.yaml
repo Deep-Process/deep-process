@@ -1,0 +1,126 @@
+# Agile Process Pattern Library — Sprint and Story Impossibilities
+# LOAD: When agile-process domain is selected in deep-verify-config.yaml
+# PURPOSE: Detect contradictions in agile artifacts, story definitions, and sprint planning
+
+---
+library_metadata:
+  id: "agile-process"
+  version: "1.0.0"
+  last_updated: "2025-01-29"
+  patterns_count: 6
+  description: "Patterns for agile artifacts, story definition, and sprint management"
+---
+story_definition:
+  UNTESTABLE_ACCEPTANCE:
+    id: AG-001
+    name: "Untestable Acceptance Criteria"
+    signals:
+      - "acceptance criteria"
+      - "given/when/then"
+      - "should work"
+      - "properly"
+      - "correctly"
+    why_problematic: |
+      Acceptance criteria must be objectively testable.
+      "Should work properly" is not testable.
+      Each criterion should map to a specific test case.
+    detection_methods: ["085_Grounding_Check.md", "087_Falsifiability_Check.md"]
+    severity: IMPORTANT
+    check: "Can each acceptance criterion be converted to a pass/fail test?"
+
+  STORY_SCOPE_VIOLATION:
+    id: AG-002
+    name: "Story Violates INVEST Principles"
+    signals:
+      - "user story"
+      - "as a user"
+      - "I want"
+      - "so that"
+      - story format
+    why_problematic: |
+      Stories should be Independent, Negotiable, Valuable, Estimable, Small, Testable.
+      Stories dependent on unfinished work violate independence.
+      Stories too large to estimate or complete in a sprint violate "small."
+    detection_methods: ["084_Coherence_Check.md", "078_Assumption_Excavation.md"]
+    severity: IMPORTANT
+    check: "Does the story violate any INVEST principle?"
+
+  HIDDEN_DEPENDENCY:
+    id: AG-003
+    name: "Undocumented Story Dependencies"
+    signals:
+      - "after"
+      - "once"
+      - "when X is done"
+      - "requires"
+      - "blocked"
+    why_problematic: |
+      Hidden dependencies cause sprint planning failures.
+      Stories cannot be parallelized if dependencies are unknown.
+      All blockers must be explicit in story definition.
+    detection_methods: ["159_Transitive_Dependency_Closure.md", "078_Assumption_Excavation.md"]
+    severity: CRITICAL
+    check: "Are all story dependencies explicitly documented?"
+---
+sprint_artifacts:
+  VELOCITY_MANIPULATION:
+    id: AG-004
+    name: "Velocity Gaming"
+    signals:
+      - "story points"
+      - "velocity"
+      - "burndown"
+      - "commitment"
+      - point inflation
+    why_problematic: |
+      Velocity is a planning tool, not a performance metric.
+      Inflating points to "increase velocity" defeats the purpose.
+      Velocity should reflect actual team capacity, not targets.
+    detection_methods: ["085_Grounding_Check.md", "087_Falsifiability_Check.md"]
+    severity: IMPORTANT
+    check: "Is velocity being used as a performance target rather than planning tool?"
+
+  SPRINT_OVERCOMMITMENT:
+    id: AG-005
+    name: "Sprint Overcommitment Pattern"
+    signals:
+      - "committed to"
+      - "sprint goal"
+      - "capacity"
+      - story point total
+      - historical velocity
+    why_problematic: |
+      Sprint commitment should align with historical velocity.
+      Consistent overcommitment indicates planning dysfunction.
+      80% capacity planning accounts for meetings, bugs, and unknowns.
+    detection_methods: ["071_First_Principles_Analysis.md", "085_Grounding_Check.md"]
+    severity: IMPORTANT
+    check: "Does sprint commitment exceed team's demonstrated capacity?"
+---
+estimation:
+  PRECISION_ILLUSION:
+    id: AG-006
+    name: "False Estimation Precision"
+    signals:
+      - "exactly 3 days"
+      - "2.5 story points"
+      - "4 hours"
+      - precise estimates
+    why_problematic: |
+      Estimation inherently has uncertainty.
+      "Exactly 3 days" implies false precision.
+      Ranges or relative sizing (S/M/L) more honest than precise numbers.
+    detection_methods: ["085_Grounding_Check.md", "078_Assumption_Excavation.md"]
+    severity: MINOR
+    check: "Do estimates claim more precision than methodology supports?"
+---
+# USAGE SUMMARY:
+#
+# Agile process patterns focus on:
+# - Story quality and testability
+# - Sprint planning realism
+# - Estimation honesty
+# - Dependency management
+#
+# Use with core.yaml for comprehensive coverage.
+# These patterns help verify sprint backlogs, story definitions, and agile artifacts.

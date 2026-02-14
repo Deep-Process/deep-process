@@ -13,8 +13,21 @@ export function detectTools(): DetectedTool[] {
   const tools: DetectedTool[] = [];
 
   // Detect VS Code extensions
-  tools.push(detectExtension('GitHub.copilot', 'GitHub Copilot'));
-  tools.push(detectExtension('GitHub.copilot-chat', 'GitHub Copilot Chat'));
+  // Note: GitHub.copilot is deprecated, replaced by GitHub.copilot-chat
+  const copilotChat = detectExtension('GitHub.copilot-chat', 'GitHub Copilot Chat');
+  const copilotLegacy = detectExtension('GitHub.copilot', 'GitHub Copilot (Legacy)');
+
+  // Only show Copilot Chat (the current one)
+  tools.push(copilotChat);
+
+  // If legacy is installed but not chat, show warning
+  if (copilotLegacy.detected && !copilotChat.detected) {
+    tools.push({
+      ...copilotLegacy,
+      name: 'GitHub Copilot (Deprecated - Install Chat)',
+    });
+  }
+
   tools.push(detectExtension('continue.continue', 'Continue.dev'));
   tools.push(detectExtension('saoudrizwan.claude-dev', 'Cline'));
   tools.push(detectExtension('Windsurf.windsurf', 'Windsurf'));
