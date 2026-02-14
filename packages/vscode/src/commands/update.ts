@@ -59,15 +59,19 @@ export async function updateCommand(context: vscode.ExtensionContext) {
     return;
   }
 
-  // Ask user to confirm update
+  // Show outdated processes
+  const processNames = outdatedProcesses
+    .map(m => `  • ${m.name} (${config.processes[m.id].version} → ${m.version})`)
+    .join('\n');
+
   const confirm = await vscode.window.showInformationMessage(
-    `Update ${outdatedProcesses.length} process(es)?`,
-    ...outdatedProcesses.map(m => `${m.name} (${config.processes[m.id].version} → ${m.version})`),
+    `${outdatedProcesses.length} process(es) need updating:\n${processNames}`,
+    { modal: true },
     'Update All',
     'Cancel'
   );
 
-  if (!confirm || confirm === 'Cancel') {
+  if (confirm !== 'Update All') {
     return;
   }
 
