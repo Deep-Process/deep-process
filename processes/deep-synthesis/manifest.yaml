@@ -1,16 +1,21 @@
 id: deep-synthesis
 name: "Deep Synthesis"
-version: "1.1.0"
-description: "Synthesize multiple sources into genuine understanding"
-shortDescription: "Synthesize knowledge from multiple sources"
-workflowFile: "workflow.md"
-firstStepFile: "steps/step-00-scope.md"
-firstStepLabel: "Phase 0"
-agentName: "Deep Synthesis Agent"
-agentInstruction: "Do not pre-judge the execution mode. Follow the logic in step-00-scope.md to interactively scope the synthesis if it is not explicitly provided."
+version: "2.0.0"
+description: "Rigorous knowledge synthesis with binding gates, counter-checks, and mandatory verification - guarantees compression, novelty, and falsifiability"
+shortDescription: "Synthesize knowledge with enforced rigor"
+workflowFile: "workflow-v2.md"
+firstStepFile: "steps/step-00-scope-v2.md"
+firstStepLabel: "Phase 0: Scope"
+agentName: "Deep Synthesis Agent V2.0"
+agentInstruction: "Execute workflow-v2.md commands in strict sequence. HALT at gates. Apply all verifications. Extract → Verify → Render for every phase. Never skip without declaring OMITTED + CUI BONO justification."
 githubAgentTools:
   - read
   - search
 slashCommand: "deep-synthesis"
 excludeFromInstall:
   - "docs/**"
+  - "reference.md"
+  - "workflow.md"
+  - "steps/step-*.md"
+  - "ANALYSIS.md"
+  - "theoretical-foundations.yaml"

@@ -39,10 +39,10 @@ export interface McpServerConfig {
   version: string;
   /** LLM provider configuration */
   provider: {
-    type: 'openai' | 'anthropic' | 'azure-openai' | 'bedrock' | 'ollama';
+    type: 'openai' | 'anthropic' | 'azure' | 'bedrock' | 'ollama' | 'gemini';
+    defaultModel: string;
     apiKey?: string;
     endpoint?: string;
-    defaultModel?: string;
   };
   /** Process directory (defaults to ./processes) */
   processesDir?: string;
