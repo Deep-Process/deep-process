@@ -228,25 +228,19 @@ V2.0 integruje 22 teoretyczne algorytmy syntezy:
 ## Files
 
 ### Execution (używane)
-- `workflow-v2.md` - Main execution program
-- `steps/step-00-scope-v2.md` - Phase 0
-- `steps/step-01-acquire-v2.md` - Phase 1
-- `steps/step-02-decompose-v2.md` - Phase 2
-- `steps/step-03-relate-v2.md` - Phase 3
-- `steps/step-04-integrate-v2.md` - Phase 4
-- `steps/step-05-crystallize-v2.md` - Phase 5
-- `steps/step-06-output-v2.md` - Phase 6
+- `workflow.md` - Main execution program
+- `steps/step-00-scope.md` - Phase 0
+- `steps/step-01-acquire.md` - Phase 1
+- `steps/step-02-decompose.md` - Phase 2
+- `steps/step-03-relate.md` - Phase 3
+- `steps/step-04-integrate.md` - Phase 4
+- `steps/step-05-crystallize.md` - Phase 5
+- `steps/step-06-output.md` - Phase 6
 - `data/method-procedures/*.md` - Method implementations (JIT loaded)
 
 ### Documentation (reference only)
 - `CHANGELOG.md` - Version history
-- `README-V2.md` - This file
-- `ANALYSIS.md` - V1 compliance analysis
-
-### Deprecated (V1.x)
-- `workflow.md` - Old workflow
-- `reference.md` - Old documentation
-- `steps/step-*.md` (without -v2) - Old steps
+- `README.md` - This file
 
 ## Quick Start
 
@@ -255,10 +249,10 @@ V2.0 integruje 22 teoretyczne algorytmy syntezy:
 cd processes/deep-synthesis
 
 # 2. Read workflow
-cat workflow-v2.md
+cat workflow.md
 
 # 3. Execute
-LOAD steps/step-00-scope-v2.md
+LOAD steps/step-00-scope.md
 # Follow instructions in sequence
 
 # 4. Each step:
@@ -299,8 +293,8 @@ LOAD steps/step-00-scope-v2.md
 ## Support
 
 - **Issues:** See CHANGELOG.md Known Issues
-- **Migration:** V1.1 → V2.0 guide in CHANGELOG
-- **Questions:** Check workflow-v2.md CRITICAL RULES
+- **Migration:** V1.x history in CHANGELOG
+- **Questions:** Check workflow.md CRITICAL RULES
 
 ## License
 

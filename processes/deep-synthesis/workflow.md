@@ -1,168 +1,226 @@
-# Deep Synthesis V1.1 — Execution Program
+# DEEP SYNTHESIS V2.0 - EXECUTION PROGRAM
 
-> This file is a PROGRAM. Execute it step by step. For reference documentation, see [reference.md](./reference.md).
-
----
-
-## START HERE
+## INITIALIZE
 
 ```
-1. Load step-00-scope.md -> EXECUTE it fully (depth selection, diversity detection, scope definition)
-2. Continue to each subsequent step file based on depth level
-3. Each step file contains all instructions needed (inline method guidance included)
-4. HALT when a step says HALT — wait for user input
-5. Apply META methods after each major phase (standard+ depth)
-6. Output = structured SYNTHESIS DELIVERABLES, not conversation
+1. LOAD steps/step-00-scope.md
+2. EXECUTE each command in sequence
+3. HALT when step commands HALT
+4. NEVER skip without declaring OMITTED + CUI BONO justification
 ```
-
----
 
 ## CRITICAL RULES
 
 ```
-+-----------------------------------------------------------------------------+
-|  SYNTHESIS COMMANDMENTS                                                      |
-+-----------------------------------------------------------------------------+
-|                                                                              |
-|  1. ALWAYS START WITH DEPTH SELECTION                                        |
-|     Load step-00-scope.md, display dialog, wait for user choice             |
-|                                                                              |
-|  2. SYNTHESIS != SUMMARIZATION                                               |
-|     If output contains nothing new, you summarized, not synthesized         |
-|     Apply Shannon Test (#606): does insight require COMBINING sources?      |
-|                                                                              |
-|  3. CONTRADICTION IS VALUABLE                                                |
-|     Disagreeing sources are MORE valuable than agreeing ones                |
-|     Don't resolve tensions prematurely — understand WHY they exist          |
-|                                                                              |
-|  4. COMPRESSION IS MANDATORY                                                 |
-|     If synthesis is as long as sources, you haven't synthesized             |
-|                                                                              |
-|  5. LEVEL MUST BE EXPLICIT                                                   |
-|     Same data at different levels = different conclusions                    |
-|     State the level; note where conclusions DON'T transfer                  |
-|                                                                              |
-|  6. FALSIFIABILITY IS REQUIRED                                               |
-|     "What would disprove this synthesis?" must have an answer               |
-|                                                                              |
-|  7. LOAD FILES WHEN NEEDED                                                   |
-|     Announce file loads briefly, follow the procedure                       |
-|                                                                              |
-|  8. META IS CONTINUOUS                                                       |
-|     Apply META methods after each phase, not just at end                    |
-|     False coherence is the enemy — check for it continuously                |
-|                                                                              |
-+-----------------------------------------------------------------------------+
-```
+RULE 1: EXTRACT → VERIFY → RENDER
+TRIGGER: Before generating any synthesis output
+ACTION: Complete extraction, pass all verifications, then render
+VIOLATION: HALT "Verification incomplete"
 
----
+RULE 2: BINDING GATE
+TRIGGER: End of each method
+ACTION: DECLARE PROCESSED + OMITTED + DEFERRED
+IF: OMITTED without CUI BONO → HALT "Undeclared omission"
+
+RULE 3: COUNTER-CHECK
+TRIGGER: Any synthesis claim C
+ACTION: Generate strongest NOT-C, evaluate, record result
+SKIP: Never permitted
+
+RULE 4: REASONING VISIBLE
+TRIGGER: Any inference
+ACTION: LOG assumption + evidence + inference + falsification test
+OUTPUT: Reasoning log mandatory in deliverable
+
+RULE 5: COMPRESSION MANDATORY
+TRIGGER: Final output generated
+TEST: IF output_length >= sum(source_lengths): HALT "Not compressed"
+THRESHOLD: Synthesis must be <50% of source material length
+
+RULE 6: NOVELTY MANDATORY
+TRIGGER: Final output generated
+TEST: Apply #606 Novel Information Test
+IF: No information gain → HALT "Summarization not synthesis"
+
+RULE 7: FALSIFIABLE
+TRIGGER: Any core claim
+TEST: "What evidence would disprove this?"
+IF: No answer → HALT "Unfalsifiable claim"
+```
 
 ## STEP SEQUENCE
 
-Execute based on depth. Load one step file at a time.
+Execute in order. Each step contains trigger conditions and halt gates.
 
 ```
-Phase 0: SCOPE                                    [All Depths]
-  Step 0   steps/step-00-scope.md
-           Select depth, detect diversity, define question, set level,
-           map source landscape.
+PHASE 0: SCOPE
+step-00-scope.md
+GATE: Scope clear + landscape mapped + level selected
+VERIFY: #082 Scope Integrity Audit
 
-Phase 1: ACQUIRE                                  [All Depths]
-  Step 1   steps/step-01-acquire.md
-           Collect sources (#101-105 per depth). Quality assess.
-           Verify diversity. Check saturation.
+PHASE 1: ACQUIRE
+step-01-acquire.md
+GATE: #167 Baseline Census + diversity verified + quality assessed
+VERIFY: #085 Grounding Check + #169 Staleness Detection
 
-Phase 2: DECOMPOSE                                [All Depths]
-  Step 2   steps/step-02-decompose.md
-           Extract claims, build taxonomy, inventory models,
-           grade evidence, surface assumptions, identify gaps.
+PHASE 2: DECOMPOSE
+step-02-decompose.md
+GATE: All sources processed + claims extracted + taxonomy built
+VERIFY: #168 Existence Verification + #084 Closure Check
 
-Phase 3: RELATE                                   [All Depths]
-  Step 3   steps/step-03-relate.md
-           Map convergence/divergence, dialectical tensions,
-           analogies, patterns, causal chains, level alignment.
+PHASE 3: RELATE
+step-03-relate.md
+GATE: All relationships mapped + contradictions identified
+VERIFY: #086 Topological Hole Detection
 
-Phase 4: INTEGRATE                                [All Depths]
-  Step 4   steps/step-04-integrate.md
-           Dialectical integration, framework unification,
-           emergence detection, knowledge compression.
+PHASE 4: INTEGRATE
+step-04-integrate.md
+GATE: Synthesis generated + counter-checked + compressed
+VERIFY: #056 Liar's Trap + #057 Mirror Trap + #152 Semantic Entropy
 
-Phase 5: CRYSTALLIZE                              [All Depths]
-  Step 5   steps/step-05-crystallize.md
-           Distill core insights, design mental models,
-           extract principles, construct narrative, assess actionability.
+PHASE 5: CRYSTALLIZE
+step-05-crystallize.md
+GATE: Insights distilled + principles extracted + models designed
+VERIFY: #060 Approval Gradient Test
 
-Phase 6: OUTPUT                                   [All Depths]
-  Step 6   steps/step-06-output.md
-           Apply META audit (#601-607). Generate synthesis record
-           and report from templates.
+PHASE 6: OUTPUT
+step-06-output.md
+GATE: All verifications pass + deliverables complete
+VERIFY: #121 Competence Boundary Mapping + full META suite
 ```
 
----
-
-## DECISION POINTS
-
-| After Step | Condition | Action |
-|------------|-----------|--------|
-| Step 0 | Scope clear | Continue -> Step 1 |
-| Step 0 | Question too broad | Decompose into sub-questions, repeat Step 0 |
-| Step 1 | Sources sufficient | Continue -> Step 2 |
-| Step 1 | Scope needs refinement | Return -> Step 0 |
-| Step 2 | Decomposition complete | Continue -> Step 3 |
-| Step 2 | More sources needed | Return -> Step 1 |
-| Step 3 | Relationships mapped | Continue -> Step 4 |
-| Step 3 | New sources/decomposition needed | Return -> Step 1 or 2 |
-| Step 4 | Integration reveals gaps | Return -> earlier step |
-| Step 4 | Integration complete | Continue -> Step 5 |
-| Step 5 | Always | Continue -> Step 6 |
-| Step 6 | Deliverables generated | Workflow complete |
-
-**Feedback loops** (standard+ depths only): Steps 1-4 may iterate. Max iterations per depth:
-quick=1, standard=3, rigorous=5, comprehensive=unlimited.
-
----
-
-## DEPTH — METHOD QUICK REFERENCE
+## DEPTH-METHOD MAP
 
 ```
-QUICK:         001-002 | 101-102 | 201,204 | 301-302 | 401,405 | 501
-STANDARD:      all SCOPE | 101-103 | 201-205 | 301-306 | 401-405 | 501-504 | META 601,602,606
-RIGOROUS:      all methods (except multi-iteration external validation)  | full META
-COMPREHENSIVE: all 40 methods | full META | iterations + stakeholder review
+DEPTH      PHASES  METHODS                           ITERATIONS  COVERAGE
+quick      all     core subset (15 methods)          1           C>=15
+standard   all     standard subset (25 methods)      3           C>=35
+rigorous   all     all methods (40 methods)          5           C>=50
+comprehensive all  all + stakeholder review          unlimited   C>=65
 ```
 
----
-
-## SCORING QUICK REFERENCE
+## DEPTH-SPECIFIC METHOD LOADING
 
 ```
-Phase completed: +3       Source processed: +0.5
-Method executed: +1       Claim extracted: +0.3
-Tension resolved: +1      Relationship mapped: +0.5
-Emergent insight: +1.5    META method: +0.5
+ALL DEPTHS:
+#001 Question Formulation
+#002 Level Selection
+#003 Landscape Mapping
+#101 Source Collection
+#102 Quality Assessment
+#201 Claim Extraction
+#204 Evidence Grading
+#301 Convergence-Divergence
+#302 Dialectical Tension
+#401 Dialectical Integration
+#405 Knowledge Compression
+#501 Core Insights
+#601 Apophenia Check
+#606 Novel Information Test
+#604 Falsifiability Check
 
-Coverage: quick C>=15 | standard C>=35 | rigorous C>=50 | comprehensive C>=65
+STANDARD+:
+#103 Diversity Verification
+#105 Counter-Source Search
+#202 Concept Taxonomy
+#203 Model Inventory
+#205 Assumption Surfacing
+#303 Analogical Mapping
+#304 Conceptual Blending
+#306 Pattern Detection
+#402 Framework Unification
+#404 Abductive Integration
+#502 Mental Model Design
+#503 Principle Extraction
+#602 Confirmation Bias Audit
+
+RIGOROUS+:
+#104 Tacit Knowledge
+#206 Knowledge Gaps
+#305 Causal Reconciliation
+#307 Level Alignment
+#308 Gap Significance
+#403 Emergence Detection
+#406 Boundary Conditions
+#407 Coherence Check
+#504 Narrative Construction
+#505 Actionability
+#603 Completeness
+#605 Bias Propagation
+#607 Decay Monitoring
+
+COMPREHENSIVE:
+All above +
+#056 Liar's Trap
+#057 Mirror Trap
+#059 CUI BONO Test
+#060 Approval Gradient
+#082 Scope Integrity
+#083 Alignment Check
+#084 Closure Check
+#085 Grounding Check
+#086 Topological Holes
+#121 Competence Boundary
+#152 Semantic Entropy
+#167 Baseline Census
+#168 Existence Verification
+#169 Staleness Detection
 ```
 
----
+## TRANSITION LOGIC
 
-## For detailed documentation see: [reference.md](./reference.md)
+```
+After each step:
 
-Topics covered in reference.md:
-- Core philosophy and principles
-- Theoretical foundations (19 theories)
-- Depth levels (detailed specifications)
-- Execution flow diagram
-- META methods (continuous quality)
-- Scoring systems (coverage + quality rubrics)
-- Integration with other Deep Processes
-- File loading protocol
-- Directory structure
-- Usage guide
+IF gate conditions MET:
+   LOAD next step
+ELSE IF blocking condition:
+   HALT with specific blocker message
+ELSE IF iteration available:
+   LOOP to specified earlier step
+ELSE:
+   HALT "Unresolved blocker - manual intervention required"
+```
 
----
+## SCORING
 
-## VERSION HISTORY
+```
+Phase completed:        +3
+Method executed:        +1
+Source processed:       +0.5
+Claim extracted:        +0.3
+Relationship mapped:    +0.5
+Tension resolved:       +1
+Emergent insight:       +1.5
+META method:            +0.5
+Counter-check passed:   +0.5
+Verification passed:    +1
 
-- **V1.1** — Self-contained execution: lean workflow.md + reference.md, invocation moved to step-00
-- **V1.0** — Initial release based on DEEP-SYNTHESIS.md methodology
+TRACK continuously
+REPORT in final deliverable
+```
+
+## HALT CONDITIONS
+
+```
+IMMEDIATE HALT (cannot proceed):
+- Binding gate violation (undeclared omission)
+- Verification failure (counter-check fails)
+- Compression failure (output >= sources)
+- Novelty failure (no information gain)
+- Falsifiability failure (unfalsifiable claim)
+
+CONDITIONAL HALT (user decision):
+- Quality threshold not met (ask: proceed with lower confidence?)
+- Diversity insufficient (ask: accept limitation?)
+- Contradictions unresolved (ask: report as contested?)
+
+ITERATIVE HALT (loop back):
+- New sources needed → return to ACQUIRE
+- Decomposition incomplete → return to DECOMPOSE
+- Integration reveals gaps → return to earlier phase
+```
+
+## VERSION
+
+V2.0 - Fully executable, binding gates, mandatory verifications, zero documentation
