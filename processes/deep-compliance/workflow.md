@@ -49,13 +49,29 @@ VIOLATION: Reading step-05 before GATE_4 = OPEN is VIOLATION
 PRECONDITION: GATE_4 = OPEN
 FILE: steps/step-05-plan.md
 GATE: GATE_5
-VIOLATION: Reading step-06 before GATE_5 = OPEN is VIOLATION
+VIOLATION: Reading step-06a before GATE_5 = OPEN is VIOLATION
 ```
 
-### STEP 6: REPORT
+### STEP 6A: COMPILE
 ```
 PRECONDITION: GATE_5 = OPEN
-FILE: steps/step-06-report.md
+FILE: steps/step-06a-compile.md
+GATE: GATE_6A
+VIOLATION: Reading step-06b before GATE_6A = OPEN is VIOLATION
+```
+
+### STEP 6B: CALCULATE
+```
+PRECONDITION: GATE_6A = OPEN
+FILE: steps/step-06b-calculate.md
+GATE: GATE_6B
+VIOLATION: Reading step-06c before GATE_6B = OPEN is VIOLATION
+```
+
+### STEP 6C: REPORT
+```
+PRECONDITION: GATE_6B = OPEN
+FILE: steps/step-06c-report.md
 GATE: GATE_6
 VIOLATION: Proceeding before GATE_6 = OPEN is VIOLATION
 ```
@@ -67,7 +83,9 @@ GATE_2: requirements_mapped >= 90% AND mapping_verified = TRUE AND counter_check
 GATE_3: gaps_classified = TRUE AND severity_assigned = TRUE AND counter_check_executed = TRUE
 GATE_4: evidence_collected >= covered_requirements_count AND evidence_verified = TRUE AND counter_check_executed = TRUE
 GATE_5: remediation_plans >= critical_gaps_count AND timeline_realistic = TRUE AND counter_check_executed = TRUE
-GATE_6: report_complete = TRUE AND compliance_percentage_calculated = TRUE AND counter_check_executed = TRUE
+GATE_6A: findings_compiled = TRUE AND metrics_aggregated = TRUE AND counter_check_executed = TRUE
+GATE_6B: compliance_calculated = TRUE AND level_classified = TRUE AND counter_check_executed = TRUE
+GATE_6: deliverables_generated = 6 AND all_files_verified = TRUE AND counter_check_executed = TRUE
 
 ## VIOLATION HANDLING
 

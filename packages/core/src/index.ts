@@ -19,3 +19,9 @@ export { setTemplateBasePath } from './adapters/template-loader.js';
 
 // File system helpers
 export * from './fs-helpers.js';
+
+// LLM Providers (Phase 1: MCP Integration)
+export * from './providers/index.js';
+
+// Execution Engine (Phase 1: Gate Validation & Workflow)
+export * from './execution/index.js';

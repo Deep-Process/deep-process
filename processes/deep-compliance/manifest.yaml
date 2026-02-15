@@ -12,48 +12,24 @@ compliancePatterns:
   - id: "eu-ai-act"
     name: "EU AI Act 2024"
     focus: "High-risk AI classification, Articles 9-15, Annex III"
-    methods: [327, 332, 336, 328, 329]
   - id: "gdpr"
     name: "GDPR (General Data Protection Regulation)"
     focus: "Data protection, privacy rights, consent, data minimization"
-    methods: [327, 336, 328]
   - id: "hipaa"
     name: "HIPAA (Health Insurance Portability and Accountability Act)"
     focus: "Protected health information, security rule, privacy rule"
-    methods: [327, 336, 328, 329]
   - id: "soc2"
     name: "SOC 2 Type II"
     focus: "Security, availability, processing integrity, confidentiality, privacy"
-    methods: [327, 336, 328]
   - id: "iso27001"
     name: "ISO 27001"
     focus: "Information security management system"
-    methods: [327, 336, 328, 329]
   - id: "nis2"
     name: "NIS2 Directive"
     focus: "Network and information security for essential services"
-    methods: [327, 336, 328, 329]
   - id: "multi"
     name: "Multi-Regulation Assessment"
     focus: "Combined assessment across multiple regulations"
-    methods: [327, 332, 336, 328, 329]
-
-methods:
-  - id: 327
-    name: "Regulatory Requirement Mapper"
-    phase: "step-02-map"
-  - id: 336
-    name: "Compliance Gap Analyzer"
-    phase: "step-03-analyze"
-  - id: 328
-    name: "Audit Trail Generator"
-    phase: "step-04-collect"
-  - id: 329
-    name: "Risk Heat Map Generator"
-    phase: "step-05-plan"
-  - id: 332
-    name: "High-Risk AI Classifier"
-    phase: "step-01-inventory"
 
 gates:
   - GATE_1: "systems_identified = TRUE AND capabilities_count >= 3 AND counter_check_executed = TRUE"
@@ -61,7 +37,9 @@ gates:
   - GATE_3: "gaps_classified = TRUE AND severity_assigned = TRUE AND counter_check_executed = TRUE"
   - GATE_4: "evidence_collected >= covered_requirements_count AND evidence_verified = TRUE AND counter_check_executed = TRUE"
   - GATE_5: "remediation_plans >= critical_gaps_count AND timeline_realistic = TRUE AND counter_check_executed = TRUE"
-  - GATE_6: "report_complete = TRUE AND compliance_percentage_calculated = TRUE AND counter_check_executed = TRUE"
+  - GATE_6A: "findings_compiled = TRUE AND metrics_aggregated = TRUE AND counter_check_executed = TRUE"
+  - GATE_6B: "compliance_calculated = TRUE AND level_classified = TRUE AND counter_check_executed = TRUE"
+  - GATE_6: "deliverables_generated = 6 AND all_files_verified = TRUE AND counter_check_executed = TRUE"
 
 outputs:
   - "system_inventory"

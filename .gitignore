@@ -62,7 +62,7 @@ plans/
 .npmrc
 
 
-methods/
+#methods/
 
 # Deep Process
 _deep-process/

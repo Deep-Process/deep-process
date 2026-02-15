@@ -30,6 +30,9 @@ export function getProcessesDir(): string {
   return path.resolve(__dirname, '..', '..', 'processes');
 }
 
+// TEMPORARY: Only allow stable processes (deep-verify and deep-explore)
+const ALLOWED_PROCESSES = ['deep-verify', 'deep-explore'];
+
 /**
  * Read all process manifests from the bundled processes directory.
  */
@@ -44,6 +47,12 @@ export function loadAllManifests(): ProcessManifest[] {
 
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
+
+    // FILTER: Only allow specific processes
+    if (!ALLOWED_PROCESSES.includes(entry.name)) {
+      continue;
+    }
+
     const manifestPath = path.join(processesDir, entry.name, 'manifest.yaml');
     if (!fs.existsSync(manifestPath)) continue;
 

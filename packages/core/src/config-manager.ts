@@ -14,6 +14,29 @@ export interface ToolConfig {
   cliFlags?: string; // Optional CLI flags (e.g., "--yolo" for gemini, "--dangerously-skip-permissions" for claude)
 }
 
+export interface ProviderSettings {
+  type: 'openai' | 'anthropic' | 'azure' | 'bedrock' | 'ollama' | 'gemini';
+  apiKey?: string;
+  endpoint?: string;
+  defaultModel: string;
+  organization?: string;
+  timeout?: number;
+  maxRetries?: number;
+  extra?: Record<string, any>;
+}
+
+export interface McpSettings {
+  enabled: boolean;
+  transport?: 'stdio' | 'http';
+  port?: number;
+}
+
+export interface CloudSettings {
+  enabled: boolean;
+  apiUrl?: string;
+  apiKey?: string;
+}
+
 export interface DeepProcessConfig {
   version: string;
   packageVersion: string;
@@ -23,6 +46,9 @@ export interface DeepProcessConfig {
   };
   processes: Record<string, ProcessConfig>;
   tools: Record<string, ToolConfig>;
+  providers?: Record<string, ProviderSettings>; // LLM provider configurations (Phase 1)
+  mcp?: McpSettings; // MCP server settings (Phase 1)
+  cloud?: CloudSettings; // Cloud API settings (Phase 2)
 }
 
 const CONFIG_FILENAME = 'deep-process.config.yaml';

@@ -2,7 +2,7 @@
   "name": "deep-process-vscode",
   "displayName": "Deep Process",
   "description": "Structured LLM workflows for verification, exploration, architecture, feasibility, synthesis, and documentation",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "publisher": "Deepprocess",
   "icon": "media/icon.png",
   "engines": {
