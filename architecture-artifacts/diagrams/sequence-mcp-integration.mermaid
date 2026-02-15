@@ -1,0 +1,49 @@
+sequenceDiagram
+    actor Dev as Developer (Claude Code IDE)
+    participant MCP as MCP Server
+    participant Gateway as API Gateway
+    participant Orch as Orchestrator
+    participant Queue as Job Queue
+    participant Status as Status Poller
+
+    Dev->>Dev: User types:<br/>"Run deep-explore on pricing strategy decision"
+
+    Note over Dev,MCP: MCP Protocol (JSON-RPC over stdio)
+
+    Dev->>+MCP: ToolCall: run_deep_explore<br/>{decision: "pricing strategy", depth: "standard"}
+
+    MCP->>MCP: Translate MCP request to API call
+    MCP->>+Gateway: POST /v1/jobs<br/>{process_id: "deep-explore", inputs: {...}}
+    Gateway->>+Orch: SubmitJob(...)
+    Orch->>Queue: EnqueueMessage(...)
+    Orch-->>-Gateway: {job_id: "uuid-123"}
+    Gateway-->>-MCP: 202 Accepted {job_id}
+
+    MCP->>MCP: Start async status polling
+
+    loop Poll every 10 seconds (max 30 minutes)
+        MCP->>+Gateway: GET /v1/jobs/{job_id}
+        Gateway->>+Orch: GetJobStatus(job_id)
+        Orch-->>-Gateway: {status, phase, progress_pct}
+        Gateway-->>-MCP: JobStatus
+
+        alt Job Completed
+            MCP->>+Gateway: GET /v1/jobs/{job_id}/artifacts
+            Gateway-->>-MCP: ArtifactList[{name, url}]
+
+            MCP->>+Gateway: GET /v1/artifacts/{artifact_id}
+            Gateway-->>-MCP: YAML artifact (option-map.yaml)
+
+            MCP->>MCP: Parse YAML, extract key findings
+            MCP-->>Dev: ToolResult:<br/>"Option Map Generated:<br/>- CL-001: Fast Market Entry (Recommended)<br/>- CL-002: Enterprise First<br/>- CL-003: Open Source<br/>Download full report: [link]"
+            Note over Dev: User sees results in chat UI
+        else Job Running
+            MCP-->>Dev: ToolProgress:<br/>"Phase 3/6 (Clustering) - 50% complete"
+        else Gate Failed
+            MCP-->>Dev: ToolError:<br/>"Gate GATE_3 LOCKED: Failed counter-check CC-CLU-02"
+        end
+    end
+
+    alt Timeout (30 minutes)
+        MCP-->>-Dev: ToolError:<br/>"Job timeout. Status: Running. Check dashboard for details."
+    end

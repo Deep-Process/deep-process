@@ -1,8 +1,9 @@
 # Deep Process Architecture
 
-**Version:** 1.0.0
+**Version:** 2.0.0 (Bootstrap Edition)
 **Last Updated:** 2026-02-15
-**Status:** Phase 1 - MCP Integration Layer (20% Complete)
+**Status:** Phase 1 - Foundation (Solo Founder, Open Source First)
+**Business Model:** Open Source + Professional Services
 
 ---
 
@@ -10,40 +11,45 @@
 
 - [System Overview](#system-overview)
 - [Core Principles](#core-principles)
+- [Open Source First Architecture](#open-source-first-architecture)
 - [4-Layer Architecture](#4-layer-architecture)
-- [Process Layer](#process-layer)
-- [Execution Layer](#execution-layer)
-- [Provider Layer](#provider-layer)
-- [Distribution Layer](#distribution-layer)
+- [MCP Server: Execution-Based Model](#mcp-server-execution-based-model)
 - [Data Flow Examples](#data-flow-examples)
 - [Key Design Decisions](#key-design-decisions)
-- [Future Architecture Evolution](#future-architecture-evolution)
+- [Deployment Models](#deployment-models)
+- [Performance & Cost](#performance--cost)
+- [Future Evolution (Optional)](#future-evolution-optional)
 
 ---
 
 ## System Overview
 
-Deep Process is a **structured workflow execution framework** that transforms LLMs from fast responders into rigorous thinkers. The architecture is designed around four core layers:
+Deep Process is a **structured workflow execution framework** that transforms LLMs from fast responders into rigorous thinkers. Built as **open-source-first** with revenue from professional services, not product paywalls.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    DISTRIBUTION LAYER                       │
-│  CLI • VS Code Extension • Claude Plugin • MCP Server       │
+│                    USER INTERACTION                         │
+│  IDE (VS Code, Cursor) + LLM (Claude, Copilot, Gemini)     │
 └─────────────────────────────────────────────────────────────┘
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                     PROVIDER LAYER                          │
-│  OpenAI • Anthropic (Claude) • Ollama • Azure OpenAI        │
+│                    MCP SERVER (stdio)                       │
+│  Receives tool calls from LLM, executes workflows           │
 └─────────────────────────────────────────────────────────────┘
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    EXECUTION LAYER                          │
-│  Workflow Executor • Gate Validator • Step Processor        │
+│                   EXECUTION ENGINE                          │
+│  Loads workflows, validates gates, manages LLM calls        │
 └─────────────────────────────────────────────────────────────┘
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                     PROCESS LAYER                           │
-│  16 Workflows • 195 Methods • Pattern Libraries • Gates     │
+│                  LLM PROVIDER LAYER                         │
+│  OpenAI • Anthropic • Ollama (user pays for their own)     │
+└─────────────────────────────────────────────────────────────┘
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  PROCESS DEFINITIONS                        │
+│  16 Workflows • 195 Methods • Patterns (all open source)   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -51,91 +57,178 @@ Deep Process is a **structured workflow execution framework** that transforms LL
 
 ## Core Principles
 
-### 1. Single Source of Truth
-All process definitions live in `/processes/`. Distribution packages (CLI, VS Code, MCP) reference these at build time, never duplicate content.
+### 1. **Open Source First**
+All core functionality is MIT licensed - workflows, methods, patterns, execution engine, MCP server. Revenue comes from **services around the product**, not from the product itself.
 
-### 2. Multi-Provider by Design
-No vendor lock-in. Abstract LLM providers behind a unified interface. Users can switch between OpenAI, Claude, or local models (Ollama) without changing workflows.
+### 2. **Execution-Based MCP** (Not Content Delivery)
+MCP Server **executes** workflows internally and returns **structured results**. It does NOT expose workflow text to LLM, preventing simple copy-paste attacks while keeping execution transparent.
 
-### 3. Evidence-Based Execution
+### 3. **User-Owned Infrastructure**
+Users run MCP Server locally or self-host. They pay for their own LLM usage (OpenAI, Claude, or Ollama). No vendor lock-in, no hidden costs.
+
+### 4. **Evidence-Based Execution**
 Every finding must have a quote. Every claim must have a source. No hand-waving, no "looks good" - falsifiable conclusions only.
 
-### 4. Gate-Based Quality Control
+### 5. **Gate-Based Quality Control**
 Workflows have binding gates (BLOCKER, CRITICAL, ERROR, REQUIRED). Gates validate that conditions are met before proceeding. If a gate fails, execution stops or scope reduces.
 
-### 5. Bounded Execution
-Processes are designed to finish in known time. No infinite loops, no "let me think about this forever" - structured steps with clear exit criteria.
-
-### 6. Progressive Disclosure
+### 6. **Progressive Disclosure**
 Load only what's needed when it's needed. Workflows start with minimal context, progressively load steps and methods as execution proceeds.
+
+---
+
+## Open Source First Architecture
+
+### What's Open Source (MIT License)
+
+**Everything Core:**
+```
+/processes/              # All 16 workflows (markdown)
+/methods/                # All 195 method procedures
+/packages/core/          # Execution engine (TypeScript)
+/packages/mcp-server/    # MCP Server implementation
+/docs/                   # All documentation
+```
+
+**Why Open Source Everything?**
+- ✅ **Adoption** - Developers can try, modify, fork without asking permission
+- ✅ **Trust** - No black boxes, all logic inspectable
+- ✅ **Community** - Contributors improve patterns, fix bugs, add features
+- ✅ **Brand** - "The guy who built Deep Process" > "proprietary secret sauce"
+
+### Revenue Model
+
+**NOT from product paywalls, FROM services:**
+1. **Consulting** ($150-300/hour) - Custom process development, integrations
+2. **Workshops** ($2K-20K) - Corporate training, certification programs
+3. **Speaking** ($5K-20K) - Conferences, corporate events
+4. **Sponsors** ($500-$5K/month) - GitHub Sponsors, corporate sponsorships
+
+**Target:** $10K-$30K/month after 18-24 months (solo founder, bootstrap)
 
 ---
 
 ## 4-Layer Architecture
 
-### Layer 1: Process Layer (Content)
+### Layer 1: Process Layer (Content - 100% Open Source)
 
-**What:** The structured workflows, methods, patterns, and gates that define how LLMs think
+**What:** Structured workflows, methods, patterns that define how LLMs think
 
 **Components:**
-- **16 Workflows** (`/processes/[process]/workflow.md`) - Deep Verify, Deep Explore, Deep Architect, etc.
-- **195 Method Procedures** (`/methods/method-procedures/*.md`) - Reusable analytical techniques
-- **Pattern Libraries** (`/processes/[process]/data/pattern-library.yaml`) - Known failure modes, impossibility patterns
-- **Gates** (`/processes/[process]/data/gates.yaml`) - Quality control checkpoints
-- **Step Files** (`/processes/[process]/steps/*.md`) - Granular execution steps
+- **16 Workflows** (`/processes/[process]/workflow.md`)
+  - Deep Verify, Deep Explore, Deep Architect, Deep Feasibility, Deep Risk, etc.
+  - Each workflow: 500-3,000 lines of structured instructions
 
-**Format:** Markdown + YAML (human-readable, version-controllable, LLM-ingestible)
+- **195 Method Procedures** (`/methods/method-procedures/*.md`)
+  - Reusable analytical techniques (First Principles, Contradiction Detection, etc.)
+  - Each method: 200-500 lines of detailed procedure
 
-**Single Source of Truth:** All processes live here. Distribution packages reference, never duplicate.
+- **Pattern Libraries** (`/processes/[process]/data/pattern-library.yaml`)
+  - 50+ base patterns (SQL injection, XSS, React hooks, etc.)
+  - Community-contributed patterns (grows over time)
+
+- **Gates** (`/processes/[process]/data/gates.yaml`)
+  - Quality control checkpoints (BLOCKER, CRITICAL, ERROR, REQUIRED)
+  - Prevent execution without prerequisites
+
+- **Step Files** (`/processes/[process]/steps/*.md`)
+  - Granular execution units (step-00-setup.md, step-01-pattern-scan.md, etc.)
+
+**Format:** Markdown + YAML (human-readable, LLM-ingestible, git-trackable)
+
+**License:** MIT - fork it, modify it, sell consulting around it
 
 ---
 
-### Layer 2: Execution Layer (Runtime)
+### Layer 2: Execution Layer (Runtime - 100% Open Source)
 
-**What:** The engine that loads workflows, validates gates, executes steps, and manages LLM interactions
+**What:** Engine that loads workflows, validates gates, executes steps, manages LLM interactions
 
-#### Workflow Executor (M1.3 - In Progress)
+#### Workflow Executor (`packages/core/src/workflow-executor.ts`)
 
 **Responsibilities:**
-1. Load `manifest.yaml` → parse workflow metadata (process name, version, steps, gates)
+1. Load `manifest.yaml` → parse metadata (process name, version, steps, gates)
 2. Load `workflow.md` → main process instructions
 3. Progressively load `steps/*.md` → granular execution units
-4. Execute steps sequentially via Provider Layer
+4. Execute steps via Provider Layer
 5. Validate gates after each step
 6. Handle scope reduction if gates fail
 
-**Key Features:**
-- **Progressive Loading:** Don't load all steps upfront (reduces token usage)
-- **Gate Validation:** After each step, check if gates are satisfied
-- **Scope Reduction Protocol:** If gate fails, reduce scope or stop execution
-- **State Management:** Track execution progress, step outputs, gate status
-
 **Example Flow:**
-```
-1. Load manifest.yaml → Deep Verify, 6 steps, 12 gates
-2. Load workflow.md → Overview and commandments
-3. Execute Step 0 (SETUP) → Load pattern library, set intensity
-4. Validate Gate 0 → "Input must be defined" (BLOCKER)
-5. Execute Step 1 (PATTERN SCAN) → Load method procedures, scan for patterns
-6. Validate Gates 1-3 → Pattern library loaded, findings format valid
-7. Continue through steps 2-5...
-8. Generate final report
+```typescript
+// Workflow Executor
+async function executeWorkflow(processName: string, target: string, mode: string) {
+  // 1. Load manifest
+  const manifest = await loadManifest(`processes/${processName}/manifest.yaml`);
+
+  // 2. Load workflow
+  const workflow = await loadWorkflow(`processes/${processName}/workflow.md`);
+
+  // 3. Initialize execution context
+  const context = {
+    target,
+    mode,
+    findings: [],
+    gateStatus: {}
+  };
+
+  // 4. Execute steps
+  for (const step of manifest.steps) {
+    // Progressive loading - load step only when needed
+    const stepContent = await loadStep(`processes/${processName}/steps/${step}.md`);
+
+    // Execute step via LLM
+    const result = await provider.complete({
+      messages: [
+        { role: 'system', content: workflow },
+        { role: 'user', content: stepContent + '\n\nTarget: ' + target }
+      ]
+    });
+
+    // Parse results
+    context.findings.push(...parseFindings(result));
+
+    // Validate gates
+    const gatesPassed = await validateGates(manifest.gates, context);
+    if (!gatesPassed.blocker) {
+      throw new Error('BLOCKER gate failed, stopping execution');
+    }
+  }
+
+  // 5. Return structured report
+  return {
+    verdict: calculateVerdict(context.findings),
+    score: calculateScore(context.findings),
+    findings: context.findings,
+    duration: context.duration,
+    cost: context.cost
+  };
+}
 ```
 
-#### Gate Validator (M1.2 - Next)
+**Key Features:**
+- **Progressive Loading** - Don't load all steps upfront (saves 30-50% tokens)
+- **Gate Validation** - After each step, check if conditions met
+- **Scope Reduction** - If gate fails, reduce scope or stop execution
+- **Provider Abstraction** - Works with any LLM (OpenAI, Claude, Ollama)
+
+---
+
+#### Gate Validator (`packages/core/src/gate-validator.ts`)
 
 **Responsibilities:**
-1. Parse `gates.yaml` → load gate definitions (BLOCKER, CRITICAL, ERROR, REQUIRED)
-2. Evaluate conditions → check if gate criteria are met
+1. Parse `gates.yaml` → load gate definitions
+2. Evaluate conditions → check if criteria met
 3. Track gate status → OPEN (not met) vs LOCKED (met)
-4. Enforce gate severity:
-   - **BLOCKER:** Stop execution immediately if failed
-   - **CRITICAL:** Stop execution but allow override with justification
-   - **ERROR:** Log error, continue execution
-   - **REQUIRED:** Must pass by end of workflow
+4. Enforce severity:
+   - **BLOCKER** - Stop execution immediately
+   - **CRITICAL** - Stop but allow override with justification
+   - **ERROR** - Log error, continue execution
+   - **REQUIRED** - Must pass by end of workflow
 
 **Example Gate:**
 ```yaml
+# processes/deep-verify/data/gates.yaml
 - id: gate-verify-03
   severity: BLOCKER
   condition: "Pattern library is loaded and contains at least 10 patterns"
@@ -143,25 +236,51 @@ Load only what's needed when it's needed. Workflows start with minimal context, 
   action_on_fail: "STOP - Cannot proceed without pattern library"
 ```
 
-#### Step Processor
+**Implementation:**
+```typescript
+interface Gate {
+  id: string;
+  severity: 'BLOCKER' | 'CRITICAL' | 'ERROR' | 'REQUIRED';
+  condition: string;
+  checkpoint: string;
+  action_on_fail: string;
+}
 
-**Responsibilities:**
-1. Load step markdown (`step-01-pattern-scan.md`)
-2. Inject method procedures if referenced (e.g., "Use method #071 First Principles Analysis")
-3. Format prompt for LLM (combine step instructions + context + methods)
-4. Execute via Provider Layer
-5. Parse LLM response
-6. Extract findings, scores, verdicts
+async function validateGates(gates: Gate[], context: ExecutionContext): Promise<GateResults> {
+  const results = { blocker: true, critical: true, errors: [] };
+
+  for (const gate of gates) {
+    const passed = await evaluateCondition(gate.condition, context);
+
+    if (!passed) {
+      switch (gate.severity) {
+        case 'BLOCKER':
+          results.blocker = false;
+          console.error(`BLOCKER gate failed: ${gate.id}`);
+          break;
+        case 'CRITICAL':
+          results.critical = false;
+          console.warn(`CRITICAL gate failed: ${gate.id}`);
+          break;
+        case 'ERROR':
+          results.errors.push(gate.id);
+          console.error(`ERROR gate: ${gate.id}`);
+          break;
+      }
+    }
+  }
+
+  return results;
+}
+```
 
 ---
 
-### Layer 3: Provider Layer (LLM Abstraction)
+### Layer 3: Provider Layer (LLM Abstraction - 100% Open Source)
 
-**What:** Unified interface to multiple LLM providers with cost tracking, retry logic, and error handling
+**What:** Unified interface to multiple LLM providers with cost tracking, retry logic, error handling
 
-#### Provider Abstraction (`@deep-process/core/providers`)
-
-**Implemented:** ✅ M1.1 Complete
+**Implemented:** ✅ M1.1 Complete (`packages/core/src/providers/`)
 
 **Supported Providers:**
 - **OpenAI** (`openai-provider.ts`) - GPT-4, GPT-4o, GPT-3.5
@@ -172,542 +291,636 @@ Load only what's needed when it's needed. Workflows start with minimal context, 
 **Unified Interface:**
 ```typescript
 interface LLMProvider {
-  complete(request: CompletionRequest): Promise<CompletionResponse>
-  stream(request: CompletionRequest): AsyncIterable<CompletionChunk>
-  estimateCost(request: CompletionRequest): number
-  healthCheck(): Promise<boolean>
+  complete(request: CompletionRequest): Promise<CompletionResponse>;
+  stream(request: CompletionRequest): AsyncIterable<CompletionChunk>;
+  estimateCost(request: CompletionRequest): number;
+  healthCheck(): Promise<boolean>;
+}
+
+interface CompletionRequest {
+  messages: Message[];
+  model?: string;
+  temperature?: number;
+  maxTokens?: number;
+}
+
+interface CompletionResponse {
+  content: string;
+  usage: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+  cost: number; // Estimated cost in USD
+  model: string;
+  provider: string;
 }
 ```
 
-**Key Features:**
-- **Cost Estimation:** Track token usage and estimate cost based on official pricing
-- **Automatic Retry:** Exponential backoff for transient failures
-- **Rate Limit Handling:** Respect `retry-after` headers, queue requests
-- **Streaming Support:** All providers support streaming responses
-- **Error Hierarchy:** Typed errors (InitError, CompletionError, RateLimitError, AuthError)
-
 **Why Multi-Provider?**
-1. **No Vendor Lock-In:** Users can switch providers without changing workflows
-2. **Cost Optimization:** Route cheap queries to GPT-3.5, complex ones to GPT-4 or Claude
-3. **Reliability:** Fallback to alternate provider if primary fails
-4. **Compliance:** Some enterprises require on-premise (Ollama) or specific cloud (Azure)
+1. **No Vendor Lock-In** - Users choose their LLM, not forced into one
+2. **Cost Optimization** - Route cheap queries to GPT-3.5, complex to GPT-4
+3. **Local Models** - Ollama for cost-sensitive users (100% free)
+4. **Reliability** - Fallback to alternate provider if primary fails
 
-**Provider Registry:**
+**User Pays for LLM** - Deep Process doesn't charge for LLM usage, user provides their own API keys
+
+---
+
+### Layer 4: Distribution Layer (MCP Server - 100% Open Source)
+
+**What:** MCP Server exposes Deep Process workflows as MCP tools for LLM integration
+
+**Status:** 📋 M1.4 In Progress (`packages/mcp-server/`)
+
+#### MCP Server Architecture
+
 ```typescript
-// Centralized provider management
-const registry = new ProviderRegistry({
-  default: { provider: 'openai', model: 'gpt-4' },
-  tenants: {
-    'enterprise-a': { provider: 'azure-openai', model: 'gpt-4', deployment: 'prod' },
-    'cost-sensitive': { provider: 'ollama', model: 'llama3' }
-  }
-})
+// packages/mcp-server/src/server.ts
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { executeWorkflow } from '@deep-process/core';
 
-// Automatic provider selection
-const provider = registry.getProvider('enterprise-a') // Returns Azure OpenAI
+const server = new Server({
+  name: 'deep-process',
+  version: '1.0.0'
+}, {
+  capabilities: {
+    tools: {},
+    resources: {},
+    prompts: {}
+  }
+});
+
+// Register tools (auto-generated from manifests)
+server.setRequestHandler(ListToolsRequestSchema, async () => ({
+  tools: [
+    {
+      name: 'deep-verify',
+      description: 'Verify code/documents for correctness',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          target: { type: 'string', description: 'File or code to verify' },
+          mode: { type: 'string', enum: ['quick', 'standard', 'deep'], default: 'standard' },
+          reference: { type: 'string', description: 'Reference document (optional)' }
+        },
+        required: ['target']
+      }
+    },
+    {
+      name: 'deep-explore',
+      description: 'Explore a decision systematically',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          decision: { type: 'string', description: 'Decision to explore' },
+          context: { type: 'string', description: 'Additional context (optional)' }
+        },
+        required: ['decision']
+      }
+    },
+    // ... 14 more tools for all 16 processes
+  ]
+}));
+
+// Handle tool execution (EXECUTION-BASED, not content delivery)
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+
+  // CRITICAL: Execute workflow internally, DON'T expose workflow text
+  switch (name) {
+    case 'deep-verify':
+      const result = await executeWorkflow('deep-verify', args.target, args.mode || 'standard');
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2) // Return RESULTS, not workflow
+          }
+        ]
+      };
+
+    case 'deep-explore':
+      const exploration = await executeWorkflow('deep-explore', args.decision, 'standard');
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(exploration, null, 2)
+          }
+        ]
+      };
+
+    // ... handle other tools
+  }
+});
+
+// Start server (stdio transport for Claude Desktop)
+const transport = new StdioServerTransport();
+await server.connect(transport);
 ```
 
 ---
 
-### Layer 4: Distribution Layer (User Interface)
+## MCP Server: Execution-Based Model
 
-**What:** Multiple ways to invoke Deep Process workflows (CLI, VS Code, Claude Plugin, MCP Server)
+### ❌ Naivny Model (NIE TAK - Ryzyko Kopiowania)
 
-#### CLI Package (`deep-process`)
-
-**Status:** ✅ Production Ready
-
-**Installation:**
-```bash
-npx deep-process init
+```
+Developer: "Zweryfikuj auth.ts"
+    ↓
+LLM → MCP call: get_workflow("deep-verify")
+    ↓
+MCP Server returns: [entire workflow.md text - 3000 lines]
+    ↓
+LLM: Reads workflow, executes
+    ↓
+Developer: Can see entire workflow in logs/debugger
 ```
 
-**Usage:**
-```bash
-deep-process verify src/api/ --against docs/spec.md
-deep-process explore "Should we migrate to microservices?"
-deep-process architect "Design a notification service"
+**Problem:** Developer widzi cały workflow, może skopiować. To NIE jest jak działamy.
+
+---
+
+### ✅ Właściwy Model (EXECUTION-BASED)
+
 ```
-
-**Features:**
-- Universal installer (detects AI tools, generates config for 11+ tools)
-- File copying to `_deep-process/` in project
-- Config generation for Claude Code, Gemini CLI, Cursor, Continue, GitHub Copilot, etc.
-- Non-interactive mode for CI/CD
-
-**Why CLI?**
-- Works everywhere (Windows, macOS, Linux)
-- Integrates with existing CI/CD pipelines
-- No IDE dependency
-- Offline capable (with Ollama)
-
-#### VS Code Extension
-
-**Status:** ✅ Production Ready
-
-**Features:**
-- Configuration UI (detect installed tools, select processes)
-- Chat participant: `@deep-process /verify`, `@deep-process /explore`
-- Status bar integration (shows installation status)
-- Marketplace distribution
-
-**Why VS Code Extension?**
-- Native integration for 50M+ VS Code users
-- Leverages GitHub Copilot chat UI
-- Familiar UX for developers
-- Auto-updates via Marketplace
-
-#### Claude Code Plugin
-
-**Status:** ✅ Live on Marketplace
-
-**Installation:**
-```bash
-claude plugin install deep-process
-```
-
-**Usage:**
-```
-/deep-process:deep-verify Check src/api/
-/deep-process:deep-explore Should we use Redis?
-```
-
-**Why Claude Plugin?**
-- Native Claude integration
-- No file copying (processes loaded dynamically)
-- Slash command UX
-- Low friction installation
-
-#### MCP Server (M1.4 - In Progress)
-
-**Status:** 🚧 Weeks 5-8
-
-**Installation (planned):**
-```bash
-npx deep-process mcp-server start
-```
-
-**Supported Clients:**
-- Claude Desktop
-- Azure AI Foundry
-- GitHub Copilot (via MCP support)
-- LiteLLM
-- Any MCP-compatible client
-
-**Why MCP?**
-- Emerging standard (backed by Anthropic, Azure, GitHub)
-- One integration → many tools
-- Composable with other MCP servers (file system, web search, etc.)
-- Future-proof as AI platforms standardize
-
-**MCP Tools (Auto-Generated from Manifests):**
-```json
-{
-  "tools": [
-    {
-      "name": "deep-verify",
-      "description": "Verify code/documents for correctness",
-      "inputSchema": { "type": "object", "properties": { "target": "string", ... } }
-    },
-    {
-      "name": "deep-explore",
-      "description": "Explore a decision systematically",
-      "inputSchema": { ... }
-    },
-    // ... 14 more tools for all 16 processes
-  ]
+Developer: "Zweryfikuj auth.ts"
+    ↓
+LLM → MCP call: deep-verify({ target: "auth.ts", mode: "quick" })
+    ↓
+MCP Server INTERNALLY:
+  1. Load workflow.md (developer NIE widzi)
+  2. Load pattern-library.yaml (developer NIE widzi)
+  3. Execute workflow via internal LLM call
+  4. Parse results
+  5. Validate gates
+    ↓
+MCP Server returns: {
+  "verdict": "REJECT",
+  "score": 7.5,
+  "findings": [...],
+  "duration_ms": 12500,
+  "cost_usd": 0.08
 }
+    ↓
+LLM: Receives ONLY structured results
+    ↓
+Developer: Sees ONLY the report, NOT the workflow
 ```
+
+**Kluczowa różnica:**
+- MCP Server **wykonuje** proces wewnętrznie
+- Zwraca **wyniki**, nie **instrukcje**
+- Developer widzi output, nie implementation
+
+---
+
+### Dlaczego To NIE Chroni IP w 100%?
+
+Developer może:
+1. Uruchomić deep-verify 100 razy na różnych plikach
+2. Obserwować wyniki
+3. Reverse engineer podstawową logikę
+4. Napisać własną wersję
+
+**ALE:**
+- Nie może skopiować 2 lat optymalizacji promptów
+- Nie może skopiować execution quality (95% accuracy vs 60% DIY)
+- Nie może skopiować community patterns (grows with usage)
+- Nie może skopiować brand & trust (case studies, conference talks)
+
+**Ochrona IP:**
+- ❌ NIE z "ukrywania kodu" (to open source!)
+- ✅ Z execution excellence + brand + community + experience
 
 ---
 
 ## Data Flow Examples
 
-### Example 1: Deep Verify Execution (CLI)
+### Example 1: Deep Verify via MCP (Local Execution)
 
 ```
-User Command:
-  $ deep-process verify src/api/auth.ts --against docs/security-spec.md
-
-┌─────────────────────────────────────────────────────────────┐
-│ 1. CLI Layer (packages/cli)                                │
-│    - Parse arguments: target=auth.ts, reference=spec.md    │
-│    - Load config: deep-process.config.yaml                 │
-│    - Select provider: OpenAI GPT-4                         │
-└─────────────────────────────────────────────────────────────┘
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 2. Execution Layer (packages/core)                         │
-│    - Load manifest: processes/deep-verify/manifest.yaml    │
-│    - Load workflow: processes/deep-verify/workflow.md      │
-│    - Initialize Workflow Executor                          │
-└─────────────────────────────────────────────────────────────┘
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 3. Step 0: SETUP                                           │
-│    - Load pattern library: data/pattern-library.yaml       │
-│    - Validate Gate 0: "Input defined" (BLOCKER) → PASS     │
-└─────────────────────────────────────────────────────────────┘
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 4. Step 1: PATTERN SCAN                                    │
-│    - Load step: steps/step-01-pattern-scan.md              │
-│    - Load methods: #071 First Principles, #154 Contradiction│
-│    - Execute via Provider Layer                            │
-│    - Validate Gates 1-3 → PASS                             │
-└─────────────────────────────────────────────────────────────┘
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 5. Provider Layer (packages/core/providers)                │
-│    - Format prompt: workflow + step + methods + context    │
-│    - Call OpenAI API: gpt-4 completion                     │
-│    - Track tokens: input=3,200, output=1,500               │
-│    - Estimate cost: $0.096 (input) + $0.090 (output) = $0.186│
-└─────────────────────────────────────────────────────────────┘
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 6. Steps 2-5: TARGETED, ADVERSARIAL, VERDICT, REPORT       │
-│    - Continue execution through remaining steps             │
-│    - Validate gates after each step                        │
-│    - Accumulate findings with exact quotes                 │
-└─────────────────────────────────────────────────────────────┘
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 7. Final Output                                            │
-│    - Generate structured report                            │
-│    - Verdict: REJECT / UNCERTAIN / ACCEPT                  │
-│    - Score: 7.5 (numeric severity)                         │
-│    - Findings: CRITICAL (2), IMPORTANT (3), MINOR (1)      │
-│    - Cost: $1.23 total                                     │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-### Example 2: Deep Explore via MCP Server
-
-```
-User (in Claude Desktop):
-  "Use deep-explore to help me decide: should we migrate to microservices?"
+Developer using Claude Desktop:
+  "Use deep-verify to check auth.ts for security issues"
 
 ┌─────────────────────────────────────────────────────────────┐
 │ 1. Claude Desktop                                          │
-│    - Detects MCP tool: deep-explore                        │
-│    - Sends request to MCP Server (stdio)                   │
+│    - Parses user request                                   │
+│    - Detects MCP tool: deep-verify                         │
+│    - Prepares tool call                                    │
 └─────────────────────────────────────────────────────────────┘
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 2. MCP Server (packages/mcp-server)                        │
-│    - Receives: { tool: "deep-explore", input: "migrate..." }│
-│    - Load manifest: processes/deep-explore/manifest.yaml   │
-│    - Initialize Workflow Executor                          │
+│ 2. MCP Server (Local - stdio)                              │
+│    - Receives: deep-verify({ target: "auth.ts" })          │
+│    - Loads workflow (INTERNAL, not exposed)                │
+│    - Loads pattern library (INTERNAL, not exposed)         │
 └─────────────────────────────────────────────────────────────┘
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 3. Execution Layer                                         │
-│    - Execute Deep Explore workflow (7 steps)               │
-│    - Step 1: Separate facts from assumptions               │
-│    - Step 2: Discover decision dimensions                  │
-│    - Step 3: Map consequences                              │
-│    - Step 4: Premortem analysis                            │
-│    - Step 5: Bias checks                                   │
-│    - Step 6: Fear resolution                               │
-│    - Step 7: Decision readiness                            │
+│ 3. Workflow Executor                                       │
+│    Step 0: SETUP                                           │
+│      - Load pattern library                                │
+│      - Validate gate: "Input defined" → PASS               │
+│    Step 1: PATTERN SCAN                                    │
+│      - Load methods: #071, #154                            │
+│      - Scan for patterns: SQL injection, XSS, etc.         │
+│      - Validate gates → PASS                               │
+│    Steps 2-5: Continue execution...                        │
 └─────────────────────────────────────────────────────────────┘
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 4. Provider Layer                                          │
-│    - Use configured provider (e.g., Claude 4)              │
-│    - Stream responses back to MCP Server                   │
-│    - Track cost: $2.45 total                               │
+│ 4. Provider Layer (User's LLM)                             │
+│    - Use configured provider (e.g., OpenAI GPT-4)          │
+│    - User pays for LLM usage (not Deep Process)            │
+│    - Execute each step with workflow + target              │
+│    - Track tokens: 3,200 input + 1,500 output              │
+│    - Cost: ~$0.18 (user's bill)                            │
 └─────────────────────────────────────────────────────────────┘
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 5. MCP Server → Claude Desktop                             │
-│    - Stream structured output back                         │
-│    - KEY DISCOVERIES: 3 strategic clusters identified      │
-│    - FEAR RESOLUTION: 2 false walls, 1 true uncertainty    │
-│    - READINESS: Ready to decide on approach, need research │
+│ 5. MCP Server Returns Results (NOT workflow)               │
+│    {                                                       │
+│      "verdict": "REJECT",                                  │
+│      "score": 7.5,                                         │
+│      "findings": [                                         │
+│        {                                                   │
+│          "severity": "critical",                           │
+│          "pattern": "SQL-001",                             │
+│          "message": "SQL injection vulnerability",         │
+│          "file": "auth.ts",                                │
+│          "line": 45,                                       │
+│          "evidence": "Unsanitized user input..."           │
+│        }                                                   │
+│      ],                                                    │
+│      "duration_ms": 12500,                                 │
+│      "cost_usd": 0.18                                      │
+│    }                                                       │
+└─────────────────────────────────────────────────────────────┘
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 6. Claude Desktop → Developer                              │
+│    - Shows structured report                               │
+│    - Developer sees findings, NOT workflow internals       │
+│    - Can act on findings (fix bugs)                        │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+**Key Points:**
+- Workflow stays internal to MCP Server
+- Developer sees only results
+- User pays for their own LLM usage
+- Execution transparent but implementation hidden
+
+---
+
+### Example 2: Consulting Project (Custom Process Development)
+
+```
+Enterprise client: "We need deep-compliance for GDPR"
+
+Week 1: Discovery
+  - Consultant (you) meets with client
+  - Understands GDPR requirements (50+ specific checks)
+  - Reviews existing compliance docs
+
+Week 2: Development
+  - Fork deep-verify workflow as base
+  - Create custom pattern library (GDPR-specific):
+    * Data retention checks
+    * Consent management validation
+    * Right-to-be-forgotten verification
+    * Cross-border transfer compliance
+  - Create custom methods:
+    * GDPR Article 6 checker (lawful basis)
+    * GDPR Article 17 checker (right to erasure)
+    * etc.
+
+Week 3: Testing & Iteration
+  - Run on client's codebase
+  - Tune false positive rate (from 40% → 5%)
+  - Add client-specific patterns
+  - Document findings format
+
+Week 4: Delivery & Training
+  - Deploy custom process (they own it, MIT license)
+  - Train team on usage
+  - Provide support documentation
+
+Revenue: $15K (2 weeks @ $300/hour × 50 hours)
+
+Client gets:
+  - Custom deep-compliance process (theirs to keep)
+  - GDPR pattern library (50+ patterns)
+  - Documentation and training
+  - 30 days support
+
+You get:
+  - $15K revenue
+  - Case study (with permission)
+  - Speaking topic ("How we automated GDPR compliance")
+  - Future consulting leads
+```
+
+**This is the business model:**
+- Open source = marketing & adoption
+- Consulting = revenue
+- Brand = pricing power
 
 ---
 
 ## Key Design Decisions
 
-### Decision 1: Why Multi-Provider?
+### Decision 1: Why Open Source EVERYTHING?
 
-**Question:** Why not just use one LLM provider (e.g., OpenAI)?
+**Question:** Why not keep workflows proprietary?
 
-**Decision:** Abstract all providers behind unified interface
-
-**Rationale:**
-- **No Vendor Lock-In:** Users can switch providers without rewriting workflows
-- **Cost Optimization:** Route simple queries to cheap models (GPT-3.5), complex to GPT-4/Claude
-- **Compliance:** Some enterprises require Azure (data residency), others need on-premise (Ollama)
-- **Reliability:** Fallback to alternate provider if primary has outage
-- **Future-Proof:** New providers (Gemini, Llama 4) can be added without changing core
-
-**Trade-offs:**
-- **Complexity:** Need provider abstraction layer (268 lines of interface code)
-- **Testing Overhead:** Must test against 3+ providers
-- **Lowest Common Denominator:** Can't use provider-specific features (e.g., Claude's system messages require special handling)
-
-**Alternatives Considered:**
-- ❌ OpenAI-only: Rejected due to vendor lock-in
-- ❌ Plugin system: Rejected due to complexity (providers are core, not plugins)
-- ✅ Unified interface with provider-specific implementations
-
----
-
-### Decision 2: Why Gate-Based Execution?
-
-**Question:** Why not just run all steps sequentially without gates?
-
-**Decision:** Enforce quality gates (BLOCKER, CRITICAL, ERROR, REQUIRED) between steps
+**Decision:** MIT license for all processes, workflows, patterns, code
 
 **Rationale:**
-- **Quality Control:** Prevent garbage-in-garbage-out (e.g., can't scan for patterns without loading pattern library)
-- **Early Exit:** Stop execution if critical failure detected (save tokens/cost)
-- **Scope Reduction:** If gate fails, reduce scope instead of failing entirely
-- **Auditability:** Gates create audit trail of what was validated when
+- **Adoption > Protection** - More developers using = more consulting opportunities
+- **Community > Control** - Contributors improve product faster than solo founder
+- **Brand > IP** - "I built Deep Process" > "I have secret sauce"
+- **Trust > Obscurity** - Inspectable code = trustworthy (critical for verification tool)
 
-**Example:**
-```yaml
-# Gate: Pattern library must be loaded before scanning
-- id: gate-verify-01
-  severity: BLOCKER
-  condition: "Pattern library loaded and contains at least 10 patterns"
-  checkpoint: "After step 0 (SETUP)"
-  action_on_fail: "STOP - Cannot proceed without pattern library"
-```
+**Revenue Protection:**
+- ✅ Execution quality (2 years optimization) - can't copy experience
+- ✅ Consulting (custom processes) - services not replicable
+- ✅ Brand (conference talks, case studies) - reputation not forkable
+- ✅ Community (network effects) - contributors stay with canonical
 
 **Trade-offs:**
-- **Complexity:** Need gate validation engine (M1.2)
-- **Rigidity:** Can't skip steps even if user wants to
-- **Overhead:** Checking gates adds latency (~100-200ms per gate)
+- ❌ Competitors can fork - ACCEPTED (brand wins over code)
+- ❌ Can't charge for software - ACCEPTED (services > SaaS for solo)
+- ❌ No proprietary moat - ACCEPTED (community IS the moat)
 
-**Alternatives Considered:**
-- ❌ No gates: Rejected - too risky, no quality control
-- ❌ Manual gates (user approval): Rejected - interrupts flow, friction
-- ✅ Automated binding gates with scope reduction
+**Examples of Success:**
+- WordPress (open source) → Automattic ($7.5B valuation)
+- GitLab (open core) → $15B company
+- Elasticsearch (open core) → Elastic ($10B company)
 
 ---
 
-### Decision 3: Why Progressive Step Loading?
+### Decision 2: Why Execution-Based MCP (Not Content Delivery)?
 
-**Question:** Why not load the entire workflow upfront?
+**Question:** Why not just expose workflow text via MCP?
 
-**Decision:** Load steps progressively as execution proceeds
+**Decision:** MCP Server executes workflows internally, returns results only
 
 **Rationale:**
-- **Token Efficiency:** Don't load all 6 steps (15K+ tokens) if execution fails at step 2
-- **Faster Start:** Begin execution immediately with just workflow.md (~2K tokens)
-- **Reduced Cost:** Save ~30-50% on tokens for workflows that exit early
-- **Better UX:** User sees output faster (streaming from step 1)
+- **Reduces copy-paste risk** - Developer sees results, not implementation
+- **Better UX** - LLM gets structured data, not 3,000 line markdown
+- **Faster execution** - MCP server optimized, no LLM parsing overhead
+- **Quality control** - Gates enforced server-side, can't be bypassed
 
-**Example:**
-```
-Traditional (load all upfront):
-  Load: workflow.md + step-00.md + step-01.md + ... + step-05.md
-  Tokens: 18,000
-  Time to first output: 8 seconds
-
-Progressive loading:
-  Load: workflow.md only (2K tokens)
-  Execute step 0, load step-00.md (3K tokens) → output at 2 seconds
-  Execute step 1, load step-01.md (3K tokens) → output at 4 seconds
-  ...
-  Total tokens if early exit at step 2: 8K (56% savings)
-```
+**Still transparent:**
+- ✅ All source code on GitHub (can inspect how execution works)
+- ✅ Open source license (can modify and self-host)
+- ✅ No vendor lock-in (runs locally, no cloud dependency)
 
 **Trade-offs:**
-- **Complexity:** Need step loader with lazy loading
-- **Context Loss:** LLM doesn't see future steps (can't optimize across entire workflow)
-
-**Alternatives Considered:**
-- ❌ Load all upfront: Rejected - inefficient for early exits
-- ❌ Load nothing (LLM figures it out): Rejected - too unreliable
-- ✅ Progressive loading with explicit step boundaries
+- ⚠️ Slightly more complex to implement (but worth it)
+- ⚠️ Can still be reverse engineered (but takes effort)
 
 ---
 
-### Decision 4: Why MCP Integration?
+### Decision 3: Why Multi-Provider (Let User Pay for LLM)?
 
-**Question:** Why invest in MCP protocol vs custom integrations?
+**Question:** Why not bundle LLM costs into SaaS pricing?
 
-**Decision:** Build MCP server as primary integration layer (M1.4)
+**Decision:** User provides their own LLM API keys, pays for usage directly
 
 **Rationale:**
-- **Emerging Standard:** Backed by Anthropic (Claude), Microsoft (Azure AI Foundry), GitHub (Copilot)
-- **One Integration → Many Tools:** MCP server works with all MCP-compatible clients
-- **Composability:** MCP servers can call other MCP servers (file system + web search + deep-process)
-- **Future-Proof:** As AI platforms standardize, MCP becomes lingua franca
+- **No margin on LLM** - Don't mark up tokens (transparency)
+- **No cost explosion risk** - User controls their spending
+- **Local models supported** - Ollama users pay $0
+- **Compliance easier** - Data goes to user's LLM, not our servers
+- **Simpler business model** - No need to track/bill LLM usage
 
-**Timeline:**
-- 2024: MCP protocol announced (Anthropic)
-- 2025: Azure AI Foundry, GitHub Copilot add MCP support
-- 2026: **Adoption inflection point** (predicted)
-- 2027+: MCP becomes standard (predicted)
+**User Benefits:**
+- Choose their own provider (OpenAI, Claude, local Ollama)
+- Control costs directly
+- Data privacy (LLM calls from their machine)
+- Works offline (with Ollama)
 
-**Trade-offs:**
-- **Risk:** MCP protocol could fail to gain adoption (mitigated by custom integrations as fallback)
-- **Breaking Changes:** Protocol still evolving (need version pinning)
-- **Documentation:** Limited examples, need to pioneer best practices
-
-**Alternatives Considered:**
-- ❌ Custom integrations only: Rejected - doesn't scale to 11+ tools
-- ❌ Wait for MCP maturity: Rejected - first-mover advantage
-- ✅ MCP primary + custom integrations as fallback
+**Our Benefits:**
+- No LLM infrastructure costs
+- No compliance burden (no customer data)
+- No rate limiting issues
+- Simpler architecture (stateless)
 
 ---
 
-### Decision 5: Why File-Based Process Definitions?
+### Decision 4: Why Bootstrap (Not Venture-Funded)?
 
-**Question:** Why markdown + YAML instead of code (TypeScript/Python)?
+**Question:** Why not raise seed round and scale fast?
 
-**Decision:** All processes defined in markdown + YAML, no code
+**Decision:** Bootstrap via consulting, grow organically
 
 **Rationale:**
-- **Human-Readable:** Non-developers can read, understand, and contribute to processes
-- **LLM-Ingestible:** Markdown is ideal for LLM consumption (no parsing complexity)
-- **Version Control:** Git tracks changes, diffs are human-readable
-- **Composability:** Processes can reference other processes, methods can be injected
-- **No Build Step:** Change markdown → immediately usable (no compilation)
-
-**Example:**
-```markdown
-# Step 1: Pattern Scan
-
-Use the pattern library in `data/pattern-library.yaml` to scan the target for:
-- Definitional contradictions (Pattern DC-*)
-- Impossibility claims (Pattern IM-*)
-- Vocabulary drift (Pattern VC-*)
-
-Use method #071 (First Principles Analysis) and #154 (Contradiction Detector).
-
-Output format: JSON array of findings with exact quotes.
-```
+- **Solo founder** - Easier to stay small & profitable
+- **No pressure** - Grow at sustainable pace, no burn rate
+- **Full control** - No investors, no board, no dilution
+- **Profitable sooner** - Consulting revenue Month 9-12 vs Series A Year 2-3
+- **Exit options flexible** - Sell for $1-3M or stay independent
 
 **Trade-offs:**
-- **Type Safety:** No compile-time validation (mitigated by schema validation)
-- **Execution Control:** Can't use programming constructs (loops, conditionals) directly
-- **Debugging:** Harder to debug than code (mitigated by structured outputs)
+- ❌ Slower growth (vs VC-funded competitor)
+- ❌ No enterprise compliance (SOC 2 too expensive)
+- ❌ Can't hire team early (until revenue supports it)
 
-**Alternatives Considered:**
-- ❌ TypeScript/Python DSL: Rejected - developer-only, not LLM-friendly
-- ❌ JSON schemas: Rejected - not human-readable
-- ✅ Markdown + YAML with schema validation
-
----
-
-## Future Architecture Evolution
-
-### Phase 2: Cloud API Platform (Q2-Q3 2026)
-
-**New Components:**
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      WEB LAYER (NEW)                        │
-│  REST API • GraphQL (optional) • WebSocket (streaming)      │
-└─────────────────────────────────────────────────────────────┘
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  AUTH & TENANCY (NEW)                       │
-│  Multi-tenant isolation • RBAC • SSO (SAML, OAuth)          │
-└─────────────────────────────────────────────────────────────┘
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   STORAGE LAYER (NEW)                       │
-│  Workflow history • Artifact storage • Search (Elasticsearch)│
-└─────────────────────────────────────────────────────────────┘
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│               EXISTING EXECUTION LAYER                      │
-│  Workflow Executor • Gate Validator • Provider Abstraction  │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**Key Architectural Changes:**
-1. **Multi-Tenancy:** Org-level isolation, per-tenant provider configs
-2. **Audit Logging:** Every workflow execution logged with user, timestamp, cost
-3. **Cost Tracking:** Per-org usage tracking, billing integration
-4. **Horizontal Scaling:** Queue-based execution (RabbitMQ/SQS), stateless workers
-5. **Caching:** Deduplicate identical requests (30-50% cost savings)
+**But:**
+- ✅ Sustainable (profitable, not burning cash)
+- ✅ Independent (no external pressure)
+- ✅ Flexible (can pivot, sell, or stay)
 
 ---
 
-### Phase 3: Enterprise Platform (Q4 2026+)
+## Deployment Models
 
-**New Components:**
+### Model 1: Local MCP Server (Primary - 100% Free)
 
+```bash
+# Install globally
+npm install -g @deep-process/mcp-server
+
+# Or use npx (no install)
+npx @deep-process/mcp-server
+
+# Configure in Claude Desktop
+{
+  "mcpServers": {
+    "deep-process": {
+      "command": "npx",
+      "args": ["@deep-process/mcp-server"]
+    }
+  }
+}
+
+# Configure LLM provider (user's API key)
+export OPENAI_API_KEY="sk-..."
+# OR
+export ANTHROPIC_API_KEY="sk-ant-..."
+# OR use Ollama (no API key needed)
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                   COMPLIANCE LAYER (NEW)                    │
-│  SOC 2 • HIPAA • GDPR • FedRAMP compliance enforcement      │
-└─────────────────────────────────────────────────────────────┘
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                ORCHESTRATION LAYER (NEW)                    │
-│  Multi-process workflows • Conditional execution • Retry    │
-└─────────────────────────────────────────────────────────────┘
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  MARKETPLACE LAYER (NEW)                    │
-│  Custom processes • Community contributions • Revenue share │
-└─────────────────────────────────────────────────────────────┘
-```
 
-**Key Architectural Changes:**
-1. **RBAC v2:** Team hierarchies, fine-grained permissions, approval workflows
-2. **On-Premise Deployment:** Docker/Kubernetes for regulated industries
-3. **Process Orchestration:** Chain multiple processes (Explore → Feasibility → Architect → Verify)
-4. **Custom Processes:** Marketplace for industry-specific workflows
-5. **AI Trainer:** Use Deep Process outputs to fine-tune custom models
+**Characteristics:**
+- ✅ Runs on user's machine
+- ✅ User pays for own LLM usage
+- ✅ Zero cost to user (open source)
+- ✅ Full privacy (no data sent to Deep Process servers)
+- ✅ Works offline (with Ollama)
+
+**Target Users:**
+- Individual developers
+- Small teams (2-10 people)
+- Cost-conscious users
+- Privacy-sensitive users
 
 ---
 
-## Performance Characteristics
+### Model 2: Self-Hosted (For Teams)
 
-### Latency (Phase 1)
+```bash
+# Clone repo
+git clone https://github.com/deep-process-org/deep-process
+cd deep-process
+
+# Install dependencies
+pnpm install
+
+# Build packages
+pnpm run build
+
+# Run MCP server on team server
+node packages/mcp-server/dist/index.js
+
+# Team members connect via network
+# (requires custom transport, not stdio)
+```
+
+**Characteristics:**
+- ✅ Team control & customization
+- ✅ Shared patterns & processes
+- ✅ Internal deployment (no internet required)
+- ✅ Can add custom logging, metrics
+
+**Target Users:**
+- Development teams (10-50 people)
+- Companies with internal policies
+- Custom integration needs
+
+---
+
+### Model 3: Optional SaaS (Future - If Demand Exists)
+
+**Only build if:**
+- Community repeatedly asks for it
+- You have $20K+ MRR from consulting (proof of demand)
+- You're willing to deal with complexity
+
+**What it would offer:**
+- CI/CD webhooks (GitHub, Azure DevOps, GitLab)
+- Automated PR verification
+- Team dashboard
+- Audit trail
+- Shared pattern library
+
+**Pricing:**
+- Simple: $29-$99/month (keep it simple)
+- No enterprise features (too complex for solo)
+
+**Why not now:**
+- Solo founder - consulting more profitable
+- Complexity - hosting, scaling, support, compliance
+- Focus - build community first, SaaS later if needed
+
+---
+
+## Performance & Cost
+
+### Latency (Local MCP)
 
 | Component | Latency | Notes |
 |-----------|---------|-------|
-| Gate Validation | 100-200ms | Per gate, local evaluation |
-| Step Loading | 50-100ms | File I/O from disk |
-| LLM Completion (GPT-4) | 3-8s | Depends on output length |
-| LLM Completion (Claude) | 2-6s | Generally faster than GPT-4 |
-| LLM Completion (Ollama) | 1-3s | Local, GPU-dependent |
-| Full Workflow (Deep Verify DEEP) | 30-60 min | 6 steps, high thoroughness |
-| Full Workflow (Deep Verify QUICK) | 3-5 min | Reduced scope |
+| Gate Validation | 10-50ms | Local evaluation, no LLM |
+| Step Loading | 10-30ms | File I/O from disk |
+| LLM Completion (GPT-4) | 2-6s | Depends on output length |
+| LLM Completion (Claude) | 1-4s | Generally faster |
+| LLM Completion (Ollama) | 500ms-2s | Local, GPU-dependent |
+| **Full Workflow (DEEP)** | **30-60 min** | 6 steps, high thoroughness |
+| **Full Workflow (QUICK)** | **2-5 min** | Reduced scope |
 
-### Cost (Phase 1)
+### Cost (User Pays Directly)
 
 | Workflow | Mode | Tokens (avg) | Cost (GPT-4) | Cost (Claude) | Cost (Ollama) |
 |----------|------|--------------|--------------|---------------|---------------|
-| Deep Verify | DEEP | 30,000 | $0.90-$1.50 | $0.75-$1.20 | $0.00 |
-| Deep Verify | QUICK | 8,000 | $0.25-$0.40 | $0.20-$0.35 | $0.00 |
-| Deep Explore | STANDARD | 20,000 | $0.60-$1.00 | $0.50-$0.80 | $0.00 |
-| Deep Architect | STANDARD | 25,000 | $0.75-$1.25 | $0.60-$1.00 | $0.00 |
+| Deep Verify | DEEP | 30,000 | $0.90-$1.50 | $0.75-$1.20 | **$0.00** |
+| Deep Verify | QUICK | 8,000 | $0.25-$0.40 | $0.20-$0.35 | **$0.00** |
+| Deep Explore | STANDARD | 20,000 | $0.60-$1.00 | $0.50-$0.80 | **$0.00** |
+| Deep Architect | STANDARD | 25,000 | $0.75-$1.25 | $0.60-$1.00 | **$0.00** |
 
-**Optimization Strategies:**
-- Use Ollama (local) for cost-sensitive workloads
-- Cache common patterns (30-50% token savings)
-- Progressive loading (skip unused steps)
-- Route by complexity (simple → GPT-3.5, complex → GPT-4)
+**Cost Optimization:**
+- Use Ollama (local) for free execution
+- Progressive loading saves 30-50% tokens
+- Cache common patterns (future improvement)
+- Route by complexity (simple → cheap model, complex → GPT-4)
+
+---
+
+## Future Evolution (Optional)
+
+### IF Consulting Revenue > $30K/month
+
+**Optional Enhancements:**
+1. **Cloud API** (simple SaaS for CI/CD)
+   - GitHub/Azure DevOps webhooks
+   - Automated PR verification
+   - Team dashboard
+   - Pricing: $29-99/month
+
+2. **Pattern Marketplace** (community monetization)
+   - Users sell custom patterns
+   - 70/30 revenue split (creator/platform)
+   - Premium industry packs (healthcare, finance, legal)
+
+3. **Certification Program** (additional revenue stream)
+   - "Deep Process Certified Consultant"
+   - Online courses + exam
+   - $500-1,000 per certification
+
+### IF Team Grows (2-3 People)
+
+**Possible Architecture Changes:**
+- Add support tier (handle Discord, GitHub issues)
+- Add sales/BD (find consulting clients)
+- Keep core product 100% open source
+- Revenue still from services, not software
+
+### What We WON'T Build (Solo/Small Team)
+
+**Too Complex for Bootstrap:**
+- ❌ SOC 2 certification ($100K+ cost)
+- ❌ HIPAA compliance (legal complexity)
+- ❌ Enterprise SSO/RBAC (engineering time)
+- ❌ On-premise deployments (support burden)
+- ❌ Multi-tenancy infrastructure (overkill)
+
+**Focus:** Simple, open, profitable services business
 
 ---
 
 ## References
 
-- [Provider Abstraction Documentation](packages/core/docs/PROVIDERS.md)
-- [Process Design Guide](docs/process-design.md)
-- [Methods Implementation Plan](docs/methods-implementation-plan.md)
-- [ROADMAP.md](ROADMAP.md) - Strategic vision and timeline
+- [ROADMAP.md](ROADMAP.md) - Strategic vision and timeline (bootstrap path)
+- [Provider Abstraction](packages/core/docs/PROVIDERS.md) - LLM provider documentation
+- [MCP Protocol](https://modelcontextprotocol.io) - Model Context Protocol specification
+- [Business Model: BMAD Example](https://bmad.ai) - Similar open-source-first approach
 
 ---
 
-**Architecture Owner:** Deep Process Core Team
-**Next Review:** 2026-03-15
-**Feedback:** [GitHub Issues](https://github.com/deep-process-org/deep-process/issues)
+**Architecture Owner:** Solo Founder (Bootstrap Path)
+**Next Review:** After M1.5 (Community Launch)
+**Feedback:** [GitHub Discussions](https://github.com/deep-process-org/deep-process/discussions)

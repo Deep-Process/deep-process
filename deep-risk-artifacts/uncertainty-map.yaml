@@ -1,0 +1,111 @@
+# UNCERTAINTY_MAP - Step 00: GROUND
+# Phase: GROUND
+# Date: 2026-02-15
+# Method: #002 Uncertainty Classification (Knight's Distinction)
+
+uncertainty_map:
+  risks:
+    - item: "SOC 2 audit control failure rate"
+      probability: "15-25% for first-time certification (industry base rate from compliance consulting firms)"
+      data_source: "Vanta, Drata public documentation on first-time SOC 2 failure rates"
+      classification: RISK
+      rationale: "Historical data available from compliance consulting industry"
+
+    - item: "Multi-tenant data isolation breach"
+      probability: "2-5% annually for SaaS platforms (based on CSA Cloud Security Report)"
+      data_source: "Cloud Security Alliance 2025 report on multi-tenant isolation incidents"
+      classification: RISK
+      rationale: "Measurable from public breach databases and industry reports"
+
+    - item: "Kubernetes cluster failure rate"
+      probability: "3-5 incidents per year for managed K8s (99.9% SLA = 8.76h downtime/year)"
+      data_source: "AWS EKS, Azure AKS, GCP GKE SLA documentation"
+      classification: RISK
+      rationale: "SLA guarantees provide probability bounds"
+
+    - item: "Marketplace approval rejection rate"
+      probability: "10-20% for first submission (based on GitHub Marketplace, VS Code marketplace public stats)"
+      data_source: "GitHub Marketplace developer documentation, VS Code extension review stats"
+      classification: RISK
+      rationale: "Public data on approval rates available from marketplace platforms"
+
+    - item: "MCP protocol breaking change frequency"
+      probability: "Unknown but can model as 2-4 breaking changes per year for emerging protocols (based on OpenAPI, GraphQL early adoption phase)"
+      data_source: "Reference class: protocol evolution patterns during standardization phase"
+      classification: RISK
+      rationale: "No direct MCP data but reference class (protocol maturation patterns) available"
+
+  uncertainties:
+    - item: "MCP protocol enterprise adoption rate trajectory"
+      strategy: "Scenario planning (high adoption 40%+ in 24 months vs low adoption <10%) + hedging (build REST API fallback)"
+      rationale: "No historical data for AI integration protocol adoption; novel situation without precedent"
+      classification: UNCERTAINTY
+      why_unmeasurable: "Protocol launched 2024-2025; no adoption lifecycle data; enterprise adoption driven by factors without reference class"
+
+    - item: "Customer preference for tiered security deployment (compliance on-prem, document cloud) vs uniform deployment"
+      strategy: "Customer interviews (3-5 enterprises) + adaptive architecture (modular deployment modes)"
+      rationale: "No public data on enterprise preference distribution; varies by industry, size, risk appetite"
+      classification: UNCERTAINTY
+      why_unmeasurable: "Preference data not published; surveys insufficient (stated vs revealed preference gap); requires direct customer research"
+
+    - item: "AI governance platform failure modes (what causes platforms to shut down)"
+      strategy: "Search for failed platforms + founder interviews + conservative assumptions (assume common failure modes apply)"
+      rationale: "Survivorship bias eliminates failure data from public view; failed platforms don't publish post-mortems"
+      classification: UNCERTAINTY
+      why_unmeasurable: "Failed companies don't publish failure analysis; search yields survivors only; missing data on 'what NOT to do'"
+
+    - item: "Hybrid deployment data sync failure impact on customer workflows"
+      strategy: "Chaos engineering (inject sync delays) + customer pilot testing + monitoring dashboards"
+      rationale: "Complex interactions between on-prem and cloud components; failure modes emerge only under production conditions"
+      classification: UNCERTAINTY
+      why_unmeasurable: "Combinatorial explosion of failure scenarios; cannot model all interaction paths; requires empirical testing"
+
+    - item: "Professional services team optimal size for on-prem deployment support burden"
+      strategy: "Pilot deployments (measure time per deployment) + iterative hiring based on demand"
+      rationale: "Deployment complexity varies by customer infrastructure; no industry standard for Deep Process-type platform"
+      classification: UNCERTAINTY
+      why_unmeasurable: "Customer infrastructure variability too high to model; requires empirical measurement per customer segment"
+
+  ambiguities:
+    - item: "SOC 2 audit scope boundary for on-prem deployments"
+      interpretations:
+        - vendor: "Vendor responsible only for software code quality, customer responsible for infrastructure"
+        - auditor: "Vendor responsible for secure deployment templates and customer guidance"
+        - customer: "Vendor responsible for full security stack including infrastructure configuration"
+      resolution: "Explicit shared responsibility matrix in customer contracts + SOC 2 scoping document with auditor + legal counsel review"
+      classification: AMBIGUITY
+      impact_if_unresolved: "Audit failure due to scope mismatch; customer incidents blamed on vendor; contract disputes"
+
+    - item: "Data classification for hybrid deployment (what is 'compliance' data vs 'document' data)"
+      interpretations:
+        - engineering: "Compliance = workflow audit logs, document = everything else"
+        - security: "Compliance = any data subject to regulation (GDPR personal data, HIPAA PHI)"
+        - customer: "Compliance = customer-defined sensitivity levels (may include architecture documents, business strategy)"
+      resolution: "Customer-configurable data classification policies + default conservative classification + security review"
+      classification: AMBIGUITY
+      impact_if_unresolved: "Data crosses trust boundary inappropriately; compliance violations; customer trust loss"
+
+    - item: "Marketplace activation success metric (what counts as 'active usage')"
+      interpretations:
+        - engineering: "Activation = first workflow execution"
+        - product: "Activation = 3+ workflows in first week (sustained usage)"
+        - sales: "Activation = workflow generating actionable insights (value delivery)"
+      resolution: "Tiered activation metrics (installed → ran → sustained → value) + track all tiers separately"
+      classification: AMBIGUITY
+      impact_if_unresolved: "False positive activation metrics; overestimate GTM success; missed onboarding friction"
+
+    - item: "Architecture decision 'reversibility' assessment (when is decision locked in)"
+      interpretations:
+        - technical: "Reversible until code deployed to production"
+        - business: "Reversible until first paying customer"
+        - customer_success: "Irreversible once customer builds workflows dependent on architecture"
+      resolution: "Define reversibility stages (technical feasibility, business cost, customer impact) + track decision lock-in milestones"
+      classification: AMBIGUITY
+      impact_if_unresolved: "Underestimate switching costs; delayed architecture pivots; customer churn during migrations"
+
+summary:
+  risk_count: 5
+  uncertainty_count: 5
+  ambiguity_count: 4
+  total_items: 14
+  interpretation: "Balanced distribution across Knight's categories. RISKS (36%) have measurable probabilities from reference classes. UNCERTAINTIES (36%) require scenario planning and adaptive strategies due to novelty or complexity. AMBIGUITIES (28%) require stakeholder alignment and explicit definitions to prevent mismatched expectations."

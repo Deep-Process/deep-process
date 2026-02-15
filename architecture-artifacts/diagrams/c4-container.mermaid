@@ -1,0 +1,71 @@
+C4Container
+  title Container Diagram - Deep-* Process Platform
+
+  Person(user, "Enterprise User", "Developer, Admin, Compliance Officer")
+  System_Ext(llm, "LLM APIs", "Claude, GPT")
+  System_Ext(sso, "SSO Provider", "Okta, Azure AD")
+
+  Container_Boundary(platform, "Deep-* Process Platform") {
+    Container(gateway, "API Gateway", "Kong / AWS API Gateway", "Routes requests, auth validation, rate limiting")
+    Container(dashboard, "Dashboard UI", "React SPA", "Job monitoring, artifact viewing, compliance dashboards")
+    Container(orchestrator, "Process Orchestrator", "Go / TypeScript", "Workflow coordination, gate enforcement, phase sequencing")
+    Container(mcp, "MCP Server", "TypeScript", "Model Context Protocol server for IDE integration")
+    Container(cicd, "CI/CD Adapters", "GitHub Actions / Azure DevOps", "Pipeline integration plugins")
+
+    ContainerQueue(queue, "Job Queue", "SQS / Service Bus", "Async job queueing with DLQ")
+
+    Container(executor, "Process Executor Pool", "Python / Go", "Execute workflow.md steps, enforce gates")
+    Container(explore, "deep-explore Service", "Python", "Decision exploration, option mapping")
+    Container(compliance_svc, "deep-compliance Service", "Python", "Regulatory compliance assessment")
+    Container(risk, "deep-risk Service", "Python", "5D risk scoring, cascade analysis")
+    Container(architect, "deep-architect Service", "Python", "Architecture design, adversarial validation")
+    Container(common, "Common Process Services", "Python", "9 remaining processes (deep-document, etc)")
+
+    Container(iam, "IAM Service", "Go", "Authentication, authorization, SSO integration")
+    Container(artifacts, "Artifact Storage", "Go", "YAML artifact persistence, SARIF conversion")
+    Container(repo, "Process Definition Repo", "Go", "Serve workflow.md, schemas, patterns")
+    Container(llm_svc, "LLM Integration", "Python", "Abstract LLM APIs, prompt management")
+    Container(webhooks, "Webhook Dispatcher", "Go", "Outbound webhook delivery")
+
+    ContainerDb(postgres, "PostgreSQL", "PostgreSQL 15", "Users, jobs, metadata (schema-per-tenant)")
+    ContainerDb(s3, "Object Storage", "S3 / Azure Blob", "Artifacts, diagrams, process definitions")
+
+    Container(observability, "Observability Stack", "Prometheus / Grafana / Jaeger", "Metrics, logs, traces")
+  }
+
+  Rel(user, gateway, "Submits jobs, views results", "HTTPS / REST")
+  Rel(user, dashboard, "Views dashboards", "HTTPS")
+  Rel(user, mcp, "Invokes from IDE", "MCP protocol")
+
+  Rel(gateway, iam, "Validates tokens", "gRPC")
+  Rel(gateway, orchestrator, "Routes job requests", "gRPC")
+  Rel(dashboard, gateway, "Fetches data", "HTTPS")
+  Rel(mcp, gateway, "Translates to API calls", "gRPC")
+  Rel(cicd, gateway, "Triggers jobs", "HTTPS")
+
+  Rel(orchestrator, queue, "Enqueues jobs", "SQS/Service Bus")
+  Rel(queue, executor, "Delivers jobs", "Message")
+
+  Rel(executor, explore, "Delegates to process", "gRPC")
+  Rel(executor, compliance_svc, "Delegates to process", "gRPC")
+  Rel(executor, risk, "Delegates to process", "gRPC")
+  Rel(executor, architect, "Delegates to process", "gRPC")
+  Rel(executor, common, "Delegates to process", "gRPC")
+
+  Rel(executor, llm_svc, "Requests completions", "gRPC")
+  Rel(executor, artifacts, "Stores artifacts", "gRPC")
+  Rel(executor, repo, "Loads definitions", "gRPC")
+
+  Rel(llm_svc, llm, "Calls LLM APIs", "HTTPS / REST")
+  Rel(iam, sso, "SSO authentication", "SAML / OIDC")
+  Rel(iam, postgres, "Stores users", "PostgreSQL protocol")
+  Rel(artifacts, s3, "Persists files", "S3 SDK")
+  Rel(repo, s3, "Loads files", "S3 SDK")
+
+  Rel(orchestrator, webhooks, "Job events", "Event")
+
+  Rel_Back(observability, gateway, "Collects metrics/logs", "OpenTelemetry")
+  Rel_Back(observability, orchestrator, "Collects metrics/logs", "OpenTelemetry")
+  Rel_Back(observability, executor, "Collects metrics/logs", "OpenTelemetry")
+
+  UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="1")

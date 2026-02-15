@@ -1,0 +1,379 @@
+---
+metadata:
+  version: "1.2.0"
+  timestamp: "2026-02-15T21:00:00Z"
+  depth_level: "comprehensive"
+  process_version: "deep-architect-1.4.1"
+  diagrams_generated: 9
+  adrs_count: 4
+
+assumptions:
+  - id: "A-201"
+    assumption: "Mermaid diagram syntax is sufficient for all architecture views (C4, ER, sequence, state, flow)"
+    confidence: 0.90
+    falsification: "Attempt to render all 9 diagrams in Mermaid Live Editor or mermaid-cli. If any diagram type is unsupported or renders incorrectly, assumption is false."
+    impact_if_wrong: "Need alternative diagramming tools (PlantUML, Structurizr DSL, draw.io). Migration effort 2-4 hours."
+
+  - id: "A-202"
+    assumption: "Kubernetes deployment is appropriate for all process services (not just compliance-heavy ones)"
+    confidence: 0.75
+    falsification: "Deploy light processes (deep-diagram, deep-document) to K8s. Monitor resource utilization. If <5% CPU/memory utilization and serverless would be cheaper, assumption is weakened."
+    impact_if_wrong: "Hybrid architecture: K8s for heavy processes, serverless (Lambda/Functions) for light processes. Added deployment complexity."
+
+  - id: "A-203"
+    assumption: "PostgreSQL can handle 100+ tenant schemas without performance degradation"
+    confidence: 0.80
+    falsification: "Load test: Create 100 schemas, run concurrent queries across all schemas. Measure P95 latency. If P95 >500ms or connection pool exhaustion, assumption is false."
+    impact_if_wrong: "Shard to multiple PostgreSQL instances (10-20 tenants per instance) or migrate to separate-database-per-tenant model. Cost increases 10-50x."
+
+diagrams:
+  static_views:
+    - id: "c4-context"
+      path: "diagrams/c4-context.mermaid"
+      description: "System context showing enterprise users, external systems (GitHub, LLM APIs, SSO), and platform boundary"
+      technology: "Mermaid C4 Context"
+
+    - id: "c4-container"
+      path: "diagrams/c4-container.mermaid"
+      description: "Container-level view of 23 components: API Gateway, Orchestrator, Executor Pool, 5 process services, infrastructure services, databases"
+      technology: "Mermaid C4 Container"
+
+    - id: "c4-component"
+      path: "diagrams/c4-component.mermaid"
+      description: "Component breakdown of Process Executor Pool (most complex container): Dispatcher, Engine, Interpreter, Gate Enforcer, Checkpoint Manager, Context Builder, Validator, Counter-Check Runner"
+      technology: "Mermaid C4 Component"
+
+    - id: "data-model"
+      path: "diagrams/data-model.mermaid"
+      description: "Entity-relationship diagram with 14 entities: TENANT, USER, JOB, ARTIFACT, GATE_RESULT, WEBHOOK_SUBSCRIPTION, AUDIT_LOG, etc. Schema-per-tenant isolation model."
+      technology: "Mermaid ER Diagram"
+
+    - id: "deployment"
+      path: "diagrams/deployment.mermaid"
+      description: "Multi-cloud deployment topology: AWS primary (EKS, RDS, S3, SQS), Azure secondary (AKS, Blob, Service Bus), on-prem option (K8s, PostgreSQL, MinIO)"
+      technology: "Mermaid Graph"
+
+  dynamic_views:
+    - id: "sequence-job-submission"
+      path: "diagrams/sequence-job-submission.mermaid"
+      description: "End-to-end job submission flow: User → API Gateway → IAM → Orchestrator → Queue → Executor → Process Service → LLM API → Artifact Storage → Webhook. Shows gate evaluation, circuit breaker, retry logic."
+      technology: "Mermaid Sequence Diagram"
+
+    - id: "sequence-mcp-integration"
+      path: "diagrams/sequence-mcp-integration.mermaid"
+      description: "MCP protocol integration flow: Developer in Claude Code IDE invokes deep-explore via MCP server, polls for status, receives results"
+      technology: "Mermaid Sequence Diagram"
+
+    - id: "state-job-lifecycle"
+      path: "diagrams/state-job-lifecycle.mermaid"
+      description: "Job state machine: Queued → Running → GateLocked/Failed/Completed. Shows retry transitions, cancellation paths, manual override."
+      technology: "Mermaid State Diagram"
+
+    - id: "flow-orchestration"
+      path: "diagrams/flow-orchestration.mermaid"
+      description: "Orchestration workflow: Load workflow.md → Phase loop → Execute phase → Validate artifacts → Run counter-checks → Evaluate gate → Store artifacts → Update job status"
+      technology: "Mermaid Flowchart"
+
+adrs:
+  - id: "ADR-001"
+    path: "adrs/adr-001-microservices.yaml"
+    title: "Adopt Microservices Architecture for Process Platform"
+    status: "accepted"
+    summary: "23-component microservices architecture to enable independent scaling, hybrid deployment (cloud + on-prem), team autonomy. Rejected monolith (no hybrid deployment) and pure serverless (15-min Lambda limit)."
+
+  - id: "ADR-002"
+    path: "adrs/adr-002-event-driven.yaml"
+    title: "Event-Driven Architecture for Async Long-Running Process Execution"
+    status: "accepted"
+    summary: "Job queue (SQS/Service Bus) for async execution, event bus (EventBridge/Event Grid) for lifecycle events, webhooks for notifications. Enables 2-24 hour processes without blocking HTTP connections."
+
+  - id: "ADR-003"
+    path: "adrs/adr-003-multi-tenant-isolation.yaml"
+    title: "Schema-Per-Tenant Multi-Tenancy for Data Isolation"
+    status: "accepted"
+    summary: "Each tenant gets dedicated PostgreSQL schema for strong isolation (GDPR, SOC 2). Rejected shared-schema (SQL injection risk) and separate-database-per-tenant (cost: $50K vs $600/month)."
+
+  - id: "ADR-004"
+    path: "adrs/adr-004-circuit-breaker.yaml"
+    title: "Circuit Breaker Pattern for External LLM API Resilience"
+    status: "accepted"
+    summary: "Circuit breaker in LLM Integration Service to fail-fast during API outages. Prevents thread exhaustion, stops cascading failures. Combined with exponential backoff retry and multi-provider failover."
+
+technology_stack:
+  api_gateway:
+    technology: "Kong / AWS API Gateway / Azure API Management"
+    version: "Kong 3.x / API Gateway v2 / APIM Standard"
+    rationale: "Enterprise-grade API management with auth, rate limiting, routing. Kong for cloud-agnostic, AWS API Gateway for AWS-native deployment."
+
+  orchestration_executor:
+    language: "Go (Orchestrator, IAM, Artifact Storage, Webhook Dispatcher)"
+    version: "Go 1.21+"
+    rationale: "High-performance, low-latency for orchestration layer. Strong concurrency (goroutines), fast startup, small binaries for containers."
+
+  process_services:
+    language: "Python (Process Services: deep-explore, deep-compliance, deep-risk, deep-architect, etc.)"
+    version: "Python 3.11+"
+    rationale: "LangChain, OpenAI SDK, Anthropic SDK are Python-first. Process logic relies heavily on LLM integration. Python ecosystem for AI/ML."
+
+  database:
+    primary: "PostgreSQL 15 (RDS / Azure PostgreSQL Flexible Server)"
+    connection_pooling: "PgBouncer"
+    rationale: "ACID guarantees for job state, audit logs. Row-Level Security for multi-tenant isolation. Mature, well-supported, cloud-managed."
+
+  object_storage:
+    aws: "S3 Standard with lifecycle policies (Standard → IA → Glacier)"
+    azure: "Azure Blob Storage with tiering"
+    rationale: "Durable (99.999999999%), scalable blob storage for artifacts, diagrams, process definitions. Lifecycle policies for cost optimization."
+
+  message_queue:
+    aws: "SQS FIFO with DLQ"
+    azure: "Azure Service Bus Premium with sessions and DLQ"
+    rationale: "Managed queue service. FIFO for ordered processing, DLQ for poison messages. High durability, exactly-once delivery (FIFO)."
+
+  event_bus:
+    aws: "EventBridge with schema registry and archive"
+    azure: "Azure Event Grid with event schemas"
+    rationale: "Serverless event routing. Content-based routing, schema validation, archive/replay for debugging."
+
+  container_orchestration:
+    platform: "Kubernetes (EKS / AKS / self-managed)"
+    version: "Kubernetes 1.28+"
+    rationale: "Industry standard container orchestration. Auto-scaling (HPA), self-healing, rolling updates. Multi-cloud portability."
+
+  observability:
+    metrics: "Prometheus + Grafana"
+    logging: "CloudWatch Logs / Azure Monitor Logs → Loki (optional)"
+    tracing: "Jaeger / AWS X-Ray / Azure Application Insights"
+    rationale: "Open-source observability stack. Prometheus for metrics, Grafana for dashboards, Jaeger for distributed tracing. Cloud-native integrations for managed services."
+
+  llm_apis:
+    primary: "Anthropic Claude API (Claude Sonnet 4.5)"
+    secondary: "OpenAI GPT API (GPT-4 Turbo)"
+    fallback: "Azure OpenAI Service"
+    rationale: "Claude for reasoning-heavy tasks, GPT for speed. Multi-provider failover for resilience. Azure OpenAI for enterprise compliance (data residency, private network)."
+
+  iac:
+    tool: "Terraform / AWS CDK"
+    version: "Terraform 1.6+ / CDK 2.x"
+    rationale: "Infrastructure-as-code for reproducible deployments. Terraform for cloud-agnostic, CDK for AWS-native with type safety."
+
+  cicd:
+    platform: "GitHub Actions / Azure DevOps Pipelines"
+    deployment_strategy: "Rolling updates (K8s) / Blue-Green (RDS)"
+    rationale: "Native CI/CD for GitHub/Azure. Declarative pipelines, secrets management, artifact registry integration."
+
+operational_view:
+  monitoring:
+    approach: "Hybrid (centralized Prometheus + cloud-native CloudWatch/Azure Monitor)"
+    metrics:
+      infrastructure:
+        - "CPU utilization (pods, nodes)"
+        - "Memory utilization"
+        - "Disk IOPS (RDS, EKS nodes)"
+        - "Network throughput"
+      application:
+        - "API request rate (requests/sec)"
+        - "API error rate (5xx, 4xx percentage)"
+        - "API latency (P50, P95, P99)"
+        - "Job queue depth (SQS messages available)"
+        - "Job execution duration (by process_id)"
+        - "LLM API call duration (by provider)"
+        - "Circuit breaker state (closed/open/half-open)"
+      business:
+        - "Jobs submitted per hour (by process_id, tenant)"
+        - "Jobs completed per hour"
+        - "Gate failure rate (by gate_id)"
+        - "Artifact storage growth (bytes/day)"
+        - "LLM API cost (dollars/day, by provider)"
+    dashboards:
+      - name: "Platform Overview"
+        metrics: ["Request rate", "Error rate", "Job queue depth", "Active jobs"]
+      - name: "Process Health"
+        metrics: ["Job success rate (by process_id)", "Gate pass rate", "Execution duration"]
+      - name: "Tenant Usage"
+        metrics: ["Jobs per tenant", "Artifact count per tenant", "Cost per tenant"]
+      - name: "LLM API Health"
+        metrics: ["Call duration", "Circuit breaker state", "Token usage", "Cost"]
+
+  logging:
+    strategy: "Structured JSON logging"
+    aggregation: "CloudWatch Logs (AWS) / Azure Monitor Logs (Azure) → Loki (optional)"
+    retention:
+      info_logs: "30 days"
+      error_logs: "90 days"
+      audit_logs: "7 years (compliance requirement)"
+    log_fields:
+      - "timestamp (ISO-8601)"
+      - "level (info/warn/error/fatal)"
+      - "service (component name)"
+      - "correlation_id (job_id or request_id)"
+      - "tenant_id"
+      - "user_id"
+      - "message"
+      - "context (JSON metadata)"
+
+  alerting:
+    channels:
+      - "PagerDuty (critical: on-call engineer)"
+      - "Slack #platform-alerts (warning: team visibility)"
+      - "Email (info: daily digest)"
+    severity_levels:
+      - level: "CRITICAL"
+        examples: ["API Gateway down (>50% 5xx)", "RDS failover", "Job queue DLQ depth >100"]
+        sla: "Acknowledge within 5 minutes, resolve within 1 hour"
+      - level: "WARNING"
+        examples: ["High error rate (>5%)", "Job execution duration >12 hours", "Circuit breaker open"]
+        sla: "Review within 30 minutes, resolve within 4 hours"
+      - level: "INFO"
+        examples: ["New tenant onboarded", "Schema migration completed", "Deployment succeeded"]
+        sla: "No SLA, informational only"
+
+  tracing:
+    approach: "OpenTelemetry with Jaeger backend (or AWS X-Ray / Azure App Insights)"
+    sampling_rate: "100% for errors, 10% for successes (adaptive sampling)"
+    trace_propagation: "W3C Trace Context (traceparent header)"
+    span_naming: "component.operation (e.g., orchestrator.submit_job, executor.execute_phase)"
+
+  health_checks:
+    api_gateway:
+      liveness: "GET /health → 200 OK (always returns if process alive)"
+      readiness: "GET /ready → 200 OK if dependencies healthy (IAM, Orchestrator reachable)"
+      probe_interval: "10s"
+      failure_threshold: "3 consecutive failures"
+
+    process_executor:
+      liveness: "GET /health → 200 OK"
+      readiness: "GET /ready → 200 OK if LLM API reachable, Artifact Storage reachable, Queue reachable"
+      probe_interval: "10s"
+      failure_threshold: "3 consecutive failures"
+
+    startup_probe:
+      enabled: true
+      reason: "Process services have slow startup (load models, connect to LLM APIs). Startup probe prevents premature restarts."
+      path: "GET /startup"
+      interval: "5s"
+      failure_threshold: "30 (max 150s startup time)"
+
+cicd:
+  source_control: "GitHub (primary) / Azure Repos (secondary)"
+  pipeline_stages:
+    - stage: "Build"
+      steps: ["Checkout code", "Run unit tests", "Build Docker images", "Push to ECR/ACR"]
+    - stage: "Security Scan"
+      steps: ["Trivy container scan", "Snyk dependency scan", "SAST (SonarQube)"]
+    - stage: "Deploy to Staging"
+      steps: ["Apply Terraform (staging)", "Deploy K8s manifests", "Run integration tests", "Run smoke tests"]
+    - stage: "Manual Approval"
+      condition: "Production deployment requires approval from Platform Lead"
+    - stage: "Deploy to Production"
+      steps: ["Apply Terraform (production)", "Rolling update K8s deployments", "Run smoke tests", "Monitor error rate for 10 minutes"]
+    - stage: "Rollback (if needed)"
+      trigger: "Error rate >5% for 5 minutes"
+      action: "kubectl rollout undo deployment/{service}"
+
+  deployment_strategy:
+    kubernetes: "Rolling update (maxUnavailable: 25%, maxSurge: 25%)"
+    database: "Blue-Green (promote read replica to primary, swap endpoint)"
+    rollback_strategy: "Automatic rollback if health checks fail during deployment"
+
+  environments:
+    - name: "Development"
+      purpose: "Developer testing, unstable builds"
+      auto_deploy: true
+      infra: "Single EKS cluster, db.t3.small RDS, S3"
+    - name: "Staging"
+      purpose: "Pre-production testing, QA validation"
+      auto_deploy: true
+      infra: "Mirrors production (smaller scale: 2 nodes vs 10 nodes)"
+    - name: "Production"
+      purpose: "Customer-facing, SLA-bound"
+      auto_deploy: false
+      approval_required: true
+      infra: "Multi-AZ EKS, db.r6g.2xlarge RDS Multi-AZ, S3 with versioning and lifecycle"
+
+checklist:
+  - item: "C4 Context diagram generated"
+    status: "PASS"
+
+  - item: "C4 Container diagram generated"
+    status: "PASS"
+
+  - item: "C4 Component diagram generated"
+    status: "PASS"
+
+  - item: "Data model with entities/relationships"
+    status: "PASS"
+
+  - item: "Deployment diagram generated"
+    status: "PASS"
+
+  - item: "Sequence diagrams generated (≥2 flows)"
+    status: "PASS"
+    details: "2 sequence diagrams: job-submission, mcp-integration"
+
+  - item: "State machine diagrams (if applicable)"
+    status: "PASS"
+    details: "Job lifecycle state machine"
+
+  - item: "Activity/flow diagrams (≥1 process)"
+    status: "PASS"
+    details: "Orchestration workflow flowchart"
+
+  - item: "Operational view (monitoring/logging/CI-CD)"
+    status: "PASS"
+
+  - item: "ADRs created (≥3)"
+    status: "PASS"
+    details: "4 ADRs: microservices, event-driven, multi-tenant, circuit-breaker"
+
+  - item: "Technology stack documented"
+    status: "PASS"
+
+  - item: "ASSUMPTIONS_DECLARED"
+    status: "PASS"
+    details: "3 assumptions: A-201 (Mermaid sufficiency), A-202 (K8s for all), A-203 (PostgreSQL 100+ schemas)"
+
+  - item: "Counter-checks executed"
+    status: "PASS"
+
+  - item: "architecture-model.yaml written"
+    status: "PASS"
+
+counter_checks:
+  - method: "#85 Grounding Check"
+    result: |
+      Sampled 3 diagram elements for grounding verification:
+      1. C4 Container: "Process Executor Pool" → Grounded in canonical-operations.yaml component C-004. VERIFIED.
+      2. Data Model: "TENANT" entity → Grounded in multi-tenant isolation requirement (context-assessment.yaml). VERIFIED.
+      3. Deployment: "EKS Cluster" → Grounded in Kubernetes platform domain (DOM-PLT-K8S) and ADR-001 microservices decision. VERIFIED.
+
+      Verification rate: 3/3 = 100%. PASS.
+    status: "PASS"
+
+  - method: "#84 Coherence Check"
+    result: |
+      C4 Hierarchy coherence:
+      - C4 Context → Container: All external actors in Context appear in Container (User, LLM APIs, SSO). PASS.
+      - C4 Container → Component: Process Executor Pool in Container expanded to 8 components in Component diagram. PASS.
+
+      Data model vs components:
+      - JOB entity maps to C-002 (Orchestrator) responsibility. PASS.
+      - ARTIFACT entity maps to C-011 (Artifact Storage) responsibility. PASS.
+      - USER entity maps to C-010 (IAM Service) responsibility. PASS.
+
+      Deployment maps all containers:
+      - All 23 components from Container diagram mapped to deployment nodes (EKS pods, RDS, S3). PASS.
+
+      Overall coherence: PASS.
+    status: "PASS"
+
+  - method: "#168 Phantom Hunt"
+    result: |
+      Scanned for phantom diagram elements not in canonical-operations.yaml:
+      - Sequence diagram: "Status Poller" in MCP integration → Not explicit component, but implicit polling logic in MCP Server (C-018). ACCEPTABLE (internal implementation detail).
+      - Deployment diagram: "NAT Gateway" → Infrastructure component, not application component. Valid addition for completeness. NOT PHANTOM.
+      - Data Model: "METRIC_SAMPLE" entity → Observability data, not core domain. Maps to C-016 (Observability Stack). GROUNDED.
+
+      No true phantom elements detected. All elements trace to canonical operations or are valid infrastructure/implementation details.
+      PASS.
+    status: "PASS"

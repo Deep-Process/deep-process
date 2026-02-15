@@ -1,0 +1,140 @@
+erDiagram
+    TENANT ||--o{ USER : "has"
+    TENANT ||--o{ JOB : "owns"
+    TENANT ||--o{ ARTIFACT : "owns"
+    TENANT {
+        uuid id PK
+        string name
+        string tier "free, pro, enterprise"
+        string deployment_model "saas, hybrid, on_prem"
+        timestamp created_at
+        jsonb settings
+    }
+
+    USER ||--o{ JOB : "submits"
+    USER ||--o{ API_KEY : "has"
+    USER {
+        uuid id PK
+        uuid tenant_id FK
+        string email
+        string name
+        string role "developer, admin, compliance_officer"
+        timestamp last_login
+        jsonb sso_metadata
+    }
+
+    API_KEY {
+        uuid id PK
+        uuid user_id FK
+        string key_hash
+        string name
+        timestamp expires_at
+        jsonb scopes
+    }
+
+    JOB ||--o{ ARTIFACT : "produces"
+    JOB ||--o{ JOB_EVENT : "emits"
+    JOB ||--o{ GATE_RESULT : "has"
+    JOB {
+        uuid id PK
+        uuid tenant_id FK
+        uuid user_id FK
+        string process_id "deep-explore, deep-compliance, etc"
+        string status "queued, running, gate_locked, completed, failed"
+        int current_phase
+        jsonb inputs
+        jsonb config
+        timestamp started_at
+        timestamp completed_at
+        int duration_sec
+        string priority "low, normal, high, critical"
+    }
+
+    ARTIFACT ||--o{ ARTIFACT_VERSION : "has_versions"
+    ARTIFACT {
+        uuid id PK
+        uuid job_id FK
+        uuid tenant_id FK
+        string type "yaml, diagram, adr, pdf"
+        string name
+        string s3_key
+        int size_bytes
+        string checksum_sha256
+        timestamp created_at
+        jsonb metadata
+    }
+
+    ARTIFACT_VERSION {
+        uuid id PK
+        uuid artifact_id FK
+        int version
+        string s3_key
+        timestamp created_at
+    }
+
+    JOB_EVENT {
+        uuid id PK
+        uuid job_id FK
+        string event_type "phase_started, gate_passed, gate_failed, completed, error"
+        jsonb payload
+        timestamp occurred_at
+    }
+
+    GATE_RESULT {
+        uuid id PK
+        uuid job_id FK
+        string gate_id "GATE_0, GATE_1, etc"
+        string status "open, locked"
+        jsonb conditions
+        jsonb failures
+        timestamp evaluated_at
+    }
+
+    PROCESS_DEFINITION {
+        string process_id PK
+        string version
+        string s3_key_workflow
+        jsonb schemas
+        jsonb patterns
+        timestamp updated_at
+    }
+
+    WEBHOOK_SUBSCRIPTION ||--o{ WEBHOOK_DELIVERY : "triggers"
+    WEBHOOK_SUBSCRIPTION {
+        uuid id PK
+        uuid tenant_id FK
+        string url
+        string secret_hash
+        jsonb event_filters
+        string status "active, paused, failed"
+    }
+
+    WEBHOOK_DELIVERY {
+        uuid id PK
+        uuid subscription_id FK
+        uuid job_id FK
+        string event_type
+        jsonb payload
+        int attempt_count
+        string status "pending, delivered, failed"
+        timestamp delivered_at
+    }
+
+    AUDIT_LOG {
+        uuid id PK
+        uuid tenant_id FK
+        uuid user_id FK
+        string action "job.submit, user.create, artifact.download"
+        jsonb details
+        string ip_address
+        timestamp occurred_at
+    }
+
+    METRIC_SAMPLE {
+        uuid id PK
+        uuid tenant_id FK
+        string metric_name
+        float value
+        jsonb tags
+        timestamp sampled_at
+    }

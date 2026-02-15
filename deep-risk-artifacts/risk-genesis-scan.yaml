@@ -1,0 +1,171 @@
+# RISK_GENESIS_SCAN - Step 00: GROUND
+# Phase: GROUND
+# Date: 2026-02-15
+# Method: #001 Risk Genesis Model
+
+risk_genesis_scan:
+  complexity_risks:
+    - id: RGS-C01
+      description: "Multi-tenancy data isolation emerges from interaction of database design, application logic, and security policies - failure in any layer creates cross-tenant data leak"
+      genesis: "Three independent systems (DB schema isolation, application tenant_id filtering, API authentication) must ALL enforce tenant boundaries; emergent behavior when one layer assumes another handles isolation"
+      detection_difficulty: HIGH
+      rationale: "Each layer appears secure in isolation; combination testing reveals gaps only under specific query patterns or race conditions"
+
+    - id: RGS-C02
+      description: "Hybrid deployment (on-prem + cloud sync) creates non-linear failure modes - small sync delay escalates to complete data divergence under load"
+      genesis: "Sync queue accumulation feeds back into system load (retry storms), creating reinforcing feedback loop that crashes both environments"
+      detection_difficulty: VERY_HIGH
+      rationale: "Manifests only under production load patterns; each small sync delay appears recoverable until critical threshold crossed"
+
+    - id: RGS-C03
+      description: "MCP protocol integration with multiple platforms (GitHub, Azure DevOps, Jira, Claude Code) creates emergent authentication/authorization conflicts"
+      genesis: "Each platform has different OAuth flows, token expiry, scope permissions - combinatorial explosion of auth states creates unexpected access denials or over-permissions"
+      detection_difficulty: HIGH
+      rationale: "Auth flows work independently but fail when user authenticates to multiple platforms simultaneously with conflicting scopes"
+
+    - id: RGS-C04
+      description: "Compliance workflow orchestration (deep-explore → deep-verify → deep-risk) creates emergent timeout cascades under document processing load"
+      genesis: "Each workflow has independent timeout, but chained execution means timeouts compound (30min + 45min + 60min = 2h15m) exceeding customer patience and session limits"
+      detection_difficulty: MEDIUM
+      rationale: "Individual workflow timeouts appear reasonable; cascade effect only visible in end-to-end customer usage"
+
+  coupling_risks:
+    - id: RGS-CO01
+      description: "SOC 2 certification failure cascades to all enterprise sales pipelines simultaneously"
+      genesis: "All enterprise prospects require SOC 2 as table stakes; single certification failure blocks entire enterprise segment revenue (estimated $2M-$15M ARR)"
+      detection_difficulty: LOW
+      rationale: "Visible dependency but catastrophic scope - one control failure affects all enterprise customers"
+
+    - id: RGS-CO02
+      description: "MCP protocol deprecation or breaking changes propagate failure to all integration channels simultaneously"
+      genesis: "GitHub, Azure AI Foundry, LiteLLM, Claude Code all depend on MCP - protocol change requires coordinated updates across 4+ platforms with different release cycles"
+      detection_difficulty: MEDIUM
+      rationale: "Protocol stability uncertain (emerging standard); single source dependency affects entire integration strategy"
+
+    - id: RGS-CO03
+      description: "Kubernetes cluster failure cascades to all customer workflows in multi-tenant SaaS deployment"
+      genesis: "Shared infrastructure means control plane failure affects all tenants; no isolation between customers during infrastructure outage"
+      detection_difficulty: LOW
+      rationale: "Standard multi-tenant coupling risk but high impact given SLA commitments"
+
+    - id: RGS-CO04
+      description: "Marketplace approval delays (GitHub, VS Code, Claude Code) block all developer-first GTM channels simultaneously"
+      genesis: "CL-001 Fast Market Entry strategy depends on marketplace distribution; if all 3 marketplaces reject or delay approval, no alternative distribution channel exists"
+      detection_difficulty: MEDIUM
+      rationale: "Independent approval processes but correlated outcomes (similar review criteria); cascade affects entire GTM strategy"
+
+  uncertainty_risks:
+    - id: RGS-U01
+      description: "MCP protocol adoption trajectory is unmeasurable - no historical data on enterprise adoption rates for emerging AI integration standards"
+      genesis: "Protocol launched recently; cannot model probability of enterprise adoption using reference class (no comparable precedents)"
+      detection_difficulty: VERY_HIGH
+      strategy: "Scenario planning (high adoption vs low adoption scenarios), hedging (build REST API fallback)"
+
+    - id: RGS-U02
+      description: "Customer tiered security requirements (compliance on-prem, document cloud) are unknowable without direct interviews - no public data on preference distribution"
+      genesis: "Technical report flags as critical unknown (Q1); cannot assign probability without customer research"
+      detection_difficulty: HIGH
+      strategy: "Customer interviews (3-5 enterprises), adaptive architecture (modular deployment modes)"
+
+    - id: RGS-U03
+      description: "SOC 2 certification timeline with accelerated consulting is uncertain - range of 6-12 months with high variance"
+      genesis: "Depends on organization readiness, consultant availability, auditor schedules - complex interactions without stable probability distribution"
+      detection_difficulty: MEDIUM
+      strategy: "Multiple timeline scenarios, early consultant engagement, parallel compliance work"
+
+    - id: RGS-U04
+      description: "AI governance platform failure modes are invisible due to survivorship bias - successful platforms documented, failed ones not"
+      genesis: "Research methodology bias (only studied successful platforms like Vanta, Drata); failure lessons unavailable"
+      detection_difficulty: VERY_HIGH
+      strategy: "Search for shut down platforms, founder interviews, compensate for missing data with conservative assumptions"
+
+  agency_risks:
+    - id: RGS-A01
+      description: "Multi-tenant database administrator could intentionally access cross-tenant data for competitive intelligence or sabotage"
+      genesis: "Database-level access bypasses application tenant_id filtering; malicious DBA can query all tenant data"
+      detection_difficulty: HIGH
+      rationale: "Requires database audit logging and anomaly detection to identify; difficult to distinguish from legitimate admin operations"
+
+    - id: RGS-A02
+      description: "Marketplace platform vendor (GitHub, VS Code, Claude Code) could delist extension for policy violations or competitive reasons"
+      genesis: "Platform controls distribution channel; unilateral delisting blocks all user access for that channel"
+      detection_difficulty: MEDIUM
+      rationale: "Policy violations may be subjective; competitive delisting rare but precedented"
+
+    - id: RGS-A03
+      description: "Early customer could negligently misconfigure on-prem deployment exposing audit data publicly"
+      genesis: "On-prem deployment transfers security responsibility to customer; customer IT team may not configure firewall, access controls correctly"
+      detection_difficulty: HIGH
+      rationale: "No visibility into customer infrastructure configuration; breach discovered only after public exposure"
+
+    - id: RGS-A04
+      description: "Professional services team could optimize for quick deployment over secure deployment to hit sales quotas"
+      genesis: "PS team compensated on deployment count or timeline; incentive misalignment leads to shortcuts on security hardening, compliance configuration"
+      detection_difficulty: MEDIUM
+      rationale: "Requires audit of PS deployment practices; may not surface until customer security audit fails"
+
+  temporality_risks:
+    - id: RGS-T01
+      description: "Multi-tenant schema configuration gradually drifts from security baseline as ad-hoc customer requests accumulate"
+      genesis: "Each customer 'quick fix' or 'special configuration' incrementally diverges from secure template; over 12-24 months, configuration becomes unmaintainable patchwork"
+      detection_difficulty: VERY_HIGH
+      rationale: "Each change appears small and justified; cumulative drift only visible when comparing current state to original baseline"
+
+    - id: RGS-T02
+      description: "MCP protocol technical debt accumulates as specification evolves faster than implementation can adapt"
+      genesis: "Protocol under active development (emerging standard); implementation lags behind spec changes, creating accumulation of deprecated patterns, workarounds"
+      detection_difficulty: HIGH
+      rationale: "Each spec change manageable individually; accumulation creates fragile integration layer"
+
+    - id: RGS-T03
+      description: "Customer compliance requirements erode as regulatory landscape changes (EU AI Act, GDPR updates, new industry standards)"
+      genesis: "Platform built to 2026 compliance standards; regulations evolve requiring new controls, audit trails, data handling - existing architecture may not support"
+      detection_difficulty: MEDIUM
+      rationale: "Regulatory changes visible but impact assessment delayed; erosion occurs as gap between current capabilities and new requirements widens"
+
+    - id: RGS-T04
+      description: "On-prem deployment knowledge decays as team focuses on SaaS operations (hybrid strategy splits attention)"
+      genesis: "If CL-002 Enterprise path chosen, team must maintain expertise in both SaaS and on-prem deployment/support; on-prem skills erode without regular practice"
+      detection_difficulty: MEDIUM
+      rationale: "Skill decay gradual; manifests as slower incident response, deployment errors during customer onboarding"
+
+  boundary_risks:
+    - id: RGS-B01
+      description: "MCP protocol assumes well-formed JSON messages from integration platforms, but platforms may send malformed data during errors"
+      genesis: "Integration boundary: MCP server expects JSON schema compliance, but GitHub/Azure/Jira error responses may violate schema"
+      detection_difficulty: HIGH
+      rationale: "Error paths rarely tested; boundary assumption violated under failure conditions"
+
+    - id: RGS-B02
+      description: "Handoff from marketplace install to self-service onboarding creates ownership gap - neither marketplace nor platform fully owns activation success"
+      genesis: "Marketplace responsible for discovery/install, platform responsible for onboarding; gap in 'first run' experience where neither party has clear ownership"
+      detection_difficulty: MEDIUM
+      rationale: "Organizational boundary creates responsibility diffusion; activation failures attributed to 'user error'"
+
+    - id: RGS-B03
+      description: "Trust boundary violation when compliance workflow data crosses from on-prem (high security) to cloud (standard security) in hybrid deployment"
+      genesis: "Hybrid architecture assumes compliance data stays on-prem, document data goes to cloud; misclassified data crosses trust boundary without validation"
+      detection_difficulty: HIGH
+      rationale: "Data classification may be ambiguous (is architecture decision document 'compliance' or 'document'?); boundary crossing only detected during security audit"
+
+    - id: RGS-B04
+      description: "SOC 2 audit scope boundary unclear between platform responsibilities and customer responsibilities in on-prem deployment"
+      genesis: "SOC 2 certification covers vendor-controlled systems; on-prem deployment transfers infrastructure control to customer - boundary of vendor responsibility ambiguous"
+      detection_difficulty: MEDIUM
+      rationale: "Shared responsibility model requires explicit documentation; ambiguity discovered during audit or customer incident"
+
+  total_genesis_risks: 24
+
+summary:
+  complexity_risks_count: 4
+  coupling_risks_count: 4
+  uncertainty_risks_count: 4
+  agency_risks_count: 4
+  temporality_risks_count: 4
+  boundary_risks_count: 4
+  detection_difficulty_distribution:
+    VERY_HIGH: 5
+    HIGH: 11
+    MEDIUM: 8
+    LOW: 0
+  interpretation: "All 6 genesis sources populated with ≥3 risks each. Detection difficulty skewed toward HIGH/VERY_HIGH (67%), indicating emergent, subtle, or invisible risks dominate. No LOW difficulty risks suggests obvious risks already mitigated or out of scope."

@@ -1,0 +1,104 @@
+---
+id: "ADR-004"
+title: "Circuit Breaker Pattern for External LLM API Resilience"
+date: "2026-02-15"
+status: "accepted"
+deciders: ["Architecture Team"]
+
+context: |
+  All deep-* processes depend on external LLM APIs (Anthropic Claude, OpenAI GPT) for analysis. Failure modes:
+  - Rate limiting: 429 Too Many Requests during high load
+  - Timeouts: API slow response (>60s) or no response
+  - Service outages: 503 Service Unavailable
+  - Network failures: DNS resolution failures, connection timeouts
+
+  Without resilience patterns, LLM failures cascade:
+  - Executor Pool: 100 concurrent jobs × 60s timeout = resource exhaustion, queue backlog
+  - Cost: Failed API calls billed for partial processing, wasted money
+  - User experience: 2-hour job fails at Phase 5 due to transient LLM timeout, must restart from Phase 0
+
+decision: |
+  Implement Circuit Breaker pattern in LLM Integration Service (C-014) with three states:
+  - CLOSED: Normal operation, requests pass through to LLM API
+  - OPEN: Too many failures, block all requests for cooldown period (60s), return error immediately
+  - HALF_OPEN: After cooldown, allow test request. If succeeds → CLOSED. If fails → OPEN (reset cooldown).
+
+  Failure thresholds:
+  - Open circuit after 5 failures in 10-second window
+  - Cooldown period: 60 seconds
+  - Half-open test: 1 request every 60s
+
+  Combined with:
+  - Exponential backoff retry: 1s, 2s, 4s, 8s, 16s (max 5 retries)
+  - Timeout: 60s per LLM API call
+  - Fallback: If primary provider (Anthropic) fails, failover to secondary (OpenAI) if configured
+
+rationale: |
+  1. **Fail Fast**: When LLM API is down, return error in 1ms (circuit open) instead of blocking 60s (timeout).
+     Frees up executor threads, prevents queue backlog.
+
+  2. **Resource Protection**: Prevents thread pool exhaustion. Without circuit breaker, 100 concurrent jobs × 60s timeout
+     = 100 blocked threads. With circuit breaker, threads fail fast and become available for other jobs.
+
+  3. **Cost Savings**: Failed requests don't waste API tokens. Anthropic charges for partial completions. Circuit breaker
+     stops sending requests when API is degraded.
+
+  4. **Graceful Degradation**: Circuit breaker + multi-provider failover allows platform to continue operating even if
+     primary LLM provider is down (failover to secondary).
+
+alternatives_considered:
+  - option: "Naive Retry (No Circuit Breaker)"
+    approach: "Retry failed LLM calls 5 times with exponential backoff. No circuit breaker."
+    cons:
+      - "During LLM outage, every request retries 5 times × 60s = 5 minutes blocked"
+      - "Amplifies load on failing API (100 jobs × 5 retries = 500 requests to dying API)"
+      - "No learning: continues hammering dead API instead of failing fast"
+    rejected_because: "Retries without circuit breaker amplify load during outages, causing cascading failures."
+
+  - option: "Queue-Based Rate Limiting"
+    approach: "Limit concurrent LLM API calls to 10, queue others. No circuit breaker."
+    cons:
+      - "Queue grows unbounded during outages (jobs wait indefinitely)"
+      - "No fail-fast: jobs still timeout after 60s even when API known to be down"
+      - "Doesn't protect against API rate limits (429), only controls client-side concurrency"
+    rejected_because: "Rate limiting controls concurrency, not failure resilience. Circuit breaker provides fail-fast behavior."
+
+consequences:
+  positive:
+    - "Fail-fast: Errors in <1ms when circuit open vs 60s timeout"
+    - "Resource protection: Prevents thread pool exhaustion during outages"
+    - "Cascading failure prevention: Stops sending requests to dying API"
+    - "Self-healing: Circuit closes automatically after cooldown when API recovers"
+    - "Cost savings: No wasted API token charges for partial completions"
+    - "Multi-provider failover: Can failover Anthropic → OpenAI when circuit opens"
+
+  negative:
+    - "False positives: Temporary failures (network blip) can open circuit unnecessarily"
+    - "Coordination: Separate circuit breaker per executor pod (no shared state). Each pod learns independently."
+    - "Monitoring complexity: Need metrics for circuit state (closed/open/half-open) per provider"
+
+implementation_details:
+  library: "resilience4j (Java), pybreaker (Python), go-resilience (Go)"
+  configuration:
+    failure_rate_threshold: "50% (open circuit if >50% of 10 requests fail)"
+    minimum_requests: "10 (need at least 10 requests to calculate failure rate)"
+    wait_duration_open: "60s (cooldown period before half-open)"
+    permitted_calls_half_open: "1 (test with 1 request in half-open state)"
+    slow_call_threshold: "60s (treat >60s as failure)"
+
+  metrics:
+    - "circuit_breaker_state{provider=anthropic} = 0 (closed) | 1 (open) | 2 (half-open)"
+    - "circuit_breaker_failures_total{provider=anthropic}"
+    - "circuit_breaker_opened_total{provider=anthropic}"
+    - "llm_api_call_duration_seconds{provider=anthropic, status=success|failure}"
+
+risks:
+  - risk: "Circuit breaker opens on transient failures, blocks valid requests"
+    mitigation: "Tune failure_rate_threshold (50% balanced between sensitivity and false positives)"
+
+  - risk: "No shared state between executor pods, each learns independently (slower convergence)"
+    mitigation: "Acceptable for MVP. Can add Redis-based shared circuit breaker state later."
+
+related_adrs:
+  - "ADR-002: Event-Driven Architecture"
+  - "ADR-005: Multi-Provider LLM Failover"

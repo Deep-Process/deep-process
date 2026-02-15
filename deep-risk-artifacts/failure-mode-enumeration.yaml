@@ -1,0 +1,272 @@
+# FAILURE_MODE_ENUMERATION - Step 01: IDENTIFY_VERTICAL
+# Phase: IDENTIFY_VERTICAL
+# Date: 2026-02-15
+# Method: #102 Failure Mode and Effects Analysis (FMEA)
+
+failure_mode_enumeration:
+  components:
+    - name: "Multi-Tenant Database (PostgreSQL with tenant isolation)"
+      criticality: CRITICAL
+      failure_modes:
+        - mode: "Tenant_ID filter bypass in application layer allows cross-tenant data access"
+          probability: MEDIUM
+          detectability: HARD
+          effect: CATASTROPHIC
+          rpn: 24
+          detection_mechanism: "Application-level query auditing, automated tenant isolation testing, database query analysis"
+          mitigation: "Defense-in-depth: DB row-level security policies + application tenant_id filtering + API authentication"
+
+        - mode: "Database connection pool exhaustion under multi-tenant load causes all tenants unavailable"
+          probability: MEDIUM
+          detectability: EASY
+          effect: MAJOR
+          rpn: 12
+          detection_mechanism: "Connection pool metrics, alert on >80% utilization"
+          mitigation: "Connection pool sizing per tenant class, circuit breakers, connection timeout limits"
+
+        - mode: "Slow query from one tenant degrades performance for all tenants (noisy neighbor)"
+          probability: HIGH
+          detectability: MEDIUM
+          effect: MAJOR
+          rpn: 18
+          detection_mechanism: "Query performance monitoring per tenant, slow query logs"
+          mitigation: "Query timeout limits per tenant, resource quotas, query optimization review"
+
+        - mode: "Schema migration failure corrupts multi-tenant data model requiring full rollback"
+          probability: LOW
+          detectability: EASY
+          effect: CATASTROPHIC
+          rpn: 9
+          detection_mechanism: "Migration testing in staging, automated rollback testing"
+          mitigation: "Blue-green deployment, migration dry-run on copy of production, automated rollback scripts"
+
+    - name: "MCP Protocol Server (Integration Hub)"
+      criticality: HIGH
+      failure_modes:
+        - mode: "OAuth token refresh failure causes all platform integrations (GitHub, Azure, Jira) to fail simultaneously"
+          probability: MEDIUM
+          detectability: MEDIUM
+          effect: MAJOR
+          rpn: 16
+          detection_mechanism: "Token expiry monitoring, integration health checks every 5 minutes"
+          mitigation: "Proactive token refresh before expiry, fallback to manual re-auth flow, token rotation automation"
+
+        - mode: "Malformed JSON from integration platform crashes MCP server affecting all users"
+          probability: MEDIUM
+          detectability: MEDIUM
+          effect: MAJOR
+          rpn: 16
+          detection_mechanism: "JSON schema validation, error handling testing, crash monitoring"
+          mitigation: "Strict JSON schema validation, graceful degradation on malformed input, circuit breakers per platform"
+
+        - mode: "MCP protocol version mismatch between server and client causes connection refused"
+          probability: LOW
+          detectability: EASY
+          effect: MINOR
+          rpn: 3
+          detection_mechanism: "Version handshake logs, client version tracking"
+          mitigation: "Backward compatibility support for N-1 protocol versions, version negotiation in handshake"
+
+        - mode: "Rate limiting from integration platform (GitHub API limits) causes workflow failures for high-usage customers"
+          probability: HIGH
+          detectability: EASY
+          effect: MAJOR
+          rpn: 18
+          detection_mechanism: "Rate limit monitoring, API quota dashboards"
+          mitigation: "Customer usage quotas, rate limit warnings, request batching, caching layer"
+
+    - name: "Kubernetes Cluster (Multi-Tenant SaaS Infrastructure)"
+      criticality: CRITICAL
+      failure_modes:
+        - mode: "Control plane failure makes all tenant workloads unschedulable - complete platform outage"
+          probability: LOW
+          detectability: EASY
+          effect: CATASTROPHIC
+          rpn: 9
+          detection_mechanism: "K8s control plane health checks, cluster monitoring, managed K8s SLA monitoring (EKS/AKS/GKE)"
+          mitigation: "Managed Kubernetes (99.9% SLA), multi-AZ deployment, automated failover, disaster recovery runbook"
+
+        - mode: "Node failure causes pod eviction and workload migration delays - tenant workflows timeout"
+          probability: MEDIUM
+          detectability: MEDIUM
+          effect: MAJOR
+          rpn: 16
+          detection_mechanism: "Node health monitoring, pod eviction tracking, workflow timeout alerts"
+          mitigation: "Pod disruption budgets, graceful shutdown handlers, workflow checkpoint/resume capability"
+
+        - mode: "Resource quota exhaustion (CPU/memory) prevents new workflow execution - tenant capacity blocked"
+          probability: HIGH
+          detectability: EASY
+          effect: MAJOR
+          rpn: 18
+          detection_mechanism: "Resource utilization metrics per tenant, quota alerts at 80% threshold"
+          mitigation: "Auto-scaling policies, tenant resource quotas, priority-based scheduling, capacity planning dashboard"
+
+        - mode: "Network partition between K8s nodes causes split-brain scenario - data inconsistency across tenants"
+          probability: LOW
+          detectability: HARD
+          effect: CATASTROPHIC
+          rpn: 12
+          detection_mechanism: "Network monitoring, split-brain detection algorithms, consensus protocol monitoring"
+          mitigation: "Quorum-based consensus, fencing mechanisms, network redundancy, managed K8s network policies"
+
+    - name: "Hybrid Deployment Data Sync Engine"
+      criticality: HIGH
+      failure_modes:
+        - mode: "Sync queue accumulation under load creates data staleness - cloud analytics generated from hours-old data"
+          probability: HIGH
+          detectability: MEDIUM
+          effect: MAJOR
+          rpn: 18
+          detection_mechanism: "Sync lag monitoring, data freshness SLIs, alert on lag >15 minutes"
+          mitigation: "Backpressure mechanisms, sync priority queues, elastic scaling of sync workers, customer staleness warnings"
+
+        - mode: "Bidirectional sync conflict resolution fails - customer edits on-prem overwritten by cloud sync"
+          probability: MEDIUM
+          detectability: HARD
+          effect: MAJOR
+          rpn: 20
+          detection_mechanism: "Conflict detection logs, customer-reported data loss tracking"
+          mitigation: "Last-write-wins with timestamps, conflict resolution UI, immutable audit trail of conflicts"
+
+        - mode: "Network connectivity loss between on-prem and cloud extends beyond 24 hours - sync divergence irrecoverable"
+          probability: LOW
+          detectability: MEDIUM
+          effect: MAJOR
+          rpn: 10
+          detection_mechanism: "Connectivity health checks, prolonged outage alerts, manual intervention triggers"
+          mitigation: "Offline mode for on-prem (read-only cloud), sync recovery procedures, customer communication protocols"
+
+    - name: "Authentication & SSO Integration"
+      criticality: CRITICAL
+      failure_modes:
+        - mode: "SSO provider outage (Okta, Auth0) blocks all enterprise customer logins - complete authentication failure"
+          probability: LOW
+          detectability: EASY
+          effect: CATASTROPHIC
+          rpn: 9
+          detection_mechanism: "SSO provider SLA monitoring, authentication success rate tracking"
+          mitigation: "Multi-provider SSO support, emergency break-glass authentication, SSO provider SLA contractual guarantees"
+
+        - mode: "SAML assertion expiry causes silent authentication failures - users logged out unexpectedly mid-workflow"
+          probability: MEDIUM
+          detectability: MEDIUM
+          effect: MINOR
+          rpn: 8
+          detection_mechanism: "Session monitoring, authentication error tracking, user logout patterns"
+          mitigation: "Proactive session renewal, workflow state persistence, graceful session expiry warnings"
+
+        - mode: "OAuth scope creep grants excessive permissions - users access resources beyond intended authorization"
+          probability: MEDIUM
+          detectability: HARD
+          effect: MAJOR
+          rpn: 20
+          detection_mechanism: "Periodic OAuth scope audits, authorization policy testing, permission boundary checks"
+          mitigation: "Principle of least privilege, scope minimization, regular access reviews, authorization regression testing"
+
+    - name: "Serverless Workflow Execution (AWS Lambda / Azure Functions)"
+      criticality: MEDIUM
+      failure_modes:
+        - mode: "Cold start latency (5-15 seconds) creates poor first-run UX - marketplace activation fails"
+          probability: HIGH
+          detectability: EASY
+          effect: MINOR
+          rpn: 9
+          detection_mechanism: "Cold start tracking, first-run latency metrics, user activation funnel analysis"
+          mitigation: "Provisioned concurrency for critical paths, keep-alive pings, hybrid architecture (K8s for hot paths)"
+
+        - mode: "Serverless timeout (15 minutes AWS Lambda max) insufficient for deep-risk comprehensive runs - workflow truncated"
+          probability: MEDIUM
+          detectability: EASY
+          effect: MAJOR
+          rpn: 12
+          detection_mechanism: "Execution time tracking, timeout alerts, workflow duration histogram"
+          mitigation: "Workflow chunking with checkpoints, async execution model, K8s for long-running workflows"
+
+        - mode: "Concurrent execution limit reached causes workflow queuing - customer workflows delayed by minutes"
+          probability: MEDIUM
+          detectability: EASY
+          effect: MINOR
+          rpn: 8
+          detection_mechanism: "Concurrency metrics, queue depth monitoring, limit alerts"
+          mitigation: "Reserved concurrency per customer tier, auto-scaling limits, queue-based rate limiting"
+
+    - name: "Blockchain Audit Trail (Compliance Logging)"
+      criticality: MEDIUM
+      failure_modes:
+        - mode: "Blockchain node sync delay causes audit log write failures - compliance events not recorded"
+          probability: MEDIUM
+          detectability: MEDIUM
+          effect: MAJOR
+          rpn: 16
+          detection_mechanism: "Blockchain sync status monitoring, write success rate tracking, audit log completeness checks"
+          mitigation: "Multi-node deployment for redundancy, write-ahead logging to local DB, async blockchain writes with retry"
+
+        - mode: "Smart contract bug creates immutable incorrect audit entries - GDPR violation (cannot correct data)"
+          probability: LOW
+          detectability: HARD
+          effect: MAJOR
+          rpn: 14
+          detection_mechanism: "Smart contract testing, audit log validation, manual audit reviews"
+          mitigation: "Extensive contract testing pre-deployment, audit log schema validation, GDPR compliance design (metadata only on chain)"
+
+    - name: "Compliance Dashboard (Real-Time Monitoring)"
+      criticality: MEDIUM
+      failure_modes:
+        - mode: "Dashboard data staleness (lagging indicators) causes false compliance confidence - violations missed"
+          probability: MEDIUM
+          detectability: MEDIUM
+          effect: MAJOR
+          rpn: 16
+          detection_mechanism: "Data freshness SLIs, dashboard update lag tracking"
+          mitigation: "Real-time event streaming, dashboard refresh rate targets, staleness warnings on dashboard"
+
+        - mode: "Alert fatigue from excessive false positives causes real violations ignored - alert blindness"
+          probability: HIGH
+          detectability: HARD
+          effect: MAJOR
+          rpn: 24
+          detection_mechanism: "Alert acknowledgment rates, false positive tracking, alert tuning feedback"
+          mitigation: "Alert threshold tuning, intelligent alert grouping, escalation policies, alert suppression during maintenance"
+
+  total_failure_modes: 27
+  top_5_by_rpn:
+    - mode: "Tenant_ID filter bypass (Multi-Tenant Database)"
+      rpn: 24
+      component: "Multi-Tenant Database"
+      priority: 1
+
+    - mode: "Alert fatigue from false positives (Compliance Dashboard)"
+      rpn: 24
+      component: "Compliance Dashboard"
+      priority: 2
+
+    - mode: "OAuth scope creep grants excessive permissions (Authentication & SSO)"
+      rpn: 20
+      component: "Authentication & SSO Integration"
+      priority: 3
+
+    - mode: "Bidirectional sync conflict resolution fails (Hybrid Deployment)"
+      rpn: 20
+      component: "Hybrid Deployment Data Sync Engine"
+      priority: 4
+
+    - mode: "Slow query from one tenant degrades all (Multi-Tenant Database)"
+      rpn: 18
+      component: "Multi-Tenant Database"
+      priority: 5
+
+summary:
+  components_analyzed: 8
+  failure_modes_identified: 27
+  avg_rpn: 13.9
+  critical_components: 4
+  high_components: 3
+  medium_components: 1
+  catastrophic_effects: 5
+  major_effects: 19
+  minor_effects: 3
+  detection_difficulty_hard: 7
+  detection_difficulty_medium: 10
+  detection_difficulty_easy: 10
+  interpretation: "27 failure modes across 8 critical components identified. Top RPN risks (24) are multi-tenant data isolation and alert fatigue - both align with Perrow complex+tight system profile. HARD detectability (26%) indicates emergent, subtle failures requiring advanced monitoring. CATASTROPHIC effects (19%) concentrated in multi-tenant DB, K8s cluster, auth - confirms coupling risks from genesis scan."

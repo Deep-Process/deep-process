@@ -1,0 +1,419 @@
+# MONITORING SYSTEM - Deep-Risk V2.2.0
+# Date: 2026-02-15
+# Leading Indicators + Review Cadence + Escalation Protocol
+
+monitoring_system:
+  overview:
+    purpose: "Detect risks BEFORE they materialize via leading indicators (not lagging)"
+    scope: "Top 20 CRITICAL and HIGH severity risks"
+    review_frequency: "Weekly (CRITICAL), Monthly (HIGH), Quarterly (MEDIUM)"
+    escalation_protocol: "Defined ownership and decision authority per risk category"
+
+  leading_indicators:
+    # Indicators that PRECEDE risk materialization (not detect after the fact)
+
+    - risk_id: VR-001
+      risk_name: "Multi-Tenant Data Isolation Breach"
+      leading_indicators:
+        - indicator: "Anomalous cross-tenant query patterns (>5 tenant_IDs in single user session)"
+          measurement: "Real-time query log analysis; ML anomaly detection model"
+          threshold: ">3 anomalous sessions per day triggers alert"
+          lead_time: "Detects probing 1-7 days before actual breach attempt"
+          data_source: "PostgreSQL query logs + application audit logs"
+
+        - indicator: "Failed tenant_ID validation attempts (potential attacker reconnaissance)"
+          measurement: "API auth failure logs filtered for tenant_ID mismatch errors"
+          threshold: ">10 failures per user per hour triggers investigation"
+          lead_time: "Detects reconnaissance hours to days before exploit"
+          data_source: "API gateway logs"
+
+        - indicator: "SAST findings for SQL concatenation or ORM bypasses in code review"
+          measurement: "Static analysis tool CI/CD integration; count critical findings"
+          threshold: ">0 critical SQL injection findings blocks build"
+          lead_time: "Prevents introduction weeks before production deployment"
+          data_source: "SAST tool (Snyk Code, SonarQube, Semgrep)"
+
+        - indicator: "Penetration test findings on tenant isolation (quarterly tests)"
+          measurement: "External security firm test reports; count critical/high findings"
+          threshold: ">0 critical tenant isolation bypasses triggers emergency remediation"
+          lead_time: "Discovers vulnerabilities months before attackers (if lucky)"
+          data_source: "Penetration test reports"
+
+      review_cadence: WEEKLY
+      dashboard: "Security Monitoring Dashboard - Multi-Tenant Isolation panel"
+
+    - risk_id: VR-010
+      risk_name: "OAuth Authentication Bypass"
+      leading_indicators:
+        - indicator: "OAuth token reuse across multiple tenant_IDs"
+          measurement: "OAuth token usage tracking; alert on single token accessing >1 tenant"
+          threshold: "ANY instance of cross-tenant token reuse triggers immediate alert"
+          lead_time: "Real-time detection during attack (seconds to minutes)"
+          data_source: "OAuth token usage logs"
+
+        - indicator: "Unusual OAuth scope expansion requests (broader than initial grant)"
+          measurement: "OAuth refresh flow monitoring; compare requested scopes vs original grant"
+          threshold: ">5 scope expansion attempts per user per day triggers review"
+          lead_time: "Detects attack preparation hours to days before privilege escalation"
+          data_source: "OAuth server logs"
+
+        - indicator: "Failed OAuth scope validation attempts"
+          measurement: "OAuth authorization logs; count rejected scope requests"
+          threshold: ">20 failures per user per hour triggers investigation"
+          lead_time: "Detects reconnaissance during attack attempt"
+          data_source: "OAuth authorization service logs"
+
+        - indicator: "Behavioral anomaly - user accessing resources outside normal patterns"
+          measurement: "ML-based user behavior analytics (UBA); profile deviation scoring"
+          threshold: "Anomaly score >0.8 triggers alert for manual review"
+          lead_time: "Detects compromised account hours to days after initial compromise"
+          data_source: "User activity logs + ML UBA model"
+
+      review_cadence: WEEKLY
+      dashboard: "Security Monitoring Dashboard - Authentication panel"
+
+    - risk_id: VR-007
+      risk_name: "Wrong Strategic Cluster Selection"
+      leading_indicators:
+        - indicator: "Customer interview feedback divergence from assumptions (Q1 tiered deployment)"
+          measurement: "Customer discovery program; track % validating vs invalidating tiered deployment need"
+          threshold: "<30% validation rate (majority don't need tiered) triggers pivot consideration"
+          lead_time: "Reveals assumption falsification 4-6 weeks before commitment"
+          data_source: "Customer interview synthesis report"
+
+        - indicator: "CL-001 pilot marketplace activation rate (install → active usage)"
+          measurement: "Marketplace analytics; track install→first run→3+ runs funnel"
+          threshold: "<5% activation rate after 3 months triggers GTM strategy review"
+          lead_time: "Reveals GTM viability 3-6 months before full commitment"
+          data_source: "GitHub/VS Code/Claude Code marketplace analytics"
+
+        - indicator: "CL-001 pilot customer retention rate (month 1→month 3)"
+          measurement: "Active users cohort analysis; track month-over-month retention"
+          threshold: "<40% retention month 3 signals product-market misfit"
+          lead_time: "Reveals fit/misfit 3 months into pilot, 3 months before decision"
+          data_source: "Product analytics (Amplitude, Mixpanel)"
+
+        - indicator: "CL-002 Enterprise sales cycle length (discovery→contract signature)"
+          measurement: "CRM pipeline tracking; average days in each stage"
+          threshold: ">18 months average cycle signals enterprise complexity underestimated"
+          lead_time: "Reveals sales motion viability after 2-3 pilot customers"
+          data_source: "CRM (Salesforce, HubSpot)"
+
+      review_cadence: MONTHLY
+      dashboard: "Strategic Decision Dashboard - Cluster Selection panel"
+
+    - risk_id: VR-002
+      risk_name: "SOC 2 Certification Timeline Delay"
+      leading_indicators:
+        - indicator: "SOC 2 gap assessment findings count (control gaps discovered pre-audit)"
+          measurement: "Pre-audit consulting report; count critical/high/medium control gaps"
+          threshold: ">10 critical gaps signals >12 month timeline; >5 critical gaps signals audit failure risk"
+          lead_time: "Reveals timeline reality 6+ months before formal audit"
+          data_source: "SOC 2 gap assessment report"
+
+        - indicator: "Compliance automation platform control failure rate"
+          measurement: "Vanta/Drata/Secureframe dashboard; % controls failing automated checks"
+          threshold: ">20% control failure rate signals readiness issues"
+          lead_time: "Continuous visibility; detects drift weeks to months before audit"
+          data_source: "Compliance platform dashboard"
+
+        - indicator: "Auditor engagement timeline slippage (scheduled vs actual milestone dates)"
+          measurement: "Project plan tracking; compare planned audit start vs actual"
+          threshold: ">4 week delay in audit start date signals timeline risk"
+          lead_time: "Reveals delays 1-3 months before formal audit"
+          data_source: "SOC 2 project plan"
+
+        - indicator: "Remediation velocity for identified control gaps"
+          measurement: "Track time from gap identification to remediation complete"
+          threshold: ">8 weeks average remediation time signals capacity constraint"
+          lead_time: "Reveals bottlenecks 2-4 months before audit deadline"
+          data_source: "Issue tracking system (Jira, Linear)"
+
+      review_cadence: MONTHLY
+      dashboard: "Compliance Dashboard - SOC 2 Readiness panel"
+
+    - risk_id: VR-004
+      risk_name: "Hybrid Deployment Economic Viability"
+      leading_indicators:
+        - indicator: "On-prem pilot deployment actual time vs estimate (planned 6mo vs actual)"
+          measurement: "Track PS team hours logged to first on-prem customer deployment"
+          threshold: ">50% overage (9+ months actual vs 6 month estimate) signals economics broken"
+          lead_time: "Reveals cost reality during first deployment (6-9 months into CL-002 path)"
+          data_source: "Time tracking system"
+
+        - indicator: "On-prem gross margin calculation (customer ACV - deployment cost)"
+          measurement: "Track total PS cost + infrastructure cost vs customer contract value"
+          threshold: "<40% gross margin signals unsustainable economics"
+          lead_time: "Reveals profitability after first customer complete cycle (12-18 months)"
+          data_source: "Finance system"
+
+        - indicator: "Hybrid support ticket volume ratio (on-prem vs SaaS incidents per customer)"
+          measurement: "Support ticket categorization; compare on-prem vs SaaS ticket rates"
+          threshold: ">3x on-prem ticket rate vs SaaS signals support burden unsustainable"
+          lead_time: "Reveals support burden 3-6 months after deployment"
+          data_source: "Support ticketing system (Zendesk, Intercom)"
+
+        - indicator: "On-prem knowledge decay incidents (team unable to resolve on-prem issues)"
+          measurement: "Track on-prem incidents requiring >2 escalations or external help"
+          threshold: ">30% incidents requiring escalation signals expertise loss"
+          lead_time: "Reveals skill decay 6-12 months into dual environment operations"
+          data_source: "Support incident post-mortems"
+
+      review_cadence: MONTHLY
+      dashboard: "Financial Dashboard - Hybrid Economics panel"
+
+    - risk_id: VR-008
+      risk_name: "Resource Exhaustion Attack (Workflow Bombing)"
+      leading_indicators:
+        - indicator: "Unusual workflow execution volume spikes (>10x normal for user/tenant)"
+          measurement: "Workflow execution count per user; ML anomaly detection"
+          threshold: ">10x user's 30-day average in 1 hour triggers throttling + investigation"
+          lead_time: "Real-time detection during attack (minutes)"
+          data_source: "Workflow execution logs"
+
+        - indicator: "Free tier quota consumption rate (approaching limit faster than expected)"
+          measurement: "Track free tier usage velocity; project time to quota exhaustion"
+          threshold: "User projected to hit quota in <3 days (rapid consumption) triggers review"
+          lead_time: "Detects abuse 1-3 days before quota limit"
+          data_source: "Usage quota tracking system"
+
+        - indicator: "Abnormal workflow selection patterns (only expensive deep-risk comprehensive runs)"
+          measurement: "Track workflow type distribution per user; flag 100% expensive workflow users"
+          threshold: ">90% of runs are deep-risk comprehensive for free tier user triggers investigation"
+          lead_time: "Detects cost optimization attack within 1-2 days"
+          data_source: "Workflow type analytics"
+
+        - indicator: "Infrastructure cost per user deviation (users costing >>average)"
+          measurement: "Calculate compute cost per user; flag outliers >3 standard deviations"
+          threshold: "User cost >10x average triggers investigation"
+          lead_time: "Weekly cost analysis detects high-cost users within 1 week"
+          data_source: "Cloud cost allocation (AWS Cost Explorer, GCP Billing)"
+
+      review_cadence: WEEKLY
+      dashboard: "Operations Dashboard - Resource Usage panel"
+
+  review_cadence_schedule:
+    weekly_critical_review:
+      frequency: "Every Monday 10:00 AM"
+      duration: "30 minutes"
+      attendees: ["CTO", "CISO", "Engineering Lead - Security"]
+      risks_covered: ["VR-001", "VR-010", "VR-008", "VR-005", "VR-009"]
+      agenda:
+        - "Review leading indicator alerts from past week"
+        - "Assess any threshold breaches or anomalies"
+        - "Escalate critical findings requiring executive decision"
+        - "Update risk register probabilities based on new data"
+
+    monthly_high_review:
+      frequency: "First Thursday of month 2:00 PM"
+      duration: "90 minutes"
+      attendees: ["AI Governance Committee: CPO, CIO, CRO, CLO, CTO, CISO"]
+      risks_covered: "All HIGH severity risks (38 total)"
+      agenda:
+        - "Dashboard review - leading indicators for top 20 HIGH risks"
+        - "Assumption validation tracker - Q1-Q5 resolution status"
+        - "Mitigation progress review - on track vs delayed"
+        - "New risks identified in past month (add to register)"
+        - "Escalation decisions for risks exceeding thresholds"
+
+    quarterly_strategic_review:
+      frequency: "End of quarter (March, June, September, December)"
+      duration: "Half day (4 hours)"
+      attendees: ["Executive team + Board risk committee (if exists)"]
+      risks_covered: "Full risk portfolio (97 risks)"
+      agenda:
+        - "MCP adoption metrics review (Anthropic concentration risk)"
+        - "SOC 2 certification progress vs timeline"
+        - "CL-001 pilot results (if running) - activation, retention, economics"
+        - "Strategic cluster selection decision checkpoint (month 6)"
+        - "Risk portfolio rebalancing - new risks, closed risks, severity changes"
+        - "Budget allocation for next quarter mitigations"
+
+  escalation_protocol:
+    level_1_engineering_lead:
+      triggers:
+        - "SAST critical findings blocking build"
+        - "Workflow execution anomalies (potential abuse)"
+        - "Infrastructure cost spikes <$10K"
+      decision_authority: "Implement technical fixes, adjust quotas, block users"
+      escalation_to_level_2: "If resolution requires >$25K investment or >2 week timeline"
+
+    level_2_cto_ciso:
+      triggers:
+        - "Security anomalies (cross-tenant queries, OAuth bypass attempts)"
+        - "Penetration test critical findings"
+        - "Mitigation implementation delays >4 weeks"
+        - "Infrastructure cost spikes >$10K"
+      decision_authority: "Emergency security patches, budget reallocation <$100K, team resource shifts"
+      escalation_to_level_3: "If requires strategic pivot, >$100K investment, or customer communication"
+
+    level_3_executive_team:
+      triggers:
+        - "Confirmed multi-tenant data breach"
+        - "SOC 2 audit failure"
+        - "Strategic cluster selection decision checkpoint (month 6)"
+        - "Assumption falsification (Q1-Q5) requiring strategic pivot"
+        - "Budget >$100K required for risk mitigation"
+      decision_authority: "Strategic pivots, major budget allocation, customer breach notification, cluster selection"
+      escalation_to_level_4: "If requires board approval (>$500K, business model change, shutdown risk)"
+
+    level_4_board:
+      triggers:
+        - "Existential risks materialized (platform shutdown consideration)"
+        - "Liability >$5M (exceeds cyber insurance coverage)"
+        - "Strategic pivot requiring business model change"
+        - "Budget >$500K for risk mitigation"
+      decision_authority: "Business continuity decisions, emergency financing, strategic direction changes"
+
+  dashboard_design:
+    platform: "Grafana (open source) or Datadog (commercial)"
+
+    dashboards:
+      - name: "Security Monitoring Dashboard"
+        panels:
+          - "Multi-Tenant Isolation - cross-tenant query count, failed validation attempts, anomaly scores"
+          - "Authentication - OAuth token reuse, scope escalation attempts, behavioral anomalies"
+          - "Threat Intelligence - failed login attempts, suspicious IPs, known attack patterns"
+        refresh_rate: "Real-time (15 second refresh)"
+        alert_routing: "PagerDuty → On-call security engineer"
+
+      - name: "Strategic Decision Dashboard"
+        panels:
+          - "Cluster Selection - customer interview results, pilot activation rates, retention cohorts"
+          - "Assumption Validation - Q1-Q5 resolution status, confidence scores"
+          - "Market Timing - competitor analysis, sales cycle length, market window"
+        refresh_rate: "Daily"
+        alert_routing: "Email → CPO, CTO"
+
+      - name: "Compliance Dashboard"
+        panels:
+          - "SOC 2 Readiness - control gap count, remediation velocity, audit timeline vs plan"
+          - "Regulatory - GDPR incidents, HIPAA violations, EU AI Act classification status"
+          - "Certifications - status, expiry dates, renewal progress"
+        refresh_rate: "Daily"
+        alert_routing: "Email → CISO, COO"
+
+      - name: "Financial Dashboard"
+        panels:
+          - "Hybrid Economics - on-prem gross margin, PS cost per deployment, support burden"
+          - "Infrastructure Costs - cost per user, outlier detection, budget vs actual"
+          - "ARR Impact - pipeline value at risk (SOC 2 blocked), revenue delay estimates"
+        refresh_rate: "Daily"
+        alert_routing: "Email → CFO, COO"
+
+      - name: "Operations Dashboard"
+        panels:
+          - "Resource Usage - workflow execution volume, quota consumption, infrastructure load"
+          - "Kubernetes Health - cluster uptime, node failures, pod evictions"
+          - "Hybrid Deployment - sync lag, data freshness, on-prem connectivity"
+        refresh_rate: "Real-time (1 minute refresh)"
+        alert_routing: "PagerDuty → On-call SRE"
+
+  sorites_watch:
+    # Gradual accumulation monitoring for TEMPORALITY risks
+
+    - risk_id: VR-018
+      risk_name: "Multi-tenant schema configuration drift from security baseline"
+      sorites_indicator: "Configuration change count per tenant (accumulation of ad-hoc customizations)"
+      measurement: "Track schema changes, configuration overrides, custom security policies per tenant"
+      threshold: ">20 configuration deviations from baseline per tenant triggers review"
+      review_frequency: "Quarterly schema audit comparing current state to original baseline"
+      remediation: "Schema normalization project to reconcile drifted configurations back to baseline"
+
+    - risk_id: VR-022
+      risk_name: "MCP protocol technical debt accumulation"
+      sorites_indicator: "MCP specification version lag (current implementation vs latest spec)"
+      measurement: "Track MCP spec version in use vs latest published version"
+      threshold: ">2 minor versions behind triggers upgrade project"
+      review_frequency: "Quarterly MCP specification review"
+      remediation: "Upgrade MCP implementation to latest spec; refactor deprecated patterns"
+
+    - risk_id: VR-027
+      risk_name: "On-prem deployment knowledge decay"
+      sorites_indicator: "On-prem incident resolution time trend (increasing over time)"
+      measurement: "Track mean time to resolution (MTTR) for on-prem incidents month-over-month"
+      threshold: ">50% MTTR increase over 6 months signals skill decay"
+      review_frequency: "Monthly incident metrics review"
+      remediation: "On-prem training refresher, documentation updates, hire specialized on-prem engineer"
+
+  cobra_monitoring_check:
+    # Monitor mitigations for perverse effects (GATE_6 requirement)
+
+    - mitigation_id: M-VR010-03
+      mitigation_name: "OAuth anomaly detection behavioral analytics"
+      cobra_risk: "Alert fatigue if false positive rate >10%"
+      monitoring:
+        - "Track alert volume per week"
+        - "Measure false positive rate (alerts not leading to confirmed incidents)"
+        - "Survey on-call engineers on alert noise levels"
+      threshold: ">10% FP rate OR >50 alerts per week triggers ML model retuning"
+      remediation: "Retrain ML model with labeled data (true positives vs false positives); adjust anomaly score threshold"
+
+    - mitigation_id: M-VR001-03
+      mitigation_name: "Tenant isolation anomaly detection"
+      cobra_risk: "Alert fatigue if false positive rate >5%"
+      monitoring:
+        - "Track cross-tenant query alerts per day"
+        - "Measure alert→incident conversion rate"
+      threshold: ">5% FP rate triggers suppression rule tuning"
+      remediation: "Whitelist known cross-tenant patterns (admin queries, analytics); suppress during maintenance windows"
+
+    - mitigation_id: M-VR008-02
+      mitigation_name: "CAPTCHA for high-volume requests"
+      cobra_risk: "User friction and accessibility concerns"
+      monitoring:
+        - "Track CAPTCHA presentation rate (% of users seeing CAPTCHA)"
+        - "Measure CAPTCHA abandonment rate (users giving up)"
+        - "Accessibility complaints from visually impaired users"
+      threshold: ">10% CAPTCHA abandonment rate signals excessive friction"
+      remediation: "Adjust trigger threshold (5 workflows/10min → 10 workflows/10min); improve accessibility (audio CAPTCHA quality)"
+
+adversarial_monitoring_test:
+  # Identify gaming vectors and defend against Goodhart's Law (GATE_6 requirement)
+
+  test_scenarios:
+    - scenario: "Attacker games usage quota system by creating multiple free tier accounts"
+      gaming_vector: "IP address blocking bypassed via VPN/proxy; email verification bypassed via temporary email services"
+      vulnerability: "Quota enforcement per account, not per actual user/organization"
+      mitigation: "Device fingerprinting, behavioral analysis (multiple accounts with identical workflow patterns), email domain reputation scoring"
+      monitoring: "Track account creation velocity from same IP blocks, similar workflow patterns across accounts"
+
+    - scenario: "Developers bypass SAST findings by commenting out security checks or suppressing warnings"
+      gaming_vector: "SAST suppression comments (e.g., // nosec) used to bypass build blocking without fixing vulnerability"
+      vulnerability: "SAST tool trusts developer suppression comments without review"
+      mitigation: "Require security team approval for all SAST suppressions; track suppression count per developer; quarterly suppression audit"
+      monitoring: "Alert on >5 SAST suppressions per developer per month; review suppression justifications"
+
+    - scenario: "Compliance automation platform controls 'gamed' with minimum viable compliance (letter not spirit)"
+      gaming_vector: "Implement controls that pass automated checks but don't provide real security (e.g., password policy 8 chars but dictionary words accepted)"
+      vulnerability: "Automated compliance tools check configuration presence, not effectiveness"
+      mitigation: "Manual compliance reviews quarterly; penetration testing to validate control effectiveness; auditor review of control substance not just checkboxes"
+      monitoring: "SOC 2 auditor findings that reveal ineffective controls (controls pass automation but fail auditor review)"
+
+  verdict: "ACCEPTABLE - gaming vectors identified and defended; no VULNERABLE rating; proceed with monitoring system deployment"
+
+implementation_plan:
+  phase_1_foundations_month_1:
+    - "Deploy Grafana or Datadog platform ($10K-$15K setup)"
+    - "Implement core security dashboards (multi-tenant isolation, authentication)"
+    - "Configure PagerDuty alerting for Level 1 and Level 2 escalations"
+    - "Establish weekly CRITICAL review meeting rhythm"
+    cost: "$15K-$25K"
+
+  phase_2_expansion_month_2_3:
+    - "Build strategic decision dashboard (cluster selection, assumption tracker)"
+    - "Implement compliance dashboard (SOC 2 readiness)"
+    - "Deploy ML-based anomaly detection for OAuth and tenant isolation"
+    - "Establish monthly HIGH risk review meeting rhythm"
+    cost: "$30K-$50K"
+
+  phase_3_optimization_month_4_6:
+    - "Build financial and operations dashboards"
+    - "Implement Sorites watch for temporality risks (quarterly audits)"
+    - "Deploy Cobra monitoring checks for mitigation perverse effects"
+    - "Establish quarterly strategic review rhythm"
+    cost: "$20K-$35K"
+
+  total_implementation_cost: "$65K-$110K (one-time) + $20K-$30K/year ongoing (platform licensing, ML model maintenance)"
+
+  timeline: "6 months to full system deployment"

@@ -1,0 +1,94 @@
+# GATE EVALUATIONS - Deep-Risk V2.2.0
+# Process: deep-risk
+# Date: 2026-02-15
+
+gates:
+  - gate_id: GATE_0
+    gate_name: GROUND_COMPLETE
+    phase: GROUND
+    evaluation_timestamp: 2026-02-15T01:00:00Z
+    depth: comprehensive
+
+    conditions:
+      - id: G0-01
+        condition: "Scope framed (subject, boundaries, timeframe, stakes assessed)"
+        severity: BLOCKER
+        verification: "Check SCOPE_FRAME section exists with all 4 fields filled"
+        evidence: "scope-frame.yaml contains all required fields: subject, in_scope (12 items), out_of_scope (8 items), timeframe (12-24 months), stakes (HIGH with detailed rationale)"
+        status: PASS
+        result: "CONDITION SATISFIED"
+
+      - id: G0-02
+        condition: "Genesis sources scanned (6 sources: complexity, coupling, uncertainty, agency, temporality, boundaries)"
+        severity: CRITICAL
+        verification: "Check RISK_GENESIS_SCAN section has ≥1 risk per source (6 total)"
+        evidence: "risk-genesis-scan.yaml contains 24 risks: Complexity (4), Coupling (4), Uncertainty (4), Agency (4), Temporality (4), Boundaries (4) - all sources have 4 risks each"
+        status: PASS
+        result: "CONDITION SATISFIED"
+
+      - id: G0-03
+        condition: "System characterized (Perrow matrix: complexity + coupling assessed)"
+        severity: CRITICAL
+        verification: "Check SYSTEM_PROFILE section exists with complexity_level + coupling_level"
+        evidence: "system-profile.yaml contains complexity_level=COMPLEX (6 evidence items), coupling_level=TIGHT (7 evidence items), perrow_position=complex_tight, accident_propensity=INEVITABLE"
+        status: PASS
+        result: "CONDITION SATISFIED"
+
+      - id: G0-04
+        condition: "Uncertainty classified (Knight's distinction: risk vs uncertainty vs ambiguity)"
+        severity: ERROR
+        verification: "Check UNCERTAINTY_MAP exists with ≥1 item per type"
+        evidence: "uncertainty-map.yaml contains Risks (5), Uncertainties (5), Ambiguities (4) - all three categories populated"
+        status: PASS
+        result: "CONDITION SATISFIED"
+
+      - id: G0-05
+        condition: "ASSUMPTIONS_DECLARED (explicit assumptions about scope, stakes, system)"
+        severity: BLOCKER
+        verification: "Check ASSUMPTIONS_DECLARED section exists with ≥3 assumptions in YAML format"
+        evidence: "assumptions-ground.yaml contains 5 assumptions (A0-01 through A0-05) with confidence levels, falsification criteria, and counter-check execution"
+        status: PASS
+        result: "CONDITION SATISFIED"
+
+    counter_checks:
+      - id: CC0-01
+        method: "#85 Grounding Check"
+        action: "Sample 3 genesis risks → verify each has source traceability"
+        pass_criteria: "All 3 risks map to genesis source"
+        result: "3/3 risks GROUNDED (RGS-C02, RGS-CO01, RGS-B03)"
+        status: PASS
+
+      - id: CC0-02
+        method: "#168 Phantom Hunt"
+        action: "Re-scan scope boundaries → verify no out-of-scope elements included"
+        pass_criteria: "0 out-of-scope elements found"
+        result: "0 out-of-scope risks found; all 24 risks relate to in-scope architecture decisions"
+        status: PASS
+
+      - id: CC0-03
+        method: "#84 Coherence Check"
+        action: "Verify stakes assessment coherent with timeframe + boundaries"
+        pass_criteria: "No contradictions found"
+        result: "No contradictions; HIGH stakes coherent with 12-24mo timeframe and enterprise architecture scope"
+        status: PASS
+
+    gate_status: OPEN
+    blocker_failures: 0
+    critical_failures: 0
+    error_failures: 0
+    conditions_passed: "5/5 (100%)"
+    counter_checks_passed: "3/3 (100%)"
+    scope_reductions_declared: 0
+
+    decision: "PROCEED to step-01-identify-vertical"
+    rationale: "All BLOCKER conditions satisfied (G0-01, G0-05), all CRITICAL conditions satisfied (G0-02, G0-03), ERROR condition satisfied (G0-04), all counter-checks passed. No violations detected. Gate OPEN."
+
+    artifacts_generated:
+      - scope-frame.yaml
+      - integration-inputs.yaml
+      - assumptions-ground.yaml
+      - risk-genesis-scan.yaml
+      - uncertainty-map.yaml
+      - system-profile.yaml
+      - counter-checks-ground.yaml
+      - post-phase-checklist-ground.yaml

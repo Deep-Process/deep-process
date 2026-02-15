@@ -1,0 +1,50 @@
+stateDiagram-v2
+    [*] --> Queued : Job submitted
+
+    Queued --> Running : Executor picks up job
+    Queued --> Cancelled : User cancels before execution
+
+    Running --> GateLocked : Gate evaluation fails
+    Running --> Failed : Execution error (LLM timeout, OOM, etc)
+    Running --> Completed : All phases + gates pass
+
+    GateLocked --> Running : Manual gate override (admin)
+    GateLocked --> Failed : Max retry attempts exceeded
+    GateLocked --> Cancelled : User aborts
+
+    Failed --> Retrying : Transient error, retry policy active
+    Retrying --> Running : Retry attempt
+    Retrying --> Failed : Max retries exceeded
+
+    Completed --> [*]
+    Cancelled --> [*]
+    Failed --> [*]
+
+    note right of Running
+        Phases: 0 → 1 → 2 → 3 → 4 → 5 → 6
+        Each phase has gate evaluation
+    end note
+
+    note right of GateLocked
+        Gate conditions failed:
+        - Counter-check failure
+        - Missing artifacts
+        - Schema validation error
+        Requires human review or fix
+    end note
+
+    note right of Failed
+        Failure reasons:
+        - LLM API timeout
+        - Out of memory
+        - Invalid workflow.md
+        - Unhandled exception
+    end note
+
+    note right of Completed
+        All artifacts persisted:
+        - context-assessment.yaml
+        - canonical-operations.yaml
+        - architecture-model.yaml
+        - verification-report.yaml
+    end note

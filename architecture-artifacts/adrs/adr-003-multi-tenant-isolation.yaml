@@ -1,0 +1,152 @@
+---
+id: "ADR-003"
+title: "Schema-Per-Tenant Multi-Tenancy for Data Isolation"
+date: "2026-02-15"
+status: "accepted"
+deciders: ["Architecture Team", "Security Team"]
+
+context: |
+  Platform serves multiple enterprise tenants (customers) via SaaS deployment. Data isolation requirements:
+  - GDPR: Each tenant's data must be isolated with no cross-tenant access (data privacy)
+  - SOC 2: Logical separation required for audit compliance
+  - HIPAA (future): Single-tenant deployment for healthcare customers (separate architecture)
+  - Cost efficiency: Enterprise customers (10-200 tenants) need shared infrastructure to reduce cost vs dedicated instances
+  - Query performance: Tenant-scoped queries must be fast (<100ms for job status lookup)
+
+decision: |
+  Implement schema-per-tenant multi-tenancy in PostgreSQL:
+  - Each tenant gets dedicated PostgreSQL schema (namespace): tenant_{tenant_id}
+  - All tables duplicated per schema: tenant_abc.jobs, tenant_abc.users, tenant_abc.artifacts_metadata
+  - Application layer sets search_path per request: SET search_path = tenant_{tenant_id}
+  - Row-Level Security (RLS) as defense-in-depth (even if search_path wrong, RLS blocks cross-tenant access)
+  - Shared infrastructure: API Gateway, Orchestrator, Executor Pool, Object Storage (with tenant_id prefix)
+
+  NOT shared-schema multi-tenancy (tenant_id column in tables): rejected due to SQL injection risk and accidental
+  cross-tenant queries.
+
+  NOT separate-database-per-tenant: rejected due to cost (100 tenants = 100 RDS instances = $50K/month) and operational
+  complexity (100 connection pools, 100 backup jobs).
+
+rationale: |
+  1. **Security**: Schema-per-tenant provides stronger isolation than shared-schema. PostgreSQL enforces schema boundaries
+     at kernel level. Even if WHERE clause missing tenant_id, query fails (no rows in wrong schema).
+
+  2. **GDPR Compliance**: Data residency: EU tenants can be assigned to eu-west-1 region. Right to deletion: DROP SCHEMA
+     tenant_abc CASCADE deletes all tenant data atomically.
+
+  3. **Cost Efficiency**: Single PostgreSQL instance (db.r6g.2xlarge) supports 100+ schemas. Shared connection pool,
+     shared backups. Cost: $600/month for 100 tenants vs $50K for 100 separate databases.
+
+  4. **Performance**: Queries scoped to single schema. Index locality: tenant_abc.jobs index only contains that tenant's
+     jobs (smaller index, faster lookups). No cross-tenant JOIN overhead.
+
+  5. **Operational Simplicity**: Single database to backup, upgrade, monitor. Schema migration tool applies changes to
+     all tenant schemas in loop.
+
+alternatives_considered:
+  - option: "Shared-Schema Multi-Tenancy (tenant_id column)"
+    approach: |
+      Single schema with tenant_id column in all tables. Every query requires WHERE tenant_id = 'abc'.
+    pros:
+      - "Simplest implementation: standard CRUD queries"
+      - "Single schema to migrate"
+    cons:
+      - "SQL injection risk: Missing WHERE tenant_id exposes cross-tenant data"
+      - "Index bloat: Indexes contain all tenants' data (slower lookups)"
+      - "Accidental cross-tenant queries: Developer forgets WHERE clause, leaks data"
+      - "Cannot enforce at database level: relies on application discipline"
+    rejected_because: |
+      Security risk too high. Single missing WHERE tenant_id in any query leaks all tenants' data. GDPR violation,
+      SOC 2 failure. Schema-per-tenant enforces isolation at database kernel, not application layer.
+
+  - option: "Separate Database Per Tenant"
+    approach: |
+      Each tenant gets dedicated RDS PostgreSQL instance. tenant_abc.db, tenant_xyz.db.
+    pros:
+      - "Strongest isolation: complete database separation"
+      - "Independent scaling: scale tenant_abc database without affecting tenant_xyz"
+      - "Compliance: HIPAA requires separate DB (can deploy single-tenant architecture)"
+    cons:
+      - "Cost: 100 tenants = 100 RDS instances × $500/month = $50K/month vs $600 for single instance"
+      - "Operational burden: 100 connection pools, 100 backups, 100 upgrades, 100 monitoring dashboards"
+      - "Resource waste: Most tenants underutilize (5% CPU), but pay for full instance"
+    rejected_because: |
+      Cost prohibitive for MVP. $50K/month database cost unsustainable. Reserved for HIPAA customers willing to pay premium.
+
+  - option: "Hybrid: Shared for Free/Pro, Dedicated for Enterprise"
+    approach: |
+      Free and Pro tiers: schema-per-tenant in shared database. Enterprise tier: separate database per tenant.
+    pros:
+      - "Cost-efficient for small customers"
+      - "Dedicated resources for enterprise (premium feature)"
+    cons:
+      - "Two architectures to maintain (shared + dedicated)"
+      - "Migration complexity: tenant upgrades Free → Enterprise = database migration"
+    status: "Future consideration. Start with schema-per-tenant for all tiers, add dedicated DB for Enterprise v2."
+
+consequences:
+  positive:
+    - "Strong isolation: PostgreSQL schema boundaries enforced at kernel level"
+    - "GDPR compliance: Tenant data deletion via DROP SCHEMA CASCADE (atomic, fast)"
+    - "Cost efficient: 100 tenants on single db.r6g.2xlarge ($600/month) vs 100 separate DBs ($50K/month)"
+    - "Query performance: Indexes scoped to tenant schema (smaller, faster)"
+    - "Audit trail: Schema-level permissions tracked in PostgreSQL logs"
+    - "Row-Level Security: Defense-in-depth if application sets wrong search_path"
+
+  negative:
+    - "Schema management: CREATE SCHEMA for each new tenant onboarding"
+    - "Migration complexity: Apply schema changes to 100+ tenant schemas in loop"
+    - "Connection pool: Must set search_path per connection (overhead 1-2ms per request)"
+    - "Cross-tenant analytics: Cannot JOIN across tenants (must aggregate per-schema results in app layer)"
+    - "Backup restore: Restoring single tenant requires schema-level restore (pg_restore -n tenant_abc)"
+
+implementation_details:
+  postgresql:
+    version: "PostgreSQL 15 (RDS or Azure PostgreSQL Flexible Server)"
+    instance_size: "db.r6g.2xlarge (8 vCPU, 64 GB RAM) for 100 tenants"
+    schema_naming: "tenant_{uuid} (e.g., tenant_a1b2c3d4)"
+    connection_pooling: "PgBouncer (1000 logical connections → 100 physical connections)"
+
+  onboarding_flow:
+    - step: "1. Create tenant record in control-plane DB"
+    - step: "2. CREATE SCHEMA tenant_{tenant_id}"
+    - step: "3. Run migration script to create tables, indexes, RLS policies in new schema"
+    - step: "4. INSERT INTO tenant_{tenant_id}.users VALUES (admin_user)"
+    - step: "5. Update API Gateway routing: tenant_id → schema mapping"
+
+  offboarding_flow:
+    - step: "1. Mark tenant.status = 'deleted' in control-plane DB"
+    - step: "2. Backup schema to S3: pg_dump -n tenant_{tenant_id} > s3://backups/tenant_{tenant_id}.sql"
+    - step: "3. DROP SCHEMA tenant_{tenant_id} CASCADE"
+    - step: "4. Purge tenant's blobs from S3: aws s3 rm s3://artifacts/tenant_{tenant_id}/ --recursive"
+
+  row_level_security:
+    enabled: true
+    policy: |
+      CREATE POLICY tenant_isolation ON tenant_{tenant_id}.jobs
+      USING (tenant_id = current_setting('app.tenant_id'))
+
+risks:
+  - risk: "Schema proliferation: 1000 tenants = 1000 schemas in single database (PostgreSQL limit: ~10K schemas)"
+    mitigation: "Monitor schema count. Shard to second database at 5000 tenants."
+
+  - risk: "Schema migration failures: 1 tenant's schema fails migration, blocks others"
+    mitigation: "Transactional migrations per schema. Rollback failed schema, continue with others."
+
+  - risk: "Cross-tenant data leak if search_path incorrectly set"
+    mitigation: "Row-Level Security (RLS) as second layer. Even if search_path wrong, RLS blocks access. Audit logs for search_path changes."
+
+testing:
+  - test: "Security audit: Attempt cross-tenant queries with different search_path values. Verify RLS blocks access."
+  - test: "Performance: Benchmark query latency with 1, 10, 100, 1000 schemas. Target: <100ms P95."
+  - test: "Migration: Run schema migration on 100 test schemas, verify success rate >99%."
+  - test: "Backup/Restore: Backup and restore single tenant schema, verify data integrity."
+
+compliance_notes: |
+  - SOC 2: Schema-per-tenant satisfies "logical separation" requirement. Audit logs track schema creation/deletion.
+  - GDPR: Right to deletion via DROP SCHEMA (atomic). Data residency: EU tenants → eu-west-1 region.
+  - HIPAA: Schema-per-tenant insufficient (requires physical separation). HIPAA customers get separate database instance.
+
+related_adrs:
+  - "ADR-001: Microservices Architecture"
+  - "ADR-009: Object Storage Isolation with Tenant Prefixes"

@@ -1,0 +1,43 @@
+C4Component
+  title Component Diagram - Process Executor Pool (Most Complex Container)
+
+  Container_Ext(queue, "Job Queue", "Receives job messages")
+  Container_Ext(repo, "Process Repo", "Provides workflow.md, schemas")
+  Container_Ext(llm, "LLM Service", "Provides completions")
+  Container_Ext(artifacts, "Artifact Storage", "Persists results")
+  Container_Ext(processes, "Process Services", "deep-explore, deep-compliance, etc.")
+
+  Container_Boundary(executor, "Process Executor Pool") {
+    Component(dispatcher, "Job Dispatcher", "Go", "Receives jobs from queue, routes to execution engine")
+    Component(engine, "Execution Engine", "Go", "Manages workflow.md step execution, state machine")
+    Component(interpreter, "Workflow Interpreter", "Go", "Parses workflow.md, resolves step dependencies")
+    Component(gate_enforcer, "Gate Enforcer", "Go", "Evaluates gate conditions, blocks progression on failure")
+    Component(checkpoint_mgr, "Checkpoint Manager", "Go", "Persists execution state, enables resume on failure")
+    Component(context_builder, "Context Builder", "Go", "Assembles execution context (schemas, patterns, prior artifacts)")
+    Component(validator, "Artifact Validator", "Go", "Validates generated artifacts against schemas")
+    Component(counter_check, "Counter-Check Runner", "Go", "Executes grounding, coherence, phantom hunt checks")
+  }
+
+  Rel(queue, dispatcher, "Delivers job message", "Message")
+  Rel(dispatcher, engine, "Starts execution", "Function call")
+
+  Rel(engine, interpreter, "Loads workflow", "Function call")
+  Rel(interpreter, repo, "Fetches workflow.md", "gRPC")
+
+  Rel(engine, context_builder, "Builds context", "Function call")
+  Rel(context_builder, repo, "Fetches schemas, patterns", "gRPC")
+  Rel(context_builder, artifacts, "Loads prior artifacts", "gRPC")
+
+  Rel(engine, processes, "Delegates step execution", "gRPC")
+  Rel(processes, llm, "Requests AI analysis", "via LLM Service")
+
+  Rel(engine, gate_enforcer, "Checks gate", "Function call")
+  Rel(gate_enforcer, validator, "Validates artifacts", "Function call")
+  Rel(gate_enforcer, counter_check, "Runs counter-checks", "Function call")
+
+  Rel(engine, checkpoint_mgr, "Saves state", "Function call")
+  Rel(checkpoint_mgr, artifacts, "Persists checkpoint", "gRPC")
+
+  Rel(engine, artifacts, "Stores final artifacts", "gRPC")
+
+  UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")

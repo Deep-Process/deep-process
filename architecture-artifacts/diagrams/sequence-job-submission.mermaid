@@ -1,0 +1,81 @@
+sequenceDiagram
+    actor User as Enterprise Developer
+    participant Gateway as API Gateway
+    participant IAM as IAM Service
+    participant Orch as Process Orchestrator
+    participant Queue as Job Queue (SQS)
+    participant Exec as Process Executor
+    participant Proc as deep-compliance Service
+    participant LLM as LLM Integration
+    participant API as Anthropic API
+    participant Store as Artifact Storage
+    participant Webhook as Webhook Dispatcher
+
+    User->>+Gateway: POST /v1/jobs<br/>{process_id: "deep-compliance", inputs: {...}}
+    Gateway->>+IAM: ValidateToken(bearer_token)
+    IAM-->>-Gateway: UserIdentity{tenant_id, user_id, permissions}
+
+    alt Token Invalid
+        Gateway-->>User: 401 Unauthorized
+    end
+
+    Gateway->>+Orch: SubmitJob(job_request)
+    Orch->>Orch: Create job record (status: queued)
+    Orch->>+Queue: EnqueueMessage(job_id, process_id, tenant_id)
+    Queue-->>-Orch: Message ID
+
+    Orch-->>-Gateway: JobResponse{job_id, status: "queued"}
+    Gateway-->>-User: 202 Accepted<br/>{job_id, status, webhook_url}
+
+    Note over Queue,Exec: Async Processing (2-24 hours)
+
+    Queue->>+Exec: DeliverJob(job_message)
+    Exec->>Exec: Load workflow.md, schemas
+    Exec->>Exec: Phase 0: Context Assessment
+
+    loop For Each Phase (0-6)
+        Exec->>+Proc: ExecuteStep(phase_id, inputs)
+        Proc->>+LLM: Complete(prompt, model: "claude-sonnet-4")
+        LLM->>+API: POST /v1/messages
+
+        alt API Rate Limit
+            API-->>LLM: 429 Too Many Requests
+            LLM->>LLM: Circuit Breaker OPEN<br/>Retry with exponential backoff
+            LLM->>API: Retry after 60s
+        end
+
+        API-->>-LLM: Completion{text, usage}
+        LLM-->>-Proc: Completion{text, tokens, cost}
+        Proc->>Proc: Generate artifacts (YAML)
+        Proc-->>-Exec: StepResponse{artifacts, gate_status}
+
+        Exec->>Exec: Evaluate Gate Conditions
+
+        alt Gate LOCKED
+            Exec->>Orch: UpdateJobStatus(gate_locked, gate_id, failures)
+            Orch->>+Webhook: JobEvent(gate_failed)
+            Webhook-->>-User: POST webhook_url<br/>{event: "gate_failed", job_id, details}
+            Exec-->>-Queue: NACK (move to DLQ)
+            Note over Exec: Job terminates, manual intervention required
+        end
+    end
+
+    Exec->>+Store: StoreArtifact(artifacts)
+    Store-->>-Exec: artifact_ids[]
+
+    Exec->>Orch: UpdateJobStatus(completed, artifacts_url)
+    Exec-->>-Queue: ACK (delete message)
+
+    Orch->>+Webhook: JobEvent(completed)
+    Webhook->>Webhook: Sign payload (HMAC-SHA256)
+    Webhook-->>-User: POST webhook_url<br/>{event: "completed", job_id, artifacts_url}
+
+    User->>+Gateway: GET /v1/jobs/{job_id}
+    Gateway->>+Orch: GetJobStatus(job_id)
+    Orch-->>-Gateway: JobStatus{status: "completed", artifacts_url}
+    Gateway-->>-User: 200 OK<br/>{status, progress: 100%, artifacts}
+
+    User->>+Gateway: GET /v1/artifacts/{artifact_id}
+    Gateway->>+Store: RetrieveArtifact(artifact_id)
+    Store-->>-Gateway: YAML artifact
+    Gateway-->>-User: 200 OK (application/yaml)

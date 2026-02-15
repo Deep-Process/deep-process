@@ -1,0 +1,378 @@
+---
+metadata:
+  version: "1.2.0"
+  timestamp: "2026-02-15T20:00:00Z"
+  depth_level: "deep"
+  process_version: "1.4.1"
+
+project:
+  name: "Deep-* Process Enterprise Architecture"
+  description: "Enterprise-grade architecture for delivering deep-* verification and governance processes to organizations via cloud platforms, APIs, and integration patterns. Focuses on making deep-explore, deep-architect, deep-compliance, deep-risk, deep-document, deep-challenge, deep-governance, deep-synthesis, deep-verify, deep-feasibility, deep-diagram, deep-monitoring, and deep-orchestration processes accessible and integratable into client systems."
+  scope: "Platform architecture for hosting, orchestrating, and integrating 13 deep-* processes (excluding deep-process meta-process). Includes deployment models, API design, integration patterns, security tiers, observability, multi-tenancy considerations, and developer experience."
+  constraints_summary: "Must preserve process integrity (gates, counter-checks, EVR compliance), support both cloud and on-premise deployment for regulatory scenarios, enable API/CLI/MCP integration modes, handle long-running operations (processes can take 2-24 hours), support both synchronous and asynchronous execution."
+
+system_maturity:
+  classification: "brownfield"
+  reason: "Processes already exist as CLI tools with established workflow.md patterns, YAML schemas, and gate mechanisms. Architecture task is to DELIVER these existing processes via enterprise platforms, not to redesign the processes themselves."
+  existing_system:
+    name: "Deep-* Process Collection (CLI-based)"
+    age_years: 0.5
+    codebase_size: "medium (estimated 10-50K LOC across 13 processes)"
+    known_problems:
+      - "CLI-only execution limits enterprise adoption"
+      - "No centralized orchestration for multi-process workflows"
+      - "Manual result aggregation across processes"
+      - "No built-in observability dashboard"
+      - "Limited integration with enterprise tooling (GitHub, Azure DevOps, Jira)"
+    constraints_from_existing:
+      - "Must preserve existing workflow.md structure (gates, phases, steps)"
+      - "Cannot modify core process logic (EVR, counter-checks, assumptions)"
+      - "Must support existing YAML artifact schemas"
+      - "Must maintain CLI compatibility for local developer use"
+    migration_scope: "incremental"
+    migration_strategy: "Add enterprise delivery layer WITHOUT modifying existing process implementations. CLI remains primary interface, platform provides orchestration, integration, and observability layers."
+
+project_scale:
+  classification: "large"
+  indicators:
+    expected_components: "20-30 (13 process services + orchestrator + API gateway + auth + observability + storage + integration adapters)"
+    team_size: "15-20"
+    expected_integrations: "10+ (GitHub, Azure DevOps, Jira, Slack, email, MCP servers, CI/CD pipelines, S3/Blob Storage, logging platforms)"
+    regulatory_requirements: "extensive (SOC 2, GDPR, HIPAA for compliance processes, EU AI Act for governance)"
+  depth_calibration:
+    proportionality_check: "PASS — large-scale project warrants deep depth analysis"
+    note: "Enterprise architecture with heavy compliance, multiple integrations, cross-functional buyers (per technical-delivery-architecture-report.md findings) requires thorough analysis."
+
+domain:
+  classification: "cloud"
+  sub_domain: "platform-as-a-service"
+  evidence:
+    - field: "Cloud deployment models (SaaS, Hybrid, On-Prem) mentioned in technical-delivery-architecture-report.md"
+      source: "plans/technical-delivery-architecture-report.md sections 3-4"
+    - field: "Kubernetes, serverless, multi-tenancy, API-first integration patterns"
+      source: "plans/technical-delivery-architecture-report.md section 1 (Key Discoveries)"
+    - field: "MCP protocol integration, REST API + Webhooks, marketplace extensions"
+      source: "plans/technical-delivery-architecture-report.md section 3 (D3: Integration Strategy)"
+  confidence: 0.95
+
+architecture_domains:
+  base_domains:
+    - domain_id: "DOM-BASE-SOLID"
+      name: "SOLID Principles"
+      source: "auto_apply"
+    - domain_id: "DOM-BASE-SEC"
+      name: "Security Baseline"
+      source: "auto_apply"
+    - domain_id: "DOM-BASE-OBS"
+      name: "Observability Baseline"
+      source: "auto_apply"
+
+  detected_domains:
+    - domain_id: "DOM-PAR-MICRO"
+      name: "Microservices"
+      confidence: 0.87
+      source: "detected"
+      matched_keywords: ["independent deployment", "service mesh", "api gateway", "bounded context", "multiple teams"]
+      conditions_met: ["C1_explicit (implicit via 'service-oriented')", "C2_indicators (service mesh, api gateway, bounded context)", "C3_scale (13 independent processes, autonomous teams)"]
+
+    - domain_id: "DOM-PAR-EVENT"
+      name: "Event-Driven"
+      confidence: 0.78
+      source: "detected"
+      matched_keywords: ["async communication", "event-driven", "webhooks", "eventual consistency", "orchestration"]
+      conditions_met: ["C1_explicit (event-driven mentioned in integration strategy)", "C2_indicators (webhooks, orchestration, async, eventual consistency)", "C3_technology (EventBridge/Service Bus inferred from cloud patterns)"]
+
+    - domain_id: "DOM-PAR-SERVER"
+      name: "Serverless"
+      confidence: 0.72
+      source: "detected"
+      matched_keywords: ["serverless", "lambda", "azure functions", "stateless", "pay-per-invocation"]
+      conditions_met: ["C1_explicit (serverless mentioned in technical report)", "C2_indicators (lambda, azure functions, stateless functions, managed services)", "C3_patterns (event-triggered)"]
+
+    - domain_id: "DOM-PLT-K8S"
+      name: "Kubernetes"
+      confidence: 0.88
+      source: "detected"
+      matched_keywords: ["kubernetes", "k8s", "container orchestration", "pods", "helm", "service mesh"]
+      conditions_met: ["C1_explicit (Kubernetes explicitly mentioned)", "C2_indicators (pods, helm, service mesh, containers)"]
+
+    - domain_id: "DOM-INT-MULTI"
+      name: "Multi-Tenant"
+      confidence: 0.82
+      source: "detected"
+      matched_keywords: ["multi-tenant", "saas", "tenant isolation", "data partitioning", "shared infrastructure"]
+      conditions_met: ["C1_explicit (multi-tenant architecture mentioned)", "C2_indicators (tenant isolation, data partitioning, shared infrastructure, subscription tiers)"]
+
+    - domain_id: "DOM-PLT-AWS"
+      name: "AWS"
+      confidence: 0.75
+      source: "detected"
+      matched_keywords: ["aws", "lambda", "s3", "eventbridge", "eks", "api gateway"]
+      conditions_met: ["C1_explicit (AWS mentioned in report)", "C2_services (lambda, s3, eks, eventbridge, api gateway)"]
+
+    - domain_id: "DOM-PLT-AZURE"
+      name: "Azure"
+      confidence: 0.70
+      source: "detected"
+      matched_keywords: ["azure", "azure functions", "aks", "service bus", "blob storage", "azure devops"]
+      conditions_met: ["C1_explicit (Azure mentioned in report)", "C2_services (azure functions, aks, service bus, blob storage, azure devops)"]
+
+    - domain_id: "DOM-INT-POLY"
+      name: "Polyglot"
+      confidence: 0.65
+      source: "detected"
+      matched_keywords: ["multiple languages", "best tool for the job", "language boundary"]
+      conditions_met: ["C1_explicit (polyglot implied by diverse process implementations)", "C2_indicators (language boundary, best tool for job)"]
+
+  auto_included_domains: []
+
+  final_domains:
+    - "DOM-BASE-SOLID"
+    - "DOM-BASE-SEC"
+    - "DOM-BASE-OBS"
+    - "DOM-PAR-MICRO"
+    - "DOM-PAR-EVENT"
+    - "DOM-PAR-SERVER"
+    - "DOM-PLT-K8S"
+    - "DOM-INT-MULTI"
+    - "DOM-PLT-AWS"
+    - "DOM-PLT-AZURE"
+    - "DOM-INT-POLY"
+
+  detection_evidence:
+    total_domains: 11
+    base_count: 3
+    detected_count: 8
+    auto_included_count: 0
+    note: "Event-driven is already detected directly, no need for auto-inclusion despite microservices/serverless requiring it"
+
+  counter_check_results:
+    - id: "CC-DOM-01"
+      method: "#85 Grounding Check"
+      status: "PASS"
+      findings: "Sampled 3 domains (Microservices, Kubernetes, Multi-Tenant). All keywords verified in technical-delivery-architecture-report.md: 'Kubernetes dominates (66% use)', 'Multi-tenant architecture has 3 isolation levels', 'independent deployment' for microservices. All grounded."
+
+    - id: "CC-DOM-02"
+      method: "#168 Phantom Hunt"
+      status: "PASS"
+      findings: "Scanned for borderline domains (0.50-0.65 confidence). DOM-INT-POLY at exactly 0.65 threshold — examined for secondary evidence. Confirmed: diverse process types (compliance, risk, architecture, documentation) likely require different implementation languages. No phantom domains added."
+
+    - id: "CC-DOM-03"
+      method: "#84 Coherence Check"
+      status: "PASS"
+      findings: "Verified paradigm coherence. Microservices + Event-Driven + Serverless + Kubernetes form coherent cloud-native architecture. No conflicting paradigms (no monolithic paradigm detected). Multi-tenancy aligns with SaaS deployment model. Polyglot aligns with microservices. No conflicts detected."
+
+team:
+  size: 15
+  expertise_level: "senior"
+  maturity: "high"
+  architecture_experience: true
+  evidence: "Inferred from project scope (enterprise architecture for 13 processes) and technical-delivery-architecture-report.md findings (cross-functional AI Governance Committee buyers, SOC 2 compliance requirements, complex integration patterns). Team must have enterprise architecture, cloud platform, security, and integration expertise."
+
+conways_law:
+  team_units:
+    - name: "Platform Core Team"
+      size: 5
+      ownership: ["C-ORCHESTRATOR", "C-API-GATEWAY", "C-AUTH", "C-STORAGE"]
+      communication_channels: ["Process Teams", "DevOps Team", "Security Team"]
+
+    - name: "Process Integration Team"
+      size: 4
+      ownership: ["C-PROCESS-ADAPTER-*", "C-MCP-SERVER", "C-CLI-WRAPPER"]
+      communication_channels: ["Platform Core Team", "External Dev Community"]
+
+    - name: "Observability & Monitoring Team"
+      size: 3
+      ownership: ["C-DASHBOARD", "C-METRICS", "C-LOGGING", "C-ALERTING"]
+      communication_channels: ["Platform Core Team", "SRE Team"]
+
+    - name: "Security & Compliance Team"
+      size: 3
+      ownership: ["C-IAM", "C-SECRETS-MGMT", "C-AUDIT-TRAIL", "C-COMPLIANCE-ENGINE"]
+      communication_channels: ["All Teams", "External Auditors"]
+
+  alignment_assessment:
+    team_to_system_match: "aligned"
+    misalignment_risks: []
+    recommendations:
+      - "Assign clear ownership boundaries between Platform Core (horizontal infrastructure) and Process Integration (vertical process adapters)"
+      - "Establish API contracts early to minimize cross-team dependencies"
+      - "Co-locate Security & Compliance team with Process Integration for compliance-heavy processes (deep-compliance, deep-governance)"
+
+constraints:
+  budget:
+    level: "moderate"
+    details: "Startup/scaleup scenario based on technical report (Scenario 4: MCP-First Marketplace Quick-Win recommended with $50K-$200K investment). Not generous enterprise budget, but sufficient for MVP + iteration."
+
+  timeline:
+    level: "normal"
+    details: "Technical report indicates 4-12 months for marketplace launch (Scenario 4), 3-6 months for SaaS MVP (Scenario 1). No urgent regulatory deadline, but competitive pressure (report notes 'Competitor launches faster' as medium likelihood failure mode)."
+
+  culture:
+    type: "startup"
+    details: "Technical report emphasizes developer-first GTM, bottoms-up motion, marketplace discovery, self-service onboarding — all startup culture indicators. Not corporate (no procurement friction mentioned as benefit). Not regulated entity (though processes serve regulated customers)."
+
+  technical:
+    - constraint: "Processes are long-running (2-24 hours per technical report config.yaml timeouts)"
+      impact: "Must support asynchronous execution, job queuing, progress tracking, timeout handling. Cannot use synchronous HTTP-only APIs."
+
+    - constraint: "Existing YAML artifact schemas must be preserved"
+      impact: "Storage layer must handle YAML natively or convert losslessly. API responses should support YAML in addition to JSON."
+
+    - constraint: "CLI must remain functional for local developer use"
+      impact: "Platform must wrap/augment CLI, not replace it. Hybrid local+cloud execution model needed."
+
+    - constraint: "Gates and counter-checks are mandatory (per process integrity requirements)"
+      impact: "Orchestration layer cannot skip or bypass gates. Must surface gate failures to users/APIs."
+
+    - constraint: "Multiple cloud platforms (AWS, Azure) mentioned in report"
+      impact: "Architecture should be cloud-agnostic where possible, or provide deployment patterns for both AWS and Azure."
+
+  regulatory:
+    - regulation: "SOC 2 Type II"
+      impact: "Required for enterprise SaaS sales per technical report. 6-12 month timeline. Must implement access controls, audit logging, encryption, incident response. Blocks enterprise revenue until certified."
+
+    - regulation: "GDPR"
+      impact: "EU AI Act + GDPR dual compliance for high-risk AI processes with personal data (per technical report). Must support data residency, right to deletion, consent management, data minimization."
+
+    - regulation: "HIPAA"
+      impact: "Single-tenant required for HIPAA customers (per technical report). Must support BAA, encryption at rest/in transit, audit trails, access controls."
+
+    - regulation: "EU AI Act"
+      impact: "High-risk AI classification requires FRIA + transparency + human oversight. Deep-governance and deep-compliance processes themselves may be subject to EU AI Act requirements."
+
+requirements_stability:
+  score: 0.55
+  rationale: "Medium stability. Core process logic is stable (brownfield constraint), but enterprise delivery requirements are evolving based on market feedback (technical report shows 16 assumptions, 5 critical unknowns still open). Deployment models, integration patterns, and GTM strategy are still being validated."
+  evidence:
+    - factor: "Core process workflows (workflow.md, gates, EVR) are established"
+      direction: "stable"
+      weight: 0.35
+
+    - factor: "Technical report shows 5 critical unknowns (tiered deployment need, marketplace activation rate, SOC 2 timeline, failure cases, customer TCO)"
+      direction: "unstable"
+      weight: 0.25
+
+    - factor: "Integration strategy has multiple options (MCP vs REST vs SDK vs CI/CD plugins)"
+      direction: "unstable"
+      weight: 0.20
+
+    - factor: "Deployment model choice still being validated (SaaS vs Hybrid vs On-Prem vs Marketplace)"
+      direction: "unstable"
+      weight: 0.20
+
+    - factor: "Team and organizational constraints are clear (startup culture, moderate budget, normal timeline)"
+      direction: "stable"
+      weight: 0.00
+
+execution_mode:
+  selected: "hybrid"
+  rationale: "Stability score 0.55 falls in medium range (0.4-0.7 per config.yaml), indicating hybrid mode. Team maturity is high (can handle iterative), but brownfield constraints (must preserve existing process structure) favor some waterfall elements. Cloud domain typically supports hybrid. Technical report shows iterative validation (3-5 enterprise interviews, marketplace analytics) alongside structured architecture decisions."
+  derived_from:
+    stability_score: 0.55
+    team_maturity: "high"
+    domain: "cloud"
+
+assumptions:
+  - id: "A-001"
+    assumption: "Processes can be containerized without modification to their core logic"
+    confidence: 0.80
+    falsification: "Attempt to package deep-explore, deep-architect, deep-compliance as Docker containers. If core workflow.md execution fails or gates break, assumption is false."
+    impact_if_wrong: "Major architecture redesign required. May need to fork/modify process implementations to support containerization, violating brownfield constraint."
+
+  - id: "A-002"
+    assumption: "Long-running processes (2-24 hours) are acceptable in async execution mode with status polling"
+    confidence: 0.75
+    falsification: "Interview 3-5 enterprise users on acceptable wait times for compliance/risk/architecture processes. If >60% demand <1 hour results, assumption is false."
+    impact_if_wrong: "Need to implement incremental/streaming results, process optimization, or rewrite processes for parallelization."
+
+  - id: "A-003"
+    assumption: "Enterprises will accept MCP protocol for integration (per technical report Scenario 4 recommendation)"
+    confidence: 0.65
+    falsification: "Survey 10 enterprise IT teams on MCP awareness and adoption willingness. If <30% familiar with MCP or willing to adopt, assumption is weak."
+    impact_if_wrong: "Must prioritize REST API + Webhooks (Scenario 1) over MCP-first approach, delaying marketplace GTM."
+
+  - id: "A-004"
+    assumption: "Multi-tenant architecture with separate schemas provides sufficient isolation for non-HIPAA customers"
+    confidence: 0.70
+    falsification: "Conduct security audit of schema-based multi-tenancy. If cross-tenant data leakage is feasible or violates GDPR/SOC 2, assumption is false."
+    impact_if_wrong: "Must implement separate database per tenant (higher cost, complexity) or limit to single-tenant only (limits scale)."
+
+  - id: "A-005"
+    assumption: "Technical delivery architecture report findings (MCP adoption, SOC 2 timelines, multi-tenant patterns) are applicable to deep-* process platform"
+    confidence: 0.85
+    falsification: "Verify report findings against deep-* process-specific constraints (long-running jobs, YAML artifacts, gate enforcement). If findings assume short-lived request/response APIs, assumption is false."
+    impact_if_wrong: "Report-based architecture decisions (Scenario 4 recommendation, hybrid deployment) may not apply. Need fresh research specific to workflow orchestration platforms."
+
+  - id: "A-006"
+    assumption: "13 processes can share a common orchestration layer without process-specific customization"
+    confidence: 0.60
+    falsification: "Analyze workflow.md, gate conditions, artifact schemas across all 13 processes. If >30% of processes require unique orchestration logic, assumption is false."
+    impact_if_wrong: "Need process-specific orchestration adapters, increasing complexity and maintenance burden."
+
+  - id: "A-007"
+    assumption: "Kubernetes is necessary for production deployment (per technical report: 'Kubernetes dominates 66% use for GenAI workloads')"
+    confidence: 0.70
+    falsification: "Prototype deployment on serverless-only architecture (AWS Lambda + Step Functions). If it meets scale, cost, and reliability requirements, K8s may not be necessary."
+    impact_if_wrong: "Over-engineering with K8s when simpler serverless could suffice, or under-engineering if K8s capabilities (stateful sets, complex networking) are actually needed."
+
+checklist:
+  - item: "System maturity classified (greenfield/brownfield/migration)"
+    status: "PASS"
+
+  - item: "Existing system inventory (if brownfield/migration)"
+    status: "PASS"
+
+  - item: "Project scale classified (small/medium/large/enterprise)"
+    status: "PASS"
+
+  - item: "Domain classified with evidence"
+    status: "PASS"
+
+  - item: "Architecture domains detected and resolved"
+    status: "PASS"
+
+  - item: "Team assessed (size/expertise/maturity)"
+    status: "PASS"
+
+  - item: "Conway's Law mapping documented"
+    status: "PASS"
+
+  - item: "Constraints documented (budget/timeline/culture)"
+    status: "PASS"
+
+  - item: "Stability score calculated (0.0-1.0)"
+    status: "PASS"
+
+  - item: "Execution mode selected with rationale"
+    status: "PASS"
+
+  - item: "ASSUMPTIONS_DECLARED (≥1 assumption logged)"
+    status: "PASS"
+
+  - item: "Counter-checks executed (≥ depth minimum)"
+    status: "PASS"
+
+  - item: "context-assessment.yaml written"
+    status: "PASS"
+
+counter_checks:
+  - method: "#85 Grounding Check (CC-DOM-01)"
+    result: "Sampled 3 detected domains (Microservices, Kubernetes, Multi-Tenant). All keywords verified in source document (technical-delivery-architecture-report.md). Verification rate: 3/3 = 100%. No ungrounded domains."
+    status: "PASS"
+
+  - method: "#168 Phantom Hunt (CC-DOM-02)"
+    result: "Scanned brief for borderline domains (0.50-0.65 confidence). Found DOM-INT-POLY at exactly 0.65. Verified secondary evidence (diverse process types require different languages). No phantom domains detected."
+    status: "PASS"
+
+  - method: "#84 Coherence Check (CC-DOM-03)"
+    result: "Verified final_domains coherence. Microservices + Event-Driven + Serverless + K8s + Multi-Tenant + Polyglot form coherent cloud-native architecture. No conflicting paradigms. No contradictions between domain choices."
+    status: "PASS"
+
+  - method: "#61 Pre-mortem (for deep depth)"
+    result: |
+      Assumed context assessment was WRONG. Failure scenarios:
+      1. If domain misclassified as 'cloud' when it's actually 'embedded' (processes running in air-gapped on-prem) → Phase 1 will design cloud-native architecture incompatible with air-gapped deployment → CRITICAL FAILURE. Preventive: Verify deployment constraints in Phase 1, design for on-prem-first.
+      2. If stability score (0.55) is too optimistic and requirements are actually volatile (0.3) → Hybrid mode insufficient, should be iterative → Architecture will be over-specified → Rework in Phase 3. Preventive: Flag high-uncertainty areas, design for modularity.
+      3. If team size (15) is overestimated and actual team is 5 → Conway's Law mapping breaks → Too many components for team capacity → Simplification needed. Preventive: Design minimal viable architecture in Phase 1, defer optional components.
+    status: "PASS"
