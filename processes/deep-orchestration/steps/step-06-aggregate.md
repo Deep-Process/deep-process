@@ -31,23 +31,116 @@ VERIFY: workflow_status = COMPLETED OR ABORTED OR FINISHED
 
 ```
 IF Method 349 (Result Aggregator) available:
-  EXECUTE: method_349.initialize()
+  LOAD: ../../methods/method-349-result-aggregator/method.md
 
-  COLLECT: All task outputs
-  FOR each task:
-    EXECUTE: method_349.aggregate_output(task)
+  PREPARE: workflow_input.yaml
+    workflow_id: FROM orchestration_context.workflow_id
+    execution_id: FROM orchestration_context.execution_id
+
+    task_states:
+      FOR each task IN execution_state.tasks:
+        CREATE task_state:
+          task_id: task.task_id
+          process_name: task.process_name
+          status: task.status
+          output_location: task.output_location
+          start_time: task.start_time
+          end_time: task.end_time
+          duration: task.duration
+          retry_count: task.retry_count
+
+    workflow_metadata:
+      goal: orchestration_context.objective.name
+      pattern: orchestration_context.workflow_pattern
+      budget: orchestration_context.budget
+      planned_duration: orchestration_context.planned_duration
+
+    monitoring_data:
+      execution_time: monitoring_results.total_execution_time
+      token_usage: monitoring_results.total_tokens
+      cost: monitoring_results.total_cost
+
+  WRITE: workflow_input.yaml TO methods/method-349-result-aggregator/workflow_input.yaml
+
+  EXECUTE: Method #349 Result Aggregator
+    FOLLOW: methods/method-349-result-aggregator/method.md
+    ENFORCED SEQUENCE: STEP 0 → STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5
+
+    STEP 0: SETUP
+      LOAD workflow_input.yaml
+      LOAD schemas
+      VERIFY prerequisites
+      INITIALIZE state
+
+    STEP 1: COLLECT
+      RETRIEVE all task outputs
+      VALIDATE each output
+      RECORD missing outputs
+
+    STEP 2: AGGREGATE
+      DETERMINE workflow pattern
+      AGGREGATE by pattern
+      COMPUTE metrics
+      CLASSIFY outcome
+
+    STEP 3: SYNTHESIZE
+      EXTRACT key findings
+      IDENTIFY critical issues
+      GENERATE recommendations
+      ASSESS decision readiness
+
+    STEP 4: RENDER
+      RENDER decision brief
+      RENDER full report
+      FORMAT markdown
+      VERIFY completeness
+
+    STEP 5: OUTPUT
+      WRITE decision brief
+      WRITE full report
+      WRITE metadata
+      VERIFY output files
+
+  RECEIVE: Method #349 outputs
+    decision_brief_path: reports/decision-brief-[execution_id].md
+    full_report_path: reports/full-report-[execution_id].md
+    metadata_path: reports/metadata-[execution_id].yaml
+
+  READ: metadata_path
+  PARSE: AS YAML
+  EXTRACT:
+    outcome: metadata.outcome
+    decision_readiness: metadata.decision_readiness
+    primary_recommendation: metadata.primary_recommendation
+    metrics: metadata.metrics
+    critical_issues_count: metadata.critical_issues_count
+
+  STORE: In orchestration_results
+    aggregation_method: "Method 349 - Result Aggregator"
+    decision_brief: decision_brief_path
+    full_report: full_report_path
+    metadata: metadata_path
+    recommendation: primary_recommendation
+    readiness: decision_readiness
+    outcome: outcome
 
   OUTPUT:
 ```yaml
 result_aggregation:
   method: "Method 349 - Result Aggregator"
-  tasks_aggregated: N
-  outputs_collected: O
+  tasks_aggregated: [tasks_count]
+  outputs_collected: [outputs_count]
   aggregation_complete: TRUE
+  decision_brief_generated: TRUE
+  decision_brief_path: [decision_brief_path]
+  recommendation: [primary_recommendation]
+  decision_readiness: [decision_readiness]
 ```
 
 ELSE:
-  EXECUTE: manual result aggregation (section 4)
+  HALT: "VIOLATION: Method #349 Result Aggregator required but not available"
+  OUTPUT: "Method #349 must be installed at methods/method-349-result-aggregator/"
+  OUTPUT: "Cannot proceed with manual aggregation - enforced process required"
 ```
 
 ## 3. COLLECT_OUTPUTS

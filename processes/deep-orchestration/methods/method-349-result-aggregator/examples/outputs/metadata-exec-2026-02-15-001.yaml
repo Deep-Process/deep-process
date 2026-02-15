@@ -1,0 +1,23 @@
+workflow_id: "decision-microservices-migration"
+execution_id: "exec-2026-02-15-001"
+timestamp: "2026-02-15T12:05:00Z"
+
+outcome: "SUCCESS"
+decision_readiness: "MOSTLY_READY"
+decision_readiness_score: 0.75
+
+primary_recommendation: "NO-GO"
+
+metrics:
+  success_rate: 1.0
+  output_quality: 1.0
+  coherence: 0.75
+
+outputs:
+  decision_brief:
+    path: "examples/outputs/decision-brief-exec-2026-02-15-001.md"
+    size_bytes: 3456
+    pages: 5.8
+
+critical_issues_count: 4
+recommendations_count: 6

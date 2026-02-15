@@ -12,15 +12,31 @@ methods:
   - id: 347
     name: "Process Dependency Mapper"
     phase: "step-02-map"
+    status: "PLANNED"
+    location: "methods/method-347-dependency-mapper"
+    required: false
+
   - id: 348
     name: "Parallel Execution Optimizer"
     phase: "step-03-sequence"
+    status: "PLANNED"
+    location: "methods/method-348-parallel-optimizer"
+    required: false
+
   - id: 349
     name: "Result Aggregator"
     phase: "step-06-aggregate"
+    status: "PRODUCTION_READY"
+    location: "methods/method-349-result-aggregator"
+    required: true
+    description: "Aggregates outputs from multiple processes into Decision Brief (5-10 pages) with actionable GO/NO-GO recommendation"
+
   - id: 350
     name: "Workflow State Manager"
     phase: "step-04-execute"
+    status: "PLANNED"
+    location: "methods/method-350-state-manager"
+    required: false
 
 gates:
   - GATE_1: "workflow_defined = TRUE AND tasks_count >= 1 AND counter_check_executed = TRUE"
@@ -37,3 +53,6 @@ outputs:
   - "execution_state"
   - "monitoring_results"
   - "aggregated_results"
+  - "decision_brief"
+  - "full_report"
+  - "decision_metadata"
