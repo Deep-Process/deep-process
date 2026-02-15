@@ -15,6 +15,7 @@ outputs:
   - initial_assessment
   - assumptions_declared
   - hypotheses
+  - report_mode
 ---
 
 # Phase 0: Setup + Assumptions Declaration
@@ -35,7 +36,7 @@ outputs:
 **Execute these steps in this order:**
 
 1. Read the `USER ARGUMENTS` section from the prompt.
-2. Scan for flags: `--quick`, `-q`, `--deep`, `--full`.
+2. Scan for flags: `--quick`, `-q`, `--deep`, `--full`, `--compact`, `-c`.
    - IF flag found: SET `execution_mode` to matching mode.
    - IF no flag found: SET `execution_mode` = null (will ask user).
 3. Scan for non-flag strings (does not start with `-`).
@@ -45,9 +46,10 @@ outputs:
 
 ```yaml
 parsed:
-  execution_mode: [Quick / Standard / Deep / null]
+  execution_mode: [Quick / Standard / Deep / Compact / null]
   artifact: [path or null]
   flags_found: [list]
+  report_mode: [full / compact]  # compact if --compact flag, else full
 ```
 
 ---
@@ -62,12 +64,13 @@ parsed:
 
 ```
 Select Verification Mode:
-1. Quick Verify (Reduced Tier 2 depth, lighter adversarial)
-2. Standard Verify (Full rigor, 2-3 Tier 2 methods)
-3. Deep Verify (Maximum rigor + Pattern Candidate evaluation)
+1. Quick Verify
+2. Standard Verify
+3. Deep Verify
 
-NOTE: ALL phases run in every mode. Quick reduces method depth,
-not phase count.
+Select Report Mode:
+A. Full Report
+B. Compact Report
 ```
 
 > **HALT** — Wait for user response. Record selection.

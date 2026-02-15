@@ -183,6 +183,32 @@ Phase 6: PATTERN CANDIDATE                           [Deep Only]
 
 ---
 
+## REPORT MODES
+
+**Selection:** Report mode determined in Phase 0 via CLI flags or interactive prompt.
+
+### Full Report (Default)
+- **Content:** All details including scores, methods, adversarial validation
+- **Sections:** Executive summary, configuration, execution details, findings, verdict justification, limitations, recommendations
+- **Use when:** Need complete audit trail, documentation, transparency
+- **Triggers:** Default, `--full-report`
+
+### Compact Report
+- **Content:** Summary only - verdict, critical findings, recommendations
+- **Quality:** Validated using methods #082, #083, #084, #088, #089
+- **Internal:** ALL phases execute fully, only presentation is condensed
+- **Sections:** Conclusion, critical issues, important findings, recommendations, scope, metadata
+- **Use when:** Need quick actionable results without overwhelming detail
+- **Triggers:** `--compact`, `-c`
+
+**IMPORTANT:**
+- Compact mode does NOT skip analysis - all 6 phases execute fully
+- Only the PRESENTATION is condensed
+- Quality is ensured through 5 validation methods
+- Internal processing remains identical to full mode
+
+---
+
 ## SCORING SYSTEM
 
 ### Evidence Score (S)
@@ -246,8 +272,14 @@ Phase 6: PATTERN CANDIDATE                           [Deep Only]
 | `data/severity-scoring.yaml` | Phase 2 | Severity assignment rules |
 | `data/decision-thresholds.yaml` | Phase 4 | Verdict calculation rules |
 | `data/calibration.yaml` | Phase 4 | Scoring calibration |
-| `data/report-template.md` | Phase 5 | Report structure |
+| `data/report-template.md` | Phase 5 (full mode) | Full report structure |
+| `data/compact-report-template.md` | Phase 5 (compact mode) | Compact report structure |
 | `data/pattern-update-protocol.yaml` | Phase 6 | New pattern rules |
+| `methods/method-procedures/082_Scope_Integrity_Audit.md` | Phase 5 (compact) | Scope integrity validation |
+| `methods/method-procedures/083_Closure_Check.md` | Phase 5 (compact) | Completeness validation |
+| `methods/method-procedures/084_Coherence_Check.md` | Phase 5 (compact) | Coherence validation |
+| `methods/method-procedures/088_Executability_Check.md` | Phase 5 (compact) | Actionability validation |
+| `methods/method-procedures/089_Output_Quality_Score.md` | Phase 5 (compact) | Quality scoring |
 
 ---
 

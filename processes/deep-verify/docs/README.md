@@ -28,8 +28,14 @@ The output is a structured report with exact quotes and a numeric score, not jus
 
 You need an LLM CLI like Claude Code, Gemini CLI, or similar.
 
+**Full Report Mode (default):**
 ```
 Use the process in src/deep-verify/workflow.md to verify path/to/file.py
+```
+
+**Compact Report Mode (summary only):**
+```
+Use the process in src/deep-verify/workflow.md to verify path/to/file.py --compact
 ```
 
 Or with specific focus:
@@ -37,6 +43,15 @@ Or with specific focus:
 ```
 Verify src/api/ and pay attention to consistency with the PRD in docs/requirements.md
 ```
+
+### Report Modes
+
+**Full Report:**
+- All details (scoring, methods, adversarial validation)
+
+**Compact Report:**
+- Verdict, critical findings, recommendations only
+- Quality validated: methods #082, #083, #084, #088, #089
 
 ## What it's good at
 
@@ -56,6 +71,8 @@ This isn't magic. Some things to know:
 
 ## Example output
 
+### Full Report Example
+
 ![Example verification report](img/result.png)
 
 ```
@@ -71,6 +88,78 @@ IMPORTANT: "Forward secrecy" used inconsistently
   No such standard term exists
 
 Adversarial review: 0/4 challenges weakened these findings
+```
+
+### Compact Report Example
+
+```
+═══════════════════════════════════════════════════════════════
+VERIFICATION SUMMARY
+═══════════════════════════════════════════════════════════════
+
+ARTIFACT: security-spec.md
+VERDICT: REJECT
+CONFIDENCE: HIGH
+DATE: 2026-02-15
+
+───────────────────────────────────────────────────────────────
+CONCLUSION
+───────────────────────────────────────────────────────────────
+
+The security specification contains a fundamental contradiction between
+Perfect Forward Secrecy and key escrow, which are definitionally mutually
+exclusive. Additionally, terminology is used inconsistently.
+
+───────────────────────────────────────────────────────────────
+CRITICAL ISSUES
+───────────────────────────────────────────────────────────────
+
+1. PFS contradicts key escrow capability
+   Location: Sections 2.1 and 4.3
+   Quote 1: "Perfect forward secrecy ensures past sessions cannot be decrypted"
+   Quote 2: "Enterprise key recovery allows retrieval of session keys"
+   Why critical: These are definitionally mutually exclusive (Pattern: DC-001)
+
+───────────────────────────────────────────────────────────────
+IMPORTANT FINDINGS
+───────────────────────────────────────────────────────────────
+
+• Inconsistent terminology: "forward secrecy" vs "recoverable forward secrecy" — Section 2.1, 4.3
+
+───────────────────────────────────────────────────────────────
+RECOMMENDATIONS
+───────────────────────────────────────────────────────────────
+
+Next steps:
+1. Choose one: Either implement PFS OR implement key escrow (cannot have both)
+2. If choosing PFS: Remove all key escrow/recovery mechanisms
+3. If choosing key escrow: Remove PFS claims and update terminology
+4. Standardize terminology throughout document
+
+───────────────────────────────────────────────────────────────
+SCOPE
+───────────────────────────────────────────────────────────────
+
+Checked:
+• Cryptographic consistency
+• Terminology usage
+• Definitional contradictions
+
+Not checked (out of scope):
+• Implementation code — spec verification only
+• Performance implications — not addressed in spec
+
+───────────────────────────────────────────────────────────────
+METADATA
+───────────────────────────────────────────────────────────────
+
+Mode: Standard Verify
+Methods executed: 8
+Evidence score: 7.5
+Duration: 18 minutes
+Workflow: Deep Verify V2.0
+
+═══════════════════════════════════════════════════════════════
 ```
 
 ## Works well with
