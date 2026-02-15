@@ -1,0 +1,37 @@
+{
+  "name": "@deep-process/mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol (MCP) server for Deep Process workflows",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "deep-process-mcp": "./dist/cli.js"
+  },
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/cli.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "deep-process",
+    "ai-tools",
+    "claude",
+    "anthropic"
+  ],
+  "author": "Deep Process Contributors",
+  "license": "MIT",
+  "dependencies": {
+    "@deep-process/core": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.4.0"
+  }
+}

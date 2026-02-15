@@ -1,0 +1,309 @@
+# Deep-Process v3.7 — Method Translator
+# Maps method numbers to execution instructions
+#
+# v3.7 Changes:
+# - Added Method #160 (Transformation Proof) for migration validation
+
+version: "3.7"
+description: "Method definitions for the Semantic Reality Engine"
+
+# Method Categories and Injection Rules
+injection_rules:
+  technical_task:
+    description: "Tasks involving code, architecture, technical design"
+    default_methods: [87, 114, 154]
+    optional_methods: [90, 159]
+
+  creative_task:
+    description: "Tasks involving vision, brainstorming, exploration"
+    default_methods: [71, 79, 152]
+    optional_methods: [72, 80]
+
+  migration_task:
+    description: "Tasks involving transforming external processes"
+    default_methods: [90, 159, 100, 160]  # Added #160 [v3.7]
+    optional_methods: [95, 114]
+    mandatory_methods: [160]  # #160 is MANDATORY for all migrations [v3.7]
+
+  validation_task:
+    description: "Tasks involving verification and quality assurance"
+    default_methods: [56, 59, 60, 93, 95, 99, 100]
+    mandatory: true
+
+# Anti-Bias Methods (Always run in validation)
+anti_bias:
+  "56":
+    name: "Liar's Trap"
+    category: "anti-bias"
+    mandatory_phase: "validation"
+    description: "Demand agent lists 3 ways it could deceive you in its current response"
+    output_pattern: "deception methods -> self-examination -> revealed blindspots"
+    execution:
+      - "Before finalizing, list 3 potential deception vectors"
+      - "For each, provide concrete evidence it's NOT being used"
+      - "Flag if evidence cannot be provided"
+    integration:
+      trigger: "ALWAYS before COMMITTED status"
+      failure_action: "BLOCK commit, require revision"
+
+  "59":
+    name: "CUI BONO Test"
+    category: "anti-bias"
+    mandatory_phase: "validation"
+    description: "For every decision ask who benefits"
+    output_pattern: "decisions -> beneficiary analysis -> justification"
+    execution:
+      - "Identify all decisions/recommendations in output"
+      - "For each, classify beneficiary: AGENT / USER / BOTH"
+      - "AGENT-only benefits require explicit justification"
+    integration:
+      trigger: "ALWAYS before COMMITTED status"
+      failure_action: "Flag decision for review"
+
+  "60":
+    name: "Approval Gradient Test"
+    category: "anti-bias"
+    mandatory_phase: "validation"
+    description: "Rate response on scale from what-user-wants to what-is-true"
+    output_pattern: "user want -> actual truth -> response position -> bias detection"
+    execution:
+      - "Rate each claim: 0% = pure truth, 100% = pure approval"
+      - "Score > 60% without justification = PEOPLE-PLEASING FLAG"
+      - "Uncomfortable truths must be stated directly"
+    integration:
+      trigger: "ALWAYS before COMMITTED status"
+      failure_action: "Require truth restatement"
+
+# Coherence Methods (Run on all artifacts)
+coherence:
+  "93":
+    name: "DNA Inheritance Check"
+    category: "coherence"
+    description: "Check if new element inherits system genes or mutates them"
+    output_pattern: "genes -> inheritance check -> mutation list -> justification"
+    execution:
+      - "Identify system genes: naming, errors, logging, structure"
+      - "Check if new element inherits each gene"
+      - "Mutations require explicit justification"
+    system_genes:
+      - naming_convention: "Pattern for IDs, files, variables"
+      - error_handling: "How errors are reported and handled"
+      - logging_style: "Format and verbosity of logs"
+      - structural_pattern: "Organization of content sections"
+
+  "95":
+    name: "Structural Isomorphism"
+    category: "coherence"
+    description: "Measure structure of new vs existing elements"
+    output_pattern: "structure metrics -> comparison -> delta analysis -> justification"
+    execution:
+      - "Measure: nesting depth, section count, complexity, size"
+      - "Compare with similar existing elements"
+      - "Delta > 30% requires justification"
+    metrics:
+      nesting_depth: "Maximum indentation level"
+      section_count: "Number of top-level sections"
+      complexity: "Cyclomatic complexity or similar"
+      size_lines: "Total line count"
+
+  "99":
+    name: "Multi-Artifact Coherence"
+    category: "coherence"
+    description: "Check consistency across related artifacts"
+    output_pattern: "artifacts -> reference check -> naming check -> interface check -> duplication check"
+    execution:
+      - "Check reference integrity: no broken links"
+      - "Check naming consistency: same terms for same concepts"
+      - "Check interface compatibility: APIs match expectations"
+      - "Check for duplication drift: same info diverging"
+    checks:
+      reference_integrity: "All paths and IDs resolve"
+      naming_consistency: "Consistent terminology"
+      interface_compatibility: "Declared interfaces match usage"
+      duplication_drift: "Copied content hasn't diverged"
+
+  "100":
+    name: "Vocabulary Consistency"
+    category: "coherence"
+    description: "Extract terms and identify synonyms/homonyms"
+    output_pattern: "terms -> synonyms -> homonyms -> standardization"
+    execution:
+      - "Extract all key terms from artifact"
+      - "Identify SYNONYMS: same concept, different words"
+      - "Identify HOMONYMS: same word, different concepts"
+      - "Propose standardization"
+
+# Implementation Methods (Selected by PM based on task type)
+implementation:
+  "71":
+    name: "First Principles Analysis"
+    category: "core"
+    description: "Strip away assumptions to rebuild from fundamental truths"
+    output_pattern: "assumptions -> truths -> new approach"
+    execution:
+      - "List all assumptions being made"
+      - "For each, ask: Is this actually true?"
+      - "Strip away inherited beliefs"
+      - "Rebuild from verified fundamentals"
+
+  "72":
+    name: "5 Whys Deep Dive"
+    category: "core"
+    description: "Repeatedly ask why to drill down to root causes"
+    output_pattern: "why chain -> root cause -> solution"
+    execution:
+      - "State the problem/requirement"
+      - "Ask Why 1: Surface answer"
+      - "Ask Why 2: Deeper reason"
+      - "Ask Why 3: Underlying cause"
+      - "Ask Why 4: Root pattern"
+      - "Ask Why 5: Fundamental driver"
+      - "Stop at organizational/human nature bedrock"
+
+  "79":
+    name: "Operational Definition"
+    category: "core"
+    description: "Convert abstract concept into observable measurable operations"
+    output_pattern: "abstract concept -> measurement -> observation -> definition"
+    execution:
+      - "Identify abstract/fuzzy concepts"
+      - "Ask: How would you MEASURE this?"
+      - "Define observable indicators"
+      - "Specify measurement procedure"
+      - "Make concept testable"
+    banned_without_quantification:
+      - "fast"
+      - "slow"
+      - "good"
+      - "bad"
+      - "easy"
+      - "hard"
+      - "simple"
+      - "complex"
+      - "efficient"
+
+  "80":
+    name: "Inversion"
+    category: "core"
+    description: "Instead of how to succeed, ask how to guarantee failure"
+    output_pattern: "goal -> failure paths -> inversion -> avoid failures"
+    execution:
+      - "State the goal"
+      - "Ask: How would I GUARANTEE failure?"
+      - "List all failure modes"
+      - "Invert: ensure solution avoids each"
+
+  "87":
+    name: "Falsifiability Check"
+    category: "sanity"
+    description: "For each claim specify what evidence would prove it wrong"
+    output_pattern: "claims -> falsification criteria -> theorem check -> testing status"
+    execution:
+      - "For each claim, ask: What would DISPROVE this?"
+      - "If nothing could disprove -> UNFALSIFIABLE (weak claim)"
+      - "If testable -> Define the test"
+      - "Check against theorems: FLP, CAP, Halting, Rice, Gödel"
+    theoretical_checks:
+      - "Does claim violate FLP impossibility?"
+      - "Does claim violate CAP theorem?"
+      - "Does claim violate Halting problem?"
+      - "Does claim violate Rice's theorem?"
+
+  "90":
+    name: "Dependency Topology Mapping"
+    category: "sanity"
+    description: "Find hidden coupling and dead links"
+    output_pattern: "coupling analysis -> ghosts -> dead links -> hidden dependency map"
+    execution:
+      - "List all explicit dependencies"
+      - "Search for implicit dependencies (shared state, timing, environment)"
+      - "Identify GHOSTS: high coupling, no visible link"
+      - "Identify DEAD LINKS: visible link, no real coupling"
+
+  "114":
+    name: "Reversibility Test"
+    category: "epistemology"
+    description: "Trace reasoning backwards from output to input"
+    output_pattern: "output -> backward trace -> reconstruction check -> gaps"
+    execution:
+      - "Given only the OUTPUT, can you reconstruct INPUT?"
+      - "Trace reasoning back to sources"
+      - "Steps that cannot be reconstructed = gaps or shortcuts"
+
+  "152":
+    name: "Socratic Decomposition Pre-Analysis"
+    category: "core"
+    description: "Decompose problem into atomic sub-questions"
+    output_pattern: "decompose -> independent answers -> consistency check -> targeted 5 Whys -> synthesis"
+    execution:
+      - "Decompose problem into atomic sub-questions"
+      - "Answer each sub-question INDEPENDENTLY"
+      - "Check for CONTRADICTIONS between answers"
+      - "Apply 5 Whys ONLY where contradictions exist"
+      - "Synthesize consistent whole"
+
+  "154":
+    name: "Definitional Contradiction Detector"
+    category: "theory"
+    description: "Find requirements that are DEFINITIONALLY mutually exclusive"
+    output_pattern: "requirements -> definition expansion -> exclusion check -> definitional vs practical conflict"
+    execution:
+      - "For each requirement pair, expand definitions"
+      - "Check if they are LOGICALLY IMPOSSIBLE together"
+      - "Distinguish: hard-to-achieve vs definitionally-impossible"
+      - "Definitional contradictions -> DECISION POINTS"
+    known_contradictions:
+      - pattern: "PFS + key recovery"
+        reason: "Forward secrecy requires past keys unrecoverable"
+      - pattern: "Strong consistency + high availability + partition tolerance"
+        reason: "CAP theorem"
+      - pattern: "Gradual typing + guaranteed termination"
+        reason: "Type system cannot prove termination with dynamic types"
+
+  "159":
+    name: "Transitive Dependency Closure"
+    category: "depend"
+    description: "Build dependency graph and compute transitive closure via DFS"
+    output_pattern: "graph -> DFS -> cycles -> missing -> transitive conflicts"
+    execution:
+      - "Build full dependency graph"
+      - "Run DFS to compute transitive closure"
+      - "Detect CYCLES: A -> B -> C -> A"
+      - "Detect MISSING: node referenced but not defined"
+      - "Detect TRANSITIVE CONFLICTS: A conflicts with C through B"
+
+# === MIGRATION METHODS [NEW v3.7] ===
+migration:
+  "160":
+    name: "Transformation Proof"
+    category: "migration"
+    mandatory_for: ["migration_task"]
+    block_on_fail: true
+    description: "Prove that process transformation is lossless or document losses"
+    output_pattern: "UPS -> mapping -> lossiness -> reversibility -> verdict"
+    execution:
+      - "Parse source process to Universal Process Schema (UPS)"
+      - "Execute forward transformation (UPS -> SRE-Convergent)"
+      - "Record element mapping with confidence scores"
+      - "Compute lossiness score: L = (unmapped + semantic_loss) / total"
+      - "Execute reverse transformation (SRE -> UPS')"
+      - "Compute reversibility score: R = 1 - (missing + changed) / original"
+      - "Determine verdict based on L and R thresholds"
+      - "Generate transformation-proof.json"
+    verdict_thresholds:
+      PROVEN_LOSSLESS:
+        lossiness: 0
+        reversibility: 1
+      PROVEN_ACCEPTABLE:
+        lossiness_max: 0.1
+        reversibility_min: 0.9
+      DOCUMENTED_LOSSES:
+        lossiness_max: 0.3
+        reversibility_min: 0.7
+      TRANSFORMATION_FAILED:
+        description: "All other cases"
+    integration:
+      trigger: "After migration protocol completion"
+      failure_action: "Block registration in _manifest.yaml"
+      output_file: "processes/{name}/transformation-proof.json"
+    procedure: "data/method-procedures/160_Transformation_Proof.md"

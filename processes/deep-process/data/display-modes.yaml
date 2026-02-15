@@ -1,0 +1,160 @@
+# Deep-Process v3.6 — Display Modes Configuration
+# Controls what information is shown to users vs hidden
+
+version: "3.6"
+
+# ============================================================================
+# DISPLAY MODES
+# ============================================================================
+
+modes:
+  # Default mode for regular users - hides technical internals
+  friendly:
+    description: "Tryb przyjazny - ukrywa szczegóły techniczne"
+    show:
+      - status_summary
+      - artifact_names
+      - process_names
+      - action_menu
+      - help_option
+      - progress_percentage
+      - user_facing_errors
+    hide:
+      - saga_id
+      - dp_id_internal
+      - transaction_blocks
+      - yaml_headers_full
+      - method_numbers_raw
+      - edge_definitions
+      - node_internal_ids
+    transform:
+      dp_status:
+        COMMITTED: "✅ Gotowy"
+        STALE: "🔄 Do aktualizacji"
+        BLOCKED: "🚫 Zablokowany"
+        FAILED: "❌ Błędny"
+        NOW: "⏳ W trakcie"
+        AWAITING_USER_INPUT: "❓ Czeka na decyzję"
+      method_display: "name_only"  # Show "Analiza pierwszych zasad" not "#71"
+
+  # Expert mode for developers/power users
+  expert:
+    description: "Tryb ekspercki - pokazuje wszystkie szczegóły"
+    show:
+      - all
+    hide: []
+    transform:
+      dp_status: "raw"  # Show COMMITTED, STALE, etc.
+      method_display: "number_and_name"  # Show "#71: First Principles Analysis"
+
+  # Debug mode - reserved for future use
+  # Uncomment when needed for troubleshooting:
+  # debug:
+  #   description: "Tryb debugowania - pełne szczegóły + logi"
+  #   show:
+  #     - all
+  #     - transaction_logs
+  #     - state_diffs
+  #     - method_execution_trace
+  #   hide: []
+  #   transform:
+  #     dp_status: "raw_with_timestamp"
+  #     method_display: "full"
+
+# ============================================================================
+# DEFAULT MODE
+# ============================================================================
+
+default_mode: "friendly"
+
+# User can switch modes via command:
+# [X] Tryb ekspercki - przełącza na widok szczegółowy
+# System remembers preference in .deep-process/config.json
+
+# ============================================================================
+# ELEMENT-SPECIFIC DISPLAY RULES
+# ============================================================================
+
+display_rules:
+  # Artifact display in lists
+  artifact_in_list:
+    friendly:
+      format: "{emoji} {name}"
+      example: "✅ Wizja projektu"
+    expert:
+      format: "{emoji} {dp_id}: {name} ({path})"
+      example: "✅ VISION-001: Wizja projektu (artifacts/vision.md)"
+
+  # Process instance in list
+  process_in_list:
+    friendly:
+      format: "[{index}] {name} — {status_pl}, {progress}%"
+      example: "[1] Onboarding klienta ABC — W trakcie, 65%"
+    expert:
+      format: "[{index}] {instance_id} ({process_type}) — {status}, {progress}%"
+      example: "[1] onboarding-client-abc-001 (PROC-ONBOARDING) — RUNNING, 65%"
+
+  # Dependency display
+  dependency_display:
+    friendly:
+      format: "• {artifact_name}"
+      example: "• Wizja projektu"
+    expert:
+      format: "• {path} ({type}: {dependency_type})"
+      example: "• artifacts/vision.md (semantic_source)"
+
+  # Method display in plan
+  method_in_plan:
+    friendly:
+      format: "• {name_pl}"
+      example: "• Analiza pierwszych zasad"
+    expert:
+      format: "• #{number}: {name} ({file})"
+      example: "• #71: First Principles Analysis (data/method-procedures/071_First_Principles_Analysis.md)"
+
+  # Error/warning display
+  error_display:
+    friendly:
+      format: "❌ {message_pl}"
+      example: "❌ Artefakt zawiera sprzeczne wymagania"
+    expert:
+      format: "❌ [{error_code}] {message} (detected by method #{method})"
+      example: "❌ [CONFLICT_154] Definitional contradiction (detected by method #154)"
+
+  # YAML header in artifact preview
+  yaml_header_preview:
+    friendly:
+      show_fields:
+        - "Nazwa: {dp_id without prefix}"
+        - "Status: {status_pl}"
+        - "Kluczowe fakty: {semantic_hash count} faktów"
+      hide_fields:
+        - version
+        - saga_id
+        - transaction
+        - execution.active_methods
+        - context.depends_on (show count only)
+    expert:
+      show_fields: "all"
+
+# ============================================================================
+# MODE SWITCHING
+# ============================================================================
+
+mode_switching:
+  command: "[X]"
+  label: "Zmień tryb wyświetlania"
+  prompt: |
+    Aktualny tryb: {current_mode}
+
+    Dostępne tryby:
+    [1] Przyjazny  - Uproszczony widok dla codziennej pracy
+    [2] Ekspercki  - Pełne szczegóły techniczne
+
+    ℹ️  Wybór zostanie zapamiętany dla przyszłych sesji.
+
+    Wybierz tryb [1/2]:
+
+  persistence:
+    file: ".deep-process/config.json"
+    key: "display_mode"

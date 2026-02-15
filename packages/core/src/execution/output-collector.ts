@@ -9,6 +9,7 @@
  */
 
 import { parse as parseYaml } from 'yaml';
+import type { ScopeReduction } from './gate-validator.js';
 
 /**
  * Structured output data
@@ -24,11 +25,7 @@ export interface CollectedOutput {
   assumptions: string[];
 
   /** Scope reductions */
-  scopeReductions: Array<{
-    item: string;
-    reason: string;
-    impact: string;
-  }>;
+  scopeReductions: ScopeReduction[];
 
   /** Detected patterns (risk patterns, architecture patterns, etc.) */
   patterns: Array<{
@@ -231,12 +228,8 @@ export class OutputCollector {
   /**
    * Extract scope reductions
    */
-  private extractScopeReductions(text: string): Array<{
-    item: string;
-    reason: string;
-    impact: string;
-  }> {
-    const reductions: Array<{ item: string; reason: string; impact: string }> = [];
+  private extractScopeReductions(text: string): ScopeReduction[] {
+    const reductions: ScopeReduction[] = [];
 
     // Look for SCOPE_REDUCTION or SCOPE_REDUCED markers
     const reductionRegex = /SCOPE_REDUCTION(?:_DECLARED)?[\s\S]*?```yaml\s*([\s\S]*?)```/gi;
@@ -244,11 +237,13 @@ export class OutputCollector {
     let match;
     while ((match = reductionRegex.exec(text)) !== null) {
       try {
-        const parsed = parseYaml(match[1]);
+        const parsed = parseYaml(match[1]) as any;
         if (Array.isArray(parsed)) {
-          reductions.push(...parsed);
+          for (const item of parsed) {
+            reductions.push(this.normalizeScopeReduction(item));
+          }
         } else if (parsed) {
-          reductions.push(parsed);
+          reductions.push(this.normalizeScopeReduction(parsed));
         }
       } catch {
         // Ignore parse errors
@@ -256,6 +251,21 @@ export class OutputCollector {
     }
 
     return reductions;
+  }
+
+  /**
+   * Normalize scope reduction to proper format
+   */
+  private normalizeScopeReduction(data: any): ScopeReduction {
+    return {
+      gate: data.gate || 'UNKNOWN',
+      itemSkipped: data.itemSkipped || data.item || data.item_skipped || 'UNKNOWN',
+      reason: data.reason || 'Not specified',
+      impactAssessment: data.impactAssessment || data.impact || data.impact_assessment || 'Not specified',
+      completenessCost: data.completenessCost || data.completeness_cost,
+      requiresUserApproval: data.requiresUserApproval ?? data.requires_user_approval ?? false,
+      approved: data.approved ?? false,
+    };
   }
 
   /**

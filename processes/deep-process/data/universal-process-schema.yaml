@@ -1,0 +1,272 @@
+# Universal Process Schema (UPS) v1.0
+# Reference: SPECIFICATION.md Section 8.4.1
+#
+# PURPOSE: Formal representation of ANY process before transformation to SRE-Convergent.
+# Deep-Process transformation is a mapping from UPS → SRE-Convergent.
+#
+# METHOD #71 (First Principles): This schema represents the minimal universal
+# elements that ANY process must have, regardless of source system.
+#
+# METHOD #79 (Operational Definition): Each element type is operationally
+# defined with clear mapping hints to Deep-Process types.
+
+schema_version: "1.0"
+framework_version: "3.7"
+
+description: |
+  Universal Process Schema (UPS) - formalna reprezentacja dowolnego procesu
+  przed transformacją do SRE-Convergent.
+
+  USAGE:
+  1. Parse source process (BPMN, Jira, Confluence, manual) into UPS format
+  2. Execute transformation pipeline (SPECIFICATION.md Section 8.1)
+  3. Generate transformation-proof.json via Method #160
+  4. Register in _manifest.yaml if proof passes
+
+process:
+  type: object
+  required: [ups_id, source_system, elements, flows]
+
+  properties:
+    # === IDENTITY ===
+    ups_id:
+      type: string
+      pattern: "^ups-[a-z0-9-]+(-v[0-9]+)?$"
+      description: "Unique identifier for source process"
+      examples:
+        - "ups-onboarding-v1"
+        - "ups-sprint-planning-v2"
+
+    name:
+      type: string
+      description: "Human-readable name"
+
+    source_system:
+      type: string
+      enum:
+        - BPMN           # Business Process Model and Notation
+        - Confluence     # Atlassian Confluence pages
+        - Jira           # Jira workflows
+        - manual         # Described manually/verbally
+        - email          # Email-based processes
+        - spreadsheet    # Excel/Sheets based processes
+        - other          # Other systems
+      description: "System from which process was extracted"
+
+    source_version:
+      type: string
+      description: "Version in source system"
+
+    extracted_at:
+      type: string
+      format: date-time
+      description: "When this UPS was created"
+
+    extracted_by:
+      type: string
+      description: "Who/what extracted this UPS"
+
+    # === UNIVERSAL ELEMENTS ===
+    elements:
+      type: array
+      items:
+        $ref: "#/definitions/universal_element"
+      description: "All process elements in universal format"
+
+    # === FLOWS BETWEEN ELEMENTS ===
+    flows:
+      type: array
+      items:
+        $ref: "#/definitions/flow"
+      description: "Connections between elements"
+
+    # === METADATA (potentially lossy) ===
+    metadata:
+      type: object
+      additionalProperties: true
+      description: |
+        Source-specific data that may not have direct Deep-Process mapping.
+        Tracked for lossiness calculation in transformation-proof.json
+
+definitions:
+  universal_element:
+    type: object
+    required: [ups_id, ups_type, content]
+    properties:
+      ups_id:
+        type: string
+        pattern: "^ups-[0-9]{3}$"
+        description: "Element ID within this UPS"
+
+      ups_type:
+        type: string
+        enum:
+          # === ARTIFACTS (information objects) ===
+          - document           # Written document, spec, policy
+          - data_object        # Data record, entity
+          - decision_record    # Recorded decision
+          - output             # Process output/deliverable
+
+          # === ACTIONS (things that happen) ===
+          - task               # Single action step
+          - activity           # Complex action (may have substeps)
+          - subprocess         # Embedded process
+          - event              # Something that happens (start, end, intermediate)
+
+          # === CONTROL (flow logic) ===
+          - gateway_exclusive  # XOR - exactly one path
+          - gateway_parallel   # AND - all paths simultaneously
+          - gateway_inclusive  # OR - one or more paths
+          - condition          # Boolean condition
+
+          # === HUMAN (people involved) ===
+          - role               # Job function/responsibility
+          - participant        # Specific person/team
+          - approval           # Approval checkpoint
+
+          # === META ===
+          - annotation         # Comment/note
+          - unknown            # Cannot classify
+
+        description: "Universal element type classification"
+
+      content:
+        type: object
+        description: "Element-specific content"
+        properties:
+          name:
+            type: string
+          description:
+            type: string
+          properties:
+            type: object
+            additionalProperties: true
+
+      # === MAPPING GUIDANCE ===
+      dp_mapping_hint:
+        type: string
+        enum:
+          - artifact         # Maps to dp_type: artifact
+          - process          # Maps to process definition
+          - decision-point   # Maps to dp_type: decision-point
+          - agent            # Maps to agent definition
+          - gate             # Maps to logic_gate in process.yaml
+          - step             # Maps to step in process.yaml
+          - edge             # Maps to edge in state.json
+          - null             # Needs analysis, no clear mapping
+        nullable: true
+        description: "Suggested Deep-Process mapping (null = needs analysis)"
+
+      # === UNMAPPABLE TRACKING ===
+      unmappable_properties:
+        type: array
+        items:
+          type: object
+          required: [property, reason, severity]
+          properties:
+            property:
+              type: string
+              description: "Property name that cannot be mapped"
+            reason:
+              type: string
+              description: "Why it cannot be mapped"
+            severity:
+              type: string
+              enum:
+                - info       # Informational, no semantic loss
+                - warning    # Minor semantic loss, acceptable
+                - loss       # Significant semantic loss
+              description: "Impact on transformation fidelity"
+            mitigation:
+              type: string
+              description: "How to handle this loss"
+
+  flow:
+    type: object
+    required: [from, to, type]
+    properties:
+      from:
+        type: string
+        description: "Source element ups_id"
+
+      to:
+        type: string
+        description: "Target element ups_id"
+
+      type:
+        type: string
+        enum:
+          - sequence       # Execution order
+          - data           # Data flow
+          - message        # Communication flow
+          - association    # Weak link (documentation)
+          - conditional    # Conditional flow (requires condition)
+        description: "Type of flow"
+
+      condition:
+        type: string
+        nullable: true
+        description: "For conditional flows: the condition expression"
+
+      label:
+        type: string
+        nullable: true
+        description: "Human-readable label for this flow"
+
+# === EXAMPLE ===
+example:
+  ups_id: "ups-employee-onboarding-v1"
+  name: "Employee Onboarding Process"
+  source_system: "Confluence"
+  extracted_at: "2026-02-05T10:00:00Z"
+  extracted_by: "deep-process-migration"
+
+  elements:
+    - ups_id: "ups-001"
+      ups_type: "event"
+      content:
+        name: "New hire confirmed"
+        description: "HR confirms new employee start date"
+      dp_mapping_hint: "step"
+
+    - ups_id: "ups-002"
+      ups_type: "task"
+      content:
+        name: "Prepare workstation"
+        description: "IT prepares laptop and accounts"
+      dp_mapping_hint: "artifact"
+
+    - ups_id: "ups-003"
+      ups_type: "approval"
+      content:
+        name: "Manager approval"
+        description: "Direct manager approves onboarding plan"
+      dp_mapping_hint: "decision-point"
+      unmappable_properties:
+        - property: "email_notification"
+          reason: "Deep-Process does not have notification system"
+          severity: "info"
+          mitigation: "Document in artifact description"
+
+  flows:
+    - from: "ups-001"
+      to: "ups-002"
+      type: "sequence"
+    - from: "ups-002"
+      to: "ups-003"
+      type: "sequence"
+
+# === VALIDATION RULES ===
+validation:
+  rules:
+    - name: "unique_element_ids"
+      description: "All element ups_id values must be unique"
+
+    - name: "valid_flow_references"
+      description: "All flow from/to must reference existing element ups_id"
+
+    - name: "no_orphan_elements"
+      description: "Every element (except start) must have at least one incoming flow"
+
+    - name: "mapping_completeness"
+      description: "Elements with dp_mapping_hint: null should be minimized"

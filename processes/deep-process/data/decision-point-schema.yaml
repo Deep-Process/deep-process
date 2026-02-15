@@ -1,0 +1,250 @@
+# Deep-Process v3.6 — Decision Point Schema
+# Human-in-the-Loop checkpoint when system encounters ambiguity
+
+schema_version: "3.6"
+description: "Schema for decision-point artifacts that require human input"
+
+decision_point:
+  type: object
+  required:
+    - dp_id
+    - dp_type
+    - dp_status
+    - question
+
+  properties:
+    dp_id:
+      type: string
+      pattern: "^DP-[0-9]+$"
+      description: "Decision Point identifier"
+
+    dp_type:
+      type: string
+      const: "decision-point"
+
+    dp_status:
+      type: string
+      enum:
+        - AWAITING_USER_INPUT  # Waiting for human decision
+        - RESOLVED             # Human has decided
+        - EXPIRED              # No longer relevant
+
+    version:
+      type: string
+      const: "3.6"
+
+    question:
+      type: object
+      required:
+        - type
+        - trigger
+        - prompt
+        - options
+      properties:
+        type:
+          type: string
+          enum:
+            - EXCLUSIVE_CHOICE   # Select exactly one option
+            - MULTI_CHOICE       # Select one or more options
+            - FREE_TEXT          # Open-ended response
+            - CONFIRMATION       # Yes/No decision
+          description: "Type of decision required"
+
+        trigger:
+          type: string
+          description: "What caused this decision point (method + finding)"
+          examples:
+            - "Conflict detected via Method #154"
+            - "Ambiguity in Method #100 - term 'fast' undefined"
+            - "Method #90 found circular dependency"
+
+        prompt:
+          type: string
+          minLength: 10
+          description: "Clear description of the decision needed"
+
+        context:
+          type: object
+          properties:
+            conflicting_artifacts:
+              type: array
+              items:
+                type: string
+              description: "dp_ids of artifacts in conflict"
+
+            quotes:
+              type: array
+              items:
+                type: object
+                properties:
+                  source:
+                    type: string
+                  text:
+                    type: string
+              description: "Exact quotes showing the conflict"
+
+            analysis:
+              type: string
+              description: "System's analysis of the situation"
+
+        options:
+          type: array
+          minItems: 2
+          items:
+            type: object
+            required:
+              - id
+              - label
+              - impact
+            properties:
+              id:
+                type: string
+                pattern: "^[A-Z]$"
+                description: "Option identifier (A, B, C, ...)"
+
+              label:
+                type: string
+                description: "Human-readable option description"
+
+              impact:
+                type: string
+                description: "What changes if this option is selected"
+
+              recommended:
+                type: boolean
+                default: false
+                description: "System recommendation (if any)"
+
+              risks:
+                type: array
+                items:
+                  type: string
+                description: "Known risks of this option"
+
+    resolution:
+      type: object
+      description: "Filled when human decides"
+      properties:
+        selected_option:
+          type: string
+          description: "ID of selected option"
+
+        rationale:
+          type: string
+          description: "Why this option was chosen"
+
+        resolved_by:
+          type: string
+          description: "Who made the decision"
+
+        resolved_at:
+          type: string
+          format: date-time
+
+        follow_up_actions:
+          type: array
+          items:
+            type: string
+          description: "Actions to take after resolution"
+
+    transaction:
+      type: object
+      properties:
+        saga_id:
+          type: string
+        blocking:
+          type: array
+          items:
+            type: string
+          description: "dp_ids blocked until this is resolved"
+
+# Template for new decision points
+template: |
+  ---
+  dp_id: "DP-{NUMBER}"
+  dp_type: "decision-point"
+  dp_status: "AWAITING_USER_INPUT"
+  version: "3.6"
+
+  question:
+    type: "EXCLUSIVE_CHOICE"
+    trigger: "{Method and reason}"
+    prompt: "{Clear question for the human}"
+    context:
+      conflicting_artifacts:
+        - "{artifact-1}"
+        - "{artifact-2}"
+      quotes:
+        - source: "{artifact-1}"
+          text: "{exact quote}"
+        - source: "{artifact-2}"
+          text: "{conflicting quote}"
+      analysis: |
+        {System's analysis of why this is a conflict
+        and why it cannot be resolved automatically}
+    options:
+      - id: "A"
+        label: "{Option A description}"
+        impact: "{What changes}"
+        recommended: false
+        risks:
+          - "{Risk 1}"
+      - id: "B"
+        label: "{Option B description}"
+        impact: "{What changes}"
+        recommended: true
+        risks:
+          - "{Risk 1}"
+
+  transaction:
+    saga_id: "tx-{XXXX}"
+    blocking:
+      - "{blocked-artifact-id}"
+  ---
+
+  # Decision Required: {Brief Title}
+
+  ## Situation
+
+  {Expanded description of the conflict}
+
+  ## Options Analysis
+
+  ### Option A: {Label}
+
+  {Detailed analysis}
+
+  ### Option B: {Label}
+
+  {Detailed analysis}
+
+  ## Recommendation
+
+  {System recommendation with reasoning, or "No recommendation - equally valid options"}
+
+# Decision Types and When to Use
+decision_types:
+  EXCLUSIVE_CHOICE:
+    description: "When exactly one path must be chosen"
+    examples:
+      - "Monolit vs Mikroserwisy"
+      - "OAuth vs JWT-only auth"
+      - "PostgreSQL vs MongoDB"
+
+  MULTI_CHOICE:
+    description: "When multiple options can coexist"
+    examples:
+      - "Which platforms to support initially"
+      - "Which features to include in MVP"
+
+  FREE_TEXT:
+    description: "When options can't be enumerated"
+    examples:
+      - "What should the error message say?"
+      - "Define the exact business rule"
+
+  CONFIRMATION:
+    description: "When system needs explicit approval"
+    examples:
+      - "Proceed with migration that may lose data?"
+      - "Delete deprecated feature from scope?"

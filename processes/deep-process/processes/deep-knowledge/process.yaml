@@ -1,0 +1,69 @@
+process_id: "proc-deep-knowledge"
+name: "Deep Knowledge (Semantic Pyramid)"
+version: "1.0.0"
+description: "Meta-proces do zarządzania wiedzą o projekcie (L0-L2) bez zewnętrznych narzędzi. Utrzymuje spójność semantyczną między kodem a dokumentacją."
+inherits: "deep-process-v3.7"
+
+# === ARTIFACT DEFINITIONS (Struktura Piramidy) ===
+artifacts:
+  - id: "art-constitution"
+    name: "L0: Project Constitution"
+    description: "Nienaruszalne zasady i misja projektu (The Why)"
+    template: "templates/L0-constitution.md"
+    semantic_hashing: strict
+    propagation_mode: "VERSION_PINNED"
+
+  - id: "art-architecture"
+    name: "L1: Architecture Map"
+    description: "Wysokopoziomowa mapa komponentów (The What)"
+    template: "templates/L1-architecture.md"
+    depends_on: ["art-constitution"]
+    propagation_mode: "IMMEDIATE"
+
+  - id: "art-registry"
+    name: "L2: Semantic Registry"
+    description: "Indeks plików z ich intencjami (The Where)"
+    template: "templates/L2-registry.md"
+    depends_on: ["art-architecture"]
+    propagation_mode: "DEFERRED"
+
+# === STEPS (Algorytm LLM) ===
+steps:
+  # KROK 1: FUNDAMENT (L0)
+  - id: "step-init-constitution"
+    name: "Establish Constitution"
+    type: "artifact"
+    creates: "art-constitution"
+    methods: [71, 79] # First Principles, Operational Definition
+
+  # KROK 2: KARTOGRAF (L2) - Budujemy od dołu, żeby zrozumieć teren
+  - id: "step-map-territory"
+    name: "Sense Territory (The Cartographer)"
+    type: "artifact"
+    creates: "art-registry"
+    methods: [101] # Method #101: Cognitive Snapshot (Nowa metoda)
+
+  # KROK 3: ARCHITEKT (L1) - Synteza na podstawie L0 i L2
+  - id: "step-define-architecture"
+    name: "Define Architecture (The Architect)"
+    type: "artifact"
+    creates: "art-architecture"
+    depends_on: ["step-init-constitution", "step-map-territory"]
+    methods: [159, 95] # Transitive Closure, Structural Isomorphism
+
+  # KROK 4: WERYFIKACJA SPÓJNOŚCI
+  - id: "step-verify-coherence"
+    name: "Verify Alignment"
+    type: "decision-point"
+    depends_on: ["step-define-architecture"]
+    condition: "Method #99 (Multi-Artifact Coherence) == PASS"
+
+# === SELF-EXTENSION (Rozszerzalność) ===
+self_extension:
+  enabled: true
+  description: "Pozwala tworzyć szczegółowe mapy dla konkretnych modułów"
+  extensible_artifacts:
+    - artifact_type: "MODULE_MAP"
+      depth_level: 1
+      can_contain: ["FILE_INTENT"]
+      template: "templates/module-map.md"

@@ -203,36 +203,44 @@ Assumptions:
 # SCOPE_REDUCTION_DECLARED
 
 \`\`\`yaml
-item: G1-03
+gate: GATE_1
+itemSkipped: G1-03
 reason: Quick depth selected
-impact: Threat modeling skipped
+impactAssessment: Threat modeling skipped
+requiresUserApproval: true
+approved: false
 \`\`\`
       `;
 
       const result = collector.collect(mockOutput);
 
       expect(result.scopeReductions).toHaveLength(1);
-      expect(result.scopeReductions[0].item).toBe('G1-03');
+      expect(result.scopeReductions[0].gate).toBe('GATE_1');
+      expect(result.scopeReductions[0].itemSkipped).toBe('G1-03');
       expect(result.scopeReductions[0].reason).toBe('Quick depth selected');
-      expect(result.scopeReductions[0].impact).toBe('Threat modeling skipped');
+      expect(result.scopeReductions[0].impactAssessment).toBe('Threat modeling skipped');
     });
 
     it('should extract multiple scope reductions', () => {
       const mockOutput = `
 \`\`\`yaml
 SCOPE_REDUCTION:
-  - item: G1-03
+  - gate: GATE_1
+    itemSkipped: G1-03
     reason: Reason 1
-    impact: Impact 1
-  - item: G2-04
+    impactAssessment: Impact 1
+  - gate: GATE_2
+    itemSkipped: G2-04
     reason: Reason 2
-    impact: Impact 2
+    impactAssessment: Impact 2
 \`\`\`
       `;
 
       const result = collector.collect(mockOutput);
 
-      expect(result.scopeReductions.length).toBeGreaterThan(0);
+      expect(result.scopeReductions.length).toBe(2);
+      expect(result.scopeReductions[0].itemSkipped).toBe('G1-03');
+      expect(result.scopeReductions[1].itemSkipped).toBe('G2-04');
     });
   });
 

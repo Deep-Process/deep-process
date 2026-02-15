@@ -1,0 +1,197 @@
+# Deep-Process v3.6 — SRE-Convergent Process Definition Template
+# Copy this folder and customize for your process
+
+# ============================================================================
+# PROCESS IDENTITY
+# ============================================================================
+
+id: "PROC-{NAME}"
+name: "{Human-readable process name}"
+description: |
+  {Detailed description of what this process does}
+
+version: "1.0"
+status: "draft"  # draft | active | deprecated
+
+# Origin tracking
+origin:
+  type: "migrated"  # migrated | created
+  source: "{Original process/system if migrated}"
+  migrated_at: null
+  migrated_by: null
+
+# ============================================================================
+# INHERITANCE FROM DEEP-PROCESS
+# ============================================================================
+
+inherits:
+  framework: "deep-process"
+  framework_version: "3.6"
+
+  # Which framework components this process uses
+  uses:
+    enforcer: true           # BIOS / Method Translator
+    state_management: true   # state.json tracking
+    saga_pattern: true       # Transactional commits
+    decision_points: true    # Human-in-the-loop
+    semantic_hash: true      # Convergent determinism
+
+# ============================================================================
+# METHOD CONFIGURATION
+# ============================================================================
+
+methods:
+  # Methods always applied during this process
+  default:
+    - 100  # Vocabulary Consistency (always for coherence)
+
+  # Methods applied at process start
+  on_start:
+    - 71   # First Principles Analysis
+    - 152  # Socratic Decomposition
+
+  # Methods applied during execution
+  on_execute:
+    - 87   # Falsifiability Check
+    - 114  # Reversibility Test
+
+  # Methods applied before completion
+  on_complete:
+    - 90   # Dependency Topology Mapping
+    - 159  # Transitive Dependency Closure
+
+  # Validation methods (always mandatory)
+  validation:
+    anti_bias: [56, 59, 60]
+    coherence: [93, 95, 99, 100]
+
+# ============================================================================
+# PROCESS STEPS
+# ============================================================================
+
+steps:
+  - id: "step-01"
+    name: "{Step 1 name}"
+    description: "{What happens in this step}"
+    type: "artifact"  # artifact | decision | action | validation
+
+    # What this step produces
+    produces:
+      - artifact_type: "artifact"
+        template: "templates/step-01-output.md"
+        required: true
+
+    # Methods specific to this step
+    methods: []
+
+    # Conditions to enter this step
+    entry_conditions:
+      - "Process started"
+
+    # Conditions to complete this step
+    exit_conditions:
+      - "Output artifact COMMITTED"
+
+  - id: "step-02"
+    name: "{Step 2 name}"
+    description: "{Description}"
+    type: "artifact"
+
+    # Dependencies on previous steps
+    depends_on:
+      - "step-01"
+
+    produces:
+      - artifact_type: "artifact"
+        template: "templates/step-02-output.md"
+
+    methods: []
+
+    entry_conditions:
+      - "step-01 completed"
+
+    exit_conditions:
+      - "Output artifact COMMITTED"
+
+  # Add more steps as needed...
+
+# ============================================================================
+# ARTIFACTS PRODUCED
+# ============================================================================
+
+artifacts:
+  # List all artifact types this process produces
+  - id: "{ARTIFACT-TYPE}"
+    name: "{Artifact name}"
+    description: "{What this artifact contains}"
+    template: "templates/{artifact}.md"
+    produced_by: "step-XX"
+    required: true
+
+# ============================================================================
+# DECISION POINTS
+# ============================================================================
+
+decision_points:
+  # Predefined decision points in this process
+  - id: "DP-{PROCESS}-{NUM}"
+    trigger_step: "step-XX"
+    trigger_condition: "{When this DP is created}"
+    question_type: "EXCLUSIVE_CHOICE"
+    description: "{What decision is needed}"
+
+# ============================================================================
+# LOGIC GATES
+# ============================================================================
+
+gates:
+  # Conditional paths in the process
+  - id: "gate-01"
+    condition: "{condition expression}"
+    if_true: "step-XX"
+    if_false: "step-YY"
+    description: "{What this gate decides}"
+
+# ============================================================================
+# INSTANCE CONFIGURATION
+# ============================================================================
+
+instance:
+  # Where artifacts are stored for each instance
+  artifacts_base: "artifacts/processes/"
+
+  # Naming pattern for instance folders
+  naming_pattern: "{process-name}-{context}-{sequence}"
+
+  # Files created in each instance folder
+  instance_files:
+    - "instance-state.json"  # Local state for this instance
+    - "instance-log.md"      # Activity log
+
+  # Context variables this process needs
+  context_variables:
+    - name: "{variable_name}"
+      type: "string"
+      required: true
+      description: "{What this variable is for}"
+      prompt: "{Question to ask user}"
+
+# ============================================================================
+# COMPLETION CRITERIA
+# ============================================================================
+
+completion:
+  # What must be true for process to be COMPLETED
+  requirements:
+    - "All steps completed"
+    - "All artifacts COMMITTED"
+    - "No pending Decision Points"
+    - "Final validation passed"
+
+  # Final validation steps
+  final_validation:
+    methods: [56, 59, 60, 99]
+    checks:
+      - "All artifacts coherent"
+      - "Semantic hashes verified"
+      - "No STALE artifacts"
