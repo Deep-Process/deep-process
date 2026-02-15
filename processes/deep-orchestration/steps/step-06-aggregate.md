@@ -27,11 +27,11 @@ STORE: aggregation_context
 VERIFY: workflow_status = COMPLETED OR ABORTED OR FINISHED
 ```
 
-## 2. EXECUTE_METHOD_349
+## 2. EXECUTE_DEEP_AGGREGATE
 
 ```
-IF Method 349 (Result Aggregator) available:
-  LOAD: ../../methods/method-349-result-aggregator/method.md
+IF deep-aggregate subprocess available:
+  INVOKE: ../deep-aggregate/workflow.md
 
   PREPARE: workflow_input.yaml
     workflow_id: FROM orchestration_context.workflow_id
@@ -60,10 +60,10 @@ IF Method 349 (Result Aggregator) available:
       token_usage: monitoring_results.total_tokens
       cost: monitoring_results.total_cost
 
-  WRITE: workflow_input.yaml TO methods/method-349-result-aggregator/workflow_input.yaml
+  WRITE: workflow_input.yaml TO ../deep-aggregate/workflow_input.yaml
 
-  EXECUTE: Method #349 Result Aggregator
-    FOLLOW: methods/method-349-result-aggregator/method.md
+  EXECUTE: deep-aggregate subprocess
+    FOLLOW: ../deep-aggregate/workflow.md
     ENFORCED SEQUENCE: STEP 0 → STEP 1 → STEP 2 → STEP 3 → STEP 4 → STEP 5
 
     STEP 0: SETUP
@@ -101,7 +101,7 @@ IF Method 349 (Result Aggregator) available:
       WRITE metadata
       VERIFY output files
 
-  RECEIVE: Method #349 outputs
+  RECEIVE: deep-aggregate outputs
     decision_brief_path: reports/decision-brief-[execution_id].md
     full_report_path: reports/full-report-[execution_id].md
     metadata_path: reports/metadata-[execution_id].yaml
@@ -116,7 +116,7 @@ IF Method 349 (Result Aggregator) available:
     critical_issues_count: metadata.critical_issues_count
 
   STORE: In orchestration_results
-    aggregation_method: "Method 349 - Result Aggregator"
+    aggregation_method: "deep-aggregate subprocess"
     decision_brief: decision_brief_path
     full_report: full_report_path
     metadata: metadata_path
@@ -127,7 +127,7 @@ IF Method 349 (Result Aggregator) available:
   OUTPUT:
 ```yaml
 result_aggregation:
-  method: "Method 349 - Result Aggregator"
+  method: "deep-aggregate subprocess"
   tasks_aggregated: [tasks_count]
   outputs_collected: [outputs_count]
   aggregation_complete: TRUE
@@ -138,8 +138,8 @@ result_aggregation:
 ```
 
 ELSE:
-  HALT: "VIOLATION: Method #349 Result Aggregator required but not available"
-  OUTPUT: "Method #349 must be installed at methods/method-349-result-aggregator/"
+  HALT: "VIOLATION: deep-aggregate subprocess required but not available"
+  OUTPUT: "deep-aggregate must be available at ../deep-aggregate/"
   OUTPUT: "Cannot proceed with manual aggregation - enforced process required"
 ```
 

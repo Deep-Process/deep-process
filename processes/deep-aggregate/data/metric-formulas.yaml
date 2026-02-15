@@ -1,0 +1,128 @@
+task_metrics:
+  success_rate:
+    formula: "completed_tasks / total_tasks"
+    unit: "ratio (0-1)"
+    interpretation:
+      - range: "0.9-1.0"
+        level: "EXCELLENT"
+      - range: "0.7-0.9"
+        level: "GOOD"
+      - range: "0.5-0.7"
+        level: "ACCEPTABLE"
+      - range: "0.0-0.5"
+        level: "POOR"
+
+  output_quality:
+    formula: "valid_outputs / total_outputs"
+    unit: "ratio (0-1)"
+    interpretation:
+      - range: "0.9-1.0"
+        level: "HIGH"
+      - range: "0.7-0.9"
+        level: "MEDIUM"
+      - range: "0.0-0.7"
+        level: "LOW"
+
+decision_metrics:
+  decision_coherence:
+    formula: "1 - (contradiction_count / total_comparisons)"
+    unit: "ratio (0-1)"
+    contradiction_rules:
+      - rule: "deep-explore recommends option A AND deep-risk flags option A as HIGH risk without mitigation"
+        weight: 0.5
+
+      - rule: "deep-verify verdict=GO AND critical_issues contains BLOCKER"
+        weight: 1.0
+
+      - rule: "deep-synthesis theme conflicts with deep-explore option"
+        weight: 0.3
+
+    interpretation:
+      - range: "0.9-1.0"
+        level: "VERY_COHERENT"
+      - range: "0.7-0.9"
+        level: "COHERENT"
+      - range: "0.5-0.7"
+        level: "SOMEWHAT_COHERENT"
+      - range: "0.0-0.5"
+        level: "INCOHERENT"
+
+  information_completeness:
+    formula: "tasks_completed / tasks_total"
+    unit: "ratio (0-1)"
+    interpretation:
+      - range: "1.0"
+        level: "COMPLETE"
+      - range: "0.8-1.0"
+        level: "MOSTLY_COMPLETE"
+      - range: "0.5-0.8"
+        level: "PARTIAL"
+      - range: "0.0-0.5"
+        level: "INSUFFICIENT"
+
+  critical_issue_density:
+    formula: "critical_issues_count / tasks_completed"
+    unit: "count per task"
+    interpretation:
+      - range: "0.0"
+        level: "NONE"
+      - range: "0.1-1.0"
+        level: "LOW"
+      - range: "1.0-3.0"
+        level: "MEDIUM"
+      - range: "3.0+"
+        level: "HIGH"
+
+decision_readiness:
+  calculation:
+    formula: "(information_completeness + data_quality + coherence - (critical_unresolved / 10)) / 3"
+    components:
+      - information_completeness: "tasks_completed / tasks_total"
+      - data_quality: "valid_outputs / total_outputs"
+      - coherence: "decision_coherence metric"
+      - critical_unresolved: "count of BLOCKER + CRITICAL issues"
+
+    unit: "ratio (0-1)"
+
+  classification:
+    - range: "0.9-1.0"
+      level: "READY"
+      description: "All information complete, high quality, coherent, no critical issues"
+
+    - range: "0.7-0.9"
+      level: "MOSTLY_READY"
+      description: "Most information available, acceptable quality, minor issues"
+
+    - range: "0.5-0.7"
+      level: "PARTIAL"
+      description: "Some information missing or quality issues present"
+
+    - range: "0.0-0.5"
+      level: "NOT_READY"
+      description: "Significant gaps, quality issues, or critical blockers"
+
+execution_metrics:
+  total_execution_time:
+    source: "monitoring_data.execution_time"
+    unit: "seconds"
+
+  total_token_usage:
+    source: "monitoring_data.token_usage"
+    unit: "tokens"
+
+  total_cost:
+    source: "monitoring_data.cost"
+    unit: "currency"
+
+aggregation_pattern_detection:
+  sequential:
+    indicator: "tasks have linear dependency chain"
+    aggregation: "Combine outputs in execution order"
+
+  parallel:
+    indicator: "tasks have no dependencies OR all depend on same root"
+    aggregation: "Merge parallel outputs into combined result set"
+
+  hybrid:
+    indicator: "mix of sequential and parallel segments"
+    aggregation: "Apply appropriate method per segment"

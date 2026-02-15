@@ -24,12 +24,12 @@ methods:
     required: false
 
   - id: 349
-    name: "Result Aggregator"
+    name: "Deep Aggregate"
     phase: "step-06-aggregate"
     status: "PRODUCTION_READY"
-    location: "methods/method-349-result-aggregator"
+    location: "../deep-aggregate"
     required: true
-    description: "Aggregates outputs from multiple processes into Decision Brief (5-10 pages) with actionable GO/NO-GO recommendation"
+    description: "Subprocess that aggregates outputs from multiple processes into Decision Brief (5-10 pages) with actionable GO/NO-GO recommendation"
 
   - id: 350
     name: "Workflow State Manager"

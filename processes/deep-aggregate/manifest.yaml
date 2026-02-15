@@ -1,0 +1,22 @@
+id: deep-aggregate
+name: "Deep Aggregate"
+version: "1.0.0"
+description: "Aggregates outputs from multiple processes into concise Decision Brief with actionable GO/NO-GO recommendation"
+
+workflowFile: "workflow.md"
+firstStepFile: "steps/step-00-setup.md"
+
+agentInstruction: "Execute aggregation workflow. Collect all process outputs. Apply counter-checks to all synthesis decisions. Generate Decision Brief within 10-page limit."
+
+gates:
+  - GATE_0: "input_loaded = TRUE AND schemas_loaded = TRUE AND prerequisites_met = TRUE AND counter_check_executed = TRUE"
+  - GATE_1: "outputs_collected >= 1 AND validation_executed = TRUE AND counter_check_executed = TRUE"
+  - GATE_2: "pattern_determined = TRUE AND metrics_computed = TRUE AND outcome_classified = TRUE AND counter_check_executed = TRUE"
+  - GATE_3: "key_findings_extracted = TRUE AND recommendation_generated = TRUE AND next_steps_generated = TRUE AND counter_check_executed = TRUE"
+  - GATE_4: "decision_brief_rendered = TRUE AND page_limit_satisfied = TRUE AND counter_check_executed = TRUE"
+  - GATE_5: "all_files_written = TRUE AND metadata_accurate = TRUE AND counter_check_executed = TRUE"
+
+outputs:
+  - "decision_brief"
+  - "full_report"
+  - "metadata"
