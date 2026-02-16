@@ -1,0 +1,291 @@
+---
+# Root Process Definitions Metadata
+# Generated: 2026-02-16
+---
+
+root_processes_metadata:
+  created: "2026-02-16T00:00:00Z"
+  total_files: 8
+  description: "Metadata extraction from root process definitions"
+  13_zasady_version: "1.0.0"
+
+root_processes:
+  - file: "processes/orchestrator-master/process.yaml"
+    process_name: "orchestrator-master"
+    version: "2.0.0"
+    category: "ORCHESTRATION"
+    complexity: "HIGH"
+    phases_count: 6
+    phases:
+      - phase_0_initialization
+      - phase_1_request_analysis
+      - phase_2_project_setup
+      - phase_3_process_invocation
+      - phase_4_result_aggregation
+      - phase_5_state_finalization
+    inputs:
+      - user_request
+      - existing_artifacts
+      - process_registry
+    outputs:
+      - project-context
+      - orchestration-state
+      - execution-plan
+      - execution-summary
+      - process-registry
+    validation_gates: 6
+    error_handlers: 8
+
+  - file: "processes/deep-requirements/process.yaml"
+    process_name: "deep-requirements"
+    version: "2.0.0"
+    category: "REQUIREMENTS_ANALYSIS"
+    complexity: "MEDIUM"
+    phases_count: 6
+    phases:
+      - phase_0_preparation
+      - phase_1_extraction
+      - phase_2_elaboration
+      - phase_3_validation
+      - phase_4_success_criteria
+      - phase_5_finalization
+    inputs:
+      - user_request
+      - project_context
+      - existing_requirements
+      - analysis_result
+    outputs:
+      - preparation-context
+      - raw-requirements
+      - elaborated-requirements
+      - validation-report
+      - success-criteria
+      - requirements
+      - handoff-checkpoint
+    validation_gates: 6
+    error_handlers: 8
+
+  - file: "processes/deep-explore/process.yaml"
+    process_name: "deep-explore"
+    version: "3.3.0"
+    category: "DECISION_ANALYSIS"
+    complexity: "HIGH"
+    phases_count: 7
+    phases:
+      - phase_0_knowledge_audit
+      - phase_1_research
+      - phase_2_map
+      - phase_3_deepen
+      - phase_4_challenge
+      - phase_5_synthesize
+      - phase_6_output
+    inputs:
+      - decision_question
+      - context
+      - depth_level
+    outputs:
+      - knowledge-map
+      - research-summary
+      - option-map
+      - consequence-map
+      - challenge-results
+      - synthesis
+      - exploration-report
+    validation_gates: 7
+    error_handlers: 8
+
+  - file: "processes/deep-implement/process.yaml"
+    process_name: "deep-implement"
+    version: "2.0.0"
+    category: "IMPLEMENTATION"
+    complexity: "HIGH"
+    phases_count: 9
+    phases:
+      - phase_0_preparation
+      - phase_1_tech_stack
+      - phase_2_project_structure
+      - phase_3_data_layer
+      - phase_4_business_logic
+      - phase_5_api_layer
+      - phase_6_testing_stubs
+      - phase_7_documentation
+      - phase_8_finalization
+    inputs:
+      - project_context
+      - requirements
+      - architecture
+      - api_specifications
+      - data_models
+      - risk_assessment
+      - existing_code
+    outputs:
+      - implementation-plan
+      - tech-stack
+      - project-structure
+      - data-layer
+      - business-logic
+      - api-layer
+      - test-stubs
+      - documentation
+      - implementation-log
+      - handoff-checkpoint
+    validation_gates: 9
+    error_handlers: 8
+
+  - file: "processes/deep-test/process.yaml"
+    process_name: "deep-test"
+    version: "2.0.0"
+    category: "TESTING"
+    complexity: "HIGH"
+    phases_count: 7
+    phases:
+      - phase_0_preparation
+      - phase_1_test_generation
+      - phase_2_test_execution
+      - phase_3_coverage_analysis
+      - phase_4_security_testing
+      - phase_5_performance_testing
+      - phase_6_finalization
+    inputs:
+      - project_context
+      - source_code
+      - requirements
+      - api_specifications
+      - risk_assessment
+      - implementation_log
+    outputs:
+      - test-plan
+      - tests
+      - test-results
+      - coverage-report
+      - security-report
+      - performance-report
+      - test-summary
+      - handoff-checkpoint
+    validation_gates: 7
+    error_handlers: 8
+
+  - file: "processes/deep-deploy/process.yaml"
+    process_name: "deep-deploy"
+    version: "2.0.0"
+    category: "DEPLOYMENT"
+    complexity: "MEDIUM"
+    phases_count: 8
+    phases:
+      - phase_0_preparation
+      - phase_1_containerization
+      - phase_2_ci_cd
+      - phase_3_infrastructure
+      - phase_4_configuration
+      - phase_5_monitoring
+      - phase_6_documentation
+      - phase_7_verification
+    inputs:
+      - project_context
+      - source_code
+      - test_results
+      - validation_report
+      - deployment_architecture
+      - implementation_log
+    outputs:
+      - deployment-plan
+      - containerization
+      - ci-cd
+      - infrastructure
+      - configuration
+      - monitoring
+      - documentation
+      - deployment-verification
+      - handoff-checkpoint
+    validation_gates: 8
+    error_handlers: 8
+
+  - file: "processes/context-manager/process.yaml"
+    process_name: "context-manager"
+    version: "2.0.0"
+    category: "ORCHESTRATION_SUPPORT"
+    complexity: "MEDIUM"
+    phases_count: 5
+    phases:
+      - phase_0_initialization
+      - phase_1_project_discovery
+      - phase_2_state_reconstruction
+      - phase_3_context_compilation
+      - phase_4_handoff_preparation
+    inputs:
+      - project_id
+      - session_type
+      - previous_artifacts
+      - user_context
+    outputs:
+      - session-config
+      - project-inventory
+      - project-state
+      - active-context
+      - context-handoff
+      - session-log
+    validation_gates: 5
+    error_handlers: 8
+
+  - file: "processes/feedback-loop-handler/process.yaml"
+    process_name: "feedback-loop-handler"
+    version: "2.0.0"
+    category: "ORCHESTRATION_SUPPORT"
+    complexity: "MEDIUM"
+    phases_count: 7
+    phases:
+      - phase_0_preparation
+      - phase_1_error_capture
+      - phase_2_root_cause_analysis
+      - phase_3_impact_analysis
+      - phase_4_remediation_planning
+      - phase_5_fix_application
+      - phase_6_verification
+    inputs:
+      - error_event
+      - project_context
+      - process_state
+      - execution_log
+    outputs:
+      - feedback-context
+      - error-report
+      - root-cause-analysis
+      - impact-assessment
+      - remediation-plan
+      - fix-log
+      - feedback-summary
+      - handoff-to-orchestrator
+    validation_gates: 7
+    error_handlers: 8
+
+---
+# Summary Statistics
+---
+
+summary:
+  total_processes: 8
+  total_phases: 55
+  total_validation_gates: 55
+  average_phases_per_process: 6.875
+  
+  by_category:
+    ORCHESTRATION: 1
+    ORCHESTRATION_SUPPORT: 2
+    REQUIREMENTS_ANALYSIS: 1
+    DECISION_ANALYSIS: 1
+    IMPLEMENTATION: 1
+    TESTING: 1
+    DEPLOYMENT: 1
+  
+  by_complexity:
+    HIGH: 4
+    MEDIUM: 4
+    LOW: 0
+  
+  compliance:
+    all_processes_ooda_compliant: true
+    all_processes_13_zasady_compliant: true
+    all_processes_versioned: true
+
+---
+# END root_process_definitions.yaml
