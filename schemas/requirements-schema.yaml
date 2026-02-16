@@ -1,0 +1,196 @@
+---
+# Requirements Schema
+# Complete requirements specification
+---
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/requirements-schema.yaml"
+
+title: "Requirements"
+description: "Complete requirements specification with functional, non-functional requirements"
+type: "object"
+
+required:
+  - dp_id
+  - artifact_type
+  - version
+  - project_info
+  - functional_requirements
+  - nonfunctional_requirements
+  - success_criteria
+
+properties:
+  dp_id:
+    type: "string"
+    pattern: "^[A-Z0-9]+-REQ$"
+
+  artifact_type:
+    type: "string"
+    const: "requirements"
+
+  version:
+    type: "string"
+    default: "1.0.0"
+
+  project_info:
+    type: "object"
+    required: ["project_id", "project_name"]
+    properties:
+      project_id:
+        type: "string"
+      project_name:
+        type: "string"
+      description:
+        type: "string"
+
+  functional_requirements:
+    type: "array"
+    minItems: 1
+    items:
+      type: "object"
+      required: ["req_id", "description", "priority"]
+      properties:
+        req_id:
+          type: "string"
+          pattern: "^FR-\\d{3}$"
+        description:
+          type: "string"
+        priority:
+          type: "string"
+          enum: ["HIGH", "MEDIUM", "LOW"]
+        category:
+          type: "string"
+        acceptance_criteria:
+          type: "array"
+          items:
+            type: "string"
+        user_story:
+          type: "string"
+        depends_on:
+          type: "array"
+          items:
+            type: "string"
+
+  nonfunctional_requirements:
+    type: "array"
+    items:
+      type: "object"
+      required: ["req_id", "category", "description", "priority"]
+      properties:
+        req_id:
+          type: "string"
+          pattern: "^NFR-\\d{3}$"
+        category:
+          type: "string"
+          enum: ["PERFORMANCE", "SECURITY", "USABILITY", "SCALABILITY", "RELIABILITY", "MAINTAINABILITY", "COMPLIANCE"]
+        description:
+          type: "string"
+        target:
+          type: "string"
+        priority:
+          type: "string"
+          enum: ["HIGH", "MEDIUM", "LOW"]
+        measurement_method:
+          type: "string"
+        validation_criteria:
+          type: "array"
+          items:
+            type: "string"
+
+  constraints:
+    type: "array"
+    items:
+      type: "object"
+      properties:
+        type:
+          type: "string"
+          enum: ["TECHNOLOGY", "TIMELINE", "BUDGET", "COMPLIANCE", "PLATFORM"]
+        description:
+          type: "string"
+
+  stakeholders:
+    type: "array"
+    items:
+      type: "object"
+      properties:
+        type:
+          type: "string"
+        role:
+          type: "string"
+        permissions:
+          type: "array"
+          items:
+            type: "string"
+
+  success_criteria:
+    type: "object"
+    properties:
+      functional:
+        type: "array"
+        items:
+          type: "string"
+      quality:
+        type: "array"
+        items:
+          type: "string"
+      deployment:
+        type: "array"
+        items:
+          type: "string"
+      overall_definition_of_done:
+        type: "array"
+        items:
+          type: "string"
+
+  validation_results:
+    type: "object"
+    properties:
+      completeness_issues:
+        type: "array"
+      consistency_issues:
+        type: "array"
+      feasibility_issues:
+        type: "array"
+      testability_issues:
+        type: "array"
+      total_issues:
+        type: "integer"
+
+  created_at:
+    type: "string"
+    format: "date-time"
+
+  created_by:
+    type: "string"
+
+examples:
+  - dp_id: "PRJ-001-REQ"
+    artifact_type: "requirements"
+    version: "1.0.0"
+    project_info:
+      project_id: "PRJ-001"
+      project_name: "Task Manager App"
+    functional_requirements:
+      - req_id: "FR-001"
+        description: "User can create a task"
+        priority: "HIGH"
+        category: "Task Management"
+        acceptance_criteria:
+          - "User can enter task title (max 200 chars)"
+          - "User can enter optional description"
+          - "Task is saved to database"
+        user_story: "As a user, I want to create tasks, so that I can track my work"
+    nonfunctional_requirements:
+      - req_id: "NFR-001"
+        category: "PERFORMANCE"
+        description: "API response time must be fast"
+        target: "P95 <200ms, P99 <500ms"
+        priority: "HIGH"
+        measurement_method: "Load testing with 100 concurrent users"
+    success_criteria:
+      overall_definition_of_done:
+        - "All high-priority requirements implemented"
+        - "Test coverage >80%"
+        - "Zero critical vulnerabilities"
+    created_at: "2026-02-16T10:05:00Z"
+    created_by: "deep-requirements"

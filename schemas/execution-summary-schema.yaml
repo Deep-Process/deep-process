@@ -1,0 +1,66 @@
+---
+# Execution Summary Schema
+# Summary of execution results
+---
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/execution-summary-schema.yaml"
+
+title: "Execution Summary"
+description: "Summary of execution results across all phases"
+type: "object"
+
+required:
+  - project_id
+  - execution_time
+  - phases_executed
+  - final_status
+
+properties:
+  project_id:
+    type: "string"
+
+  execution_time:
+    type: "object"
+    properties:
+      started_at:
+        type: "string"
+        format: "date-time"
+      completed_at:
+        type: "string"
+        format: "date-time"
+      duration_minutes:
+        type: "number"
+
+  phases_executed:
+    type: "integer"
+
+  phases_successful:
+    type: "integer"
+
+  phases_failed:
+    type: "integer"
+
+  artifacts_created:
+    type: "array"
+    items:
+      type: "string"
+
+  final_status:
+    type: "string"
+    enum: ["COMPLETED", "FAILED", "PARTIAL"]
+
+  errors:
+    type: "array"
+
+examples:
+  - project_id: "PRJ-001"
+    execution_time:
+      started_at: "2026-02-16T10:00:00Z"
+      completed_at: "2026-02-16T11:17:00Z"
+      duration_minutes: 77
+    phases_executed: 8
+    phases_successful: 8
+    phases_failed: 0
+    artifacts_created: ["requirements.yaml", "architecture.yaml", "src/**/*"]
+    final_status: "COMPLETED"

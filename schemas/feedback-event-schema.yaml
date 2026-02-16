@@ -1,0 +1,102 @@
+---
+# Feedback Event Schema
+# Error/failure event triggering feedback loop
+---
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/feedback-event-schema.yaml"
+
+title: "Feedback Event"
+description: "Records error/failure event that triggered feedback loop"
+type: "object"
+
+required:
+  - dp_id
+  - artifact_type
+  - trigger_type
+  - trigger_source
+  - error_details
+
+properties:
+  dp_id:
+    type: "string"
+    pattern: "^[A-Z0-9]+-FEEDBACK-\\d+$"
+
+  artifact_type:
+    type: "string"
+    const: "feedback-event"
+
+  trigger_type:
+    type: "string"
+    enum: ["TEST_FAILURE", "VALIDATION_FAILURE", "DEPLOYMENT_FAILURE", "BUILD_FAILURE", "USER_CHANGE_REQUEST", "RUNTIME_ERROR"]
+
+  trigger_source:
+    type: "string"
+    description: "Process name that failed"
+
+  trigger_phase:
+    type: "integer"
+    description: "Phase number where failure occurred"
+
+  severity:
+    type: "string"
+    enum: ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
+
+  error_details:
+    type: "object"
+    required: ["error_message"]
+    properties:
+      error_message:
+        type: "string"
+      error_type:
+        type: "string"
+      stack_trace:
+        type: "string"
+      failed_artifact:
+        type: "string"
+      context:
+        type: "object"
+
+  error_classification:
+    type: "string"
+    enum: ["CODE_BUG", "ARCHITECTURE_FLAW", "REQUIREMENTS_ISSUE", "TEST_ISSUE", "INFRASTRUCTURE_ISSUE", "DEPENDENCY_ISSUE", "CONFIGURATION_ISSUE"]
+
+  severity_assessment:
+    type: "object"
+
+  root_cause_analysis:
+    type: "object"
+
+  remediation_plan_id:
+    type: "string"
+
+  fix_log:
+    type: "object"
+    properties:
+      fix_applied:
+        type: "boolean"
+      fix_method:
+        type: "string"
+        enum: ["AUTOMATIC", "MANUAL_REQUIRED"]
+
+  captured_at:
+    type: "string"
+    format: "date-time"
+
+  project_id:
+    type: "string"
+
+examples:
+  - dp_id: "PRJ-001-FEEDBACK-001"
+    artifact_type: "feedback-event"
+    trigger_type: "TEST_FAILURE"
+    trigger_source: "deep-test"
+    trigger_phase: 6
+    severity: "HIGH"
+    error_details:
+      error_message: "AssertionError: Expected 401, got 500"
+      error_type: "AssertionError"
+      failed_artifact: "test_user_authentication"
+    error_classification: "CODE_BUG"
+    captured_at: "2026-02-16T13:05:00Z"
+    project_id: "PRJ-001"

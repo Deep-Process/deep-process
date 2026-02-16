@@ -1,0 +1,739 @@
+---
+# Deep-Test Process v1.0
+# Comprehensive testing (unit, integration, e2e, security, performance)
+---
+
+process_name: deep-test
+version: "1.0.0"
+created: "2026-02-16"
+13_zasady_version: "1.0.0"
+
+# ═══════════════════════════════════════════════════════════════
+# METADATA
+# ═══════════════════════════════════════════════════════════════
+
+metadata:
+  category: TESTING
+  purpose: "Generate and execute comprehensive test suite"
+  role: "QA Engineer + Test Automation Engineer"
+  complexity: HIGH
+  estimated_duration: "10-30 minutes"
+
+# ═══════════════════════════════════════════════════════════════
+# TRIGGER CONDITIONS
+# ═══════════════════════════════════════════════════════════════
+
+triggers:
+  - trigger_type: ORCHESTRATOR_INVOCATION
+    description: "Orchestrator invokes for Phase 6 (testing)"
+    event: PROCESS_STARTED
+
+  - trigger_type: CODE_CHANGE
+    description: "Code changed, re-run tests"
+    event: SOURCE_CODE_UPDATED
+
+  - trigger_type: FEEDBACK_LOOP
+    description: "Tests failed, fix and re-run"
+    event: TEST_RETRY_NEEDED
+
+# ═══════════════════════════════════════════════════════════════
+# INPUTS
+# ═══════════════════════════════════════════════════════════════
+
+inputs:
+  project_context:
+    type: artifact
+    schema_ref: "schemas/project-context-schema.yaml"
+    required: true
+
+  source_code:
+    type: directory
+    required: true
+    path: "artifacts/{project_id}/src/**/*"
+
+  requirements:
+    type: artifact
+    schema_ref: "schemas/requirements-schema.yaml"
+    required: true
+    description: "Requirements to verify with tests"
+
+  api_specifications:
+    type: artifact
+    schema_ref: "schemas/api-specification-schema.yaml"
+    required: false
+    description: "API contracts to test"
+
+  risk_assessment:
+    type: artifact
+    schema_ref: "schemas/risk-assessment-schema.yaml"
+    required: false
+    description: "Security risks to test"
+
+  implementation_log:
+    type: artifact
+    schema_ref: "schemas/implementation-log-schema.yaml"
+    required: true
+    description: "What was implemented (to test)"
+
+# ═══════════════════════════════════════════════════════════════
+# PHASES
+# ═══════════════════════════════════════════════════════════════
+
+phases:
+  total_phases: 6
+  execution: "Sequential"
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 1: Test Generation
+  # ───────────────────────────────────────────────────────────
+
+  phase_1_test_generation:
+    description: "Generate test cases for all components"
+    sequence: 1
+
+    steps:
+      step_1_generate_unit_tests:
+        description: "Generate unit tests for each function/method"
+        action: |
+          unit_tests = []
+
+          FOR component IN implementation_log.components_implemented:
+            FOR file IN component.files:
+              # Analyze file to extract testable functions
+              functions = extract_functions(file)
+
+              FOR function IN functions:
+                test_cases = generate_unit_test_cases(function)
+
+                # Example: test_user_creation()
+                test_code = f'''
+                import pytest
+                from {module_path} import {function.name}
+
+                def test_{function.name}_success():
+                    """Test {function.name} with valid inputs"""
+                    # Arrange
+                    {generate_test_setup(function)}
+
+                    # Act
+                    result = {function.name}({generate_test_args(function)})
+
+                    # Assert
+                    assert result {generate_assertion(function)}
+
+                def test_{function.name}_invalid_input():
+                    """Test {function.name} with invalid inputs"""
+                    with pytest.raises(ValueError):
+                        {function.name}({generate_invalid_args(function)})
+                '''
+
+                unit_tests.append({
+                  test_file: f"tests/unit/test_{module_name}.py",
+                  test_code: test_code,
+                  component: component.name,
+                  requirements_covered: component.requirements_fulfilled
+                })
+
+      step_2_generate_integration_tests:
+        description: "Generate integration tests for API endpoints"
+        action: |
+          integration_tests = []
+
+          FOR endpoint IN api_specifications.endpoints:
+            test_code = f'''
+            import pytest
+            from fastapi.testclient import TestClient
+            from main import app
+
+            client = TestClient(app)
+
+            def test_{endpoint.path.replace("/", "_")}_success():
+                """Test {endpoint.method} {endpoint.path} - success case"""
+                response = client.{endpoint.method.lower()}(
+                    "{endpoint.path}",
+                    json={generate_valid_payload(endpoint)}
+                )
+                assert response.status_code == {endpoint.success_status_code}
+                assert response.json() {generate_response_assertion(endpoint)}
+
+            def test_{endpoint.path.replace("/", "_")}_authentication():
+                """Test {endpoint.method} {endpoint.path} - authentication required"""
+                response = client.{endpoint.method.lower()}(
+                    "{endpoint.path}",
+                    json={generate_valid_payload(endpoint)}
+                )
+                assert response.status_code == 401
+
+            def test_{endpoint.path.replace("/", "_")}_validation():
+                """Test {endpoint.method} {endpoint.path} - invalid data"""
+                response = client.{endpoint.method.lower()}(
+                    "{endpoint.path}",
+                    json={generate_invalid_payload(endpoint)}
+                )
+                assert response.status_code in [400, 422]
+            '''
+
+            integration_tests.append({
+              test_file: f"tests/integration/test_{endpoint.name}.py",
+              test_code: test_code,
+              endpoint: endpoint.path
+            })
+
+      step_3_generate_e2e_tests:
+        description: "Generate end-to-end workflow tests"
+        action: |
+          e2e_tests = []
+
+          FOR requirement IN requirements.functional_requirements WHERE requirement.user_story:
+            # Create e2e test from user story
+            # Example: "As a user, I want to create a task, assign it, then mark it complete"
+
+            test_code = f'''
+            def test_user_story_{requirement.req_id}():
+                """
+                User Story: {requirement.user_story}
+                Acceptance Criteria: {requirement.acceptance_criteria}
+                """
+                # Step 1: User registers
+                # Step 2: User logs in
+                # Step 3: User creates task
+                # Step 4: User completes task
+                # Verify: Task is marked complete
+            '''
+
+            e2e_tests.append({
+              test_file: f"tests/e2e/test_user_story_{requirement.req_id}.py",
+              test_code: test_code,
+              requirement: requirement.req_id
+            })
+
+      step_4_save_test_files:
+        description: "Write all test files to disk"
+        action: |
+          FOR test IN unit_tests + integration_tests + e2e_tests:
+            create_file(test.test_file, test.test_code)
+
+    outputs:
+      - unit_tests (list)
+      - integration_tests (list)
+      - e2e_tests (list)
+      - Test files created
+
+    gates:
+      - GATE_TESTS_GENERATED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 2: Unit Testing
+  # ───────────────────────────────────────────────────────────
+
+  phase_2_unit_testing:
+    description: "Run unit tests and collect results"
+    sequence: 2
+
+    steps:
+      step_1_setup_test_environment:
+        description: "Setup test database and dependencies"
+        action: |
+          # Create test database
+          create_test_database()
+
+          # Apply migrations
+          run_command("alembic upgrade head")
+
+          # Install test dependencies (pytest, pytest-cov, etc.)
+
+      step_2_run_unit_tests:
+        description: "Execute unit tests with coverage"
+        action: |
+          result = run_command(
+            "pytest tests/unit/ -v --cov=src --cov-report=json --cov-report=term"
+          )
+
+          unit_test_results = {
+            total_tests: extract_total(result),
+            passed: extract_passed(result),
+            failed: extract_failed(result),
+            skipped: extract_skipped(result),
+            duration: extract_duration(result),
+            coverage_percent: extract_coverage(result)
+          }
+
+      step_3_analyze_failures:
+        description: "Analyze failed tests"
+        action: |
+          IF unit_test_results.failed > 0:
+            failures = []
+
+            FOR failed_test IN extract_failed_tests(result):
+              failure = {
+                test_id: generate_test_id(),
+                test_name: failed_test.name,
+                test_file: failed_test.file,
+                error_message: failed_test.error,
+                traceback: failed_test.traceback,
+                requirement_id: map_test_to_requirement(failed_test),
+                severity: classify_failure_severity(failed_test)
+              }
+              failures.append(failure)
+
+            unit_test_results.failures = failures
+
+    outputs:
+      - unit_test_results (dict)
+
+    gates:
+      - GATE_UNIT_TESTS_COMPLETE
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 3: Integration Testing
+  # ───────────────────────────────────────────────────────────
+
+  phase_3_integration_testing:
+    description: "Run integration tests"
+    sequence: 3
+
+    steps:
+      step_1_start_test_server:
+        description: "Start application in test mode"
+        action: |
+          # Start FastAPI test server
+          test_server = start_test_server()
+
+      step_2_run_integration_tests:
+        description: "Execute integration tests"
+        action: |
+          result = run_command("pytest tests/integration/ -v")
+
+          integration_test_results = {
+            total_tests: extract_total(result),
+            passed: extract_passed(result),
+            failed: extract_failed(result),
+            duration: extract_duration(result)
+          }
+
+      step_3_stop_test_server:
+        description: "Stop test server"
+        action: |
+          stop_test_server(test_server)
+
+    outputs:
+      - integration_test_results (dict)
+
+    gates:
+      - GATE_INTEGRATION_TESTS_COMPLETE
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 4: Security Testing
+  # ───────────────────────────────────────────────────────────
+
+  phase_4_security_testing:
+    description: "Run security tests and scans"
+    sequence: 4
+
+    steps:
+      step_1_test_authentication:
+        description: "Test authentication mechanisms"
+        action: |
+          auth_tests = [
+            test_login_with_valid_credentials(),
+            test_login_with_invalid_credentials(),
+            test_jwt_token_validation(),
+            test_jwt_token_expiration(),
+            test_unauthorized_access_without_token()
+          ]
+
+          auth_test_results = {
+            total: len(auth_tests),
+            passed: count(auth_tests WHERE passed)
+          }
+
+      step_2_test_authorization:
+        description: "Test authorization and permissions"
+        action: |
+          authz_tests = [
+            test_user_cannot_access_admin_endpoints(),
+            test_user_cannot_modify_other_users_data(),
+            test_role_based_access_control()
+          ]
+
+          authz_test_results = {
+            total: len(authz_tests),
+            passed: count(authz_tests WHERE passed)
+          }
+
+      step_3_test_input_validation:
+        description: "Test for injection vulnerabilities"
+        action: |
+          injection_tests = [
+            test_sql_injection_prevention(),
+            test_xss_prevention(),
+            test_command_injection_prevention(),
+            test_path_traversal_prevention()
+          ]
+
+          injection_test_results = {
+            total: len(injection_tests),
+            passed: count(injection_tests WHERE passed)
+          }
+
+      step_4_run_security_scan:
+        description: "Run SAST/DAST tools"
+        action: |
+          # Run bandit (Python SAST)
+          sast_result = run_command("bandit -r src/ -f json")
+          sast_issues = parse_bandit_output(sast_result)
+
+          # Run safety (dependency vulnerability scanner)
+          safety_result = run_command("safety check --json")
+          dependency_vulns = parse_safety_output(safety_result)
+
+          security_scan_results = {
+            sast_issues: sast_issues,
+            dependency_vulnerabilities: dependency_vulns,
+            critical_count: count_critical(sast_issues + dependency_vulns),
+            high_count: count_high(sast_issues + dependency_vulns)
+          }
+
+      step_5_verify_risk_mitigations:
+        description: "Verify all security mitigations implemented"
+        action: |
+          IF risk_assessment:
+            mitigation_verification = []
+
+            FOR risk IN risk_assessment.risks WHERE risk.category == SECURITY:
+              verified = verify_mitigation_implemented(
+                risk.mitigation_strategy,
+                source_code
+              )
+
+              mitigation_verification.append({
+                risk_id: risk.risk_id,
+                mitigation: risk.mitigation_strategy,
+                implemented: verified,
+                evidence: find_implementation_evidence(risk, source_code)
+              })
+
+    outputs:
+      - security_test_results (dict)
+
+    gates:
+      - GATE_SECURITY_TESTS_COMPLETE
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 5: Performance Testing
+  # ───────────────────────────────────────────────────────────
+
+  phase_5_performance_testing:
+    description: "Run performance and load tests"
+    sequence: 5
+
+    steps:
+      step_1_benchmark_critical_paths:
+        description: "Measure performance of critical endpoints"
+        action: |
+          benchmarks = []
+
+          FOR endpoint IN api_specifications.endpoints WHERE endpoint.critical:
+            # Measure response time
+            response_times = []
+            FOR i IN range(100):
+              start = time()
+              response = call_endpoint(endpoint)
+              end = time()
+              response_times.append(end - start)
+
+            benchmark = {
+              endpoint: endpoint.path,
+              p50: percentile(response_times, 50),
+              p95: percentile(response_times, 95),
+              p99: percentile(response_times, 99),
+              mean: mean(response_times),
+              target: endpoint.performance_target,
+              passed: percentile(response_times, 95) < endpoint.performance_target
+            }
+            benchmarks.append(benchmark)
+
+      step_2_load_testing:
+        description: "Test under concurrent load"
+        action: |
+          # Use locust or similar tool
+          load_test_config = {
+            users: 100,
+            spawn_rate: 10,
+            duration: "60s"
+          }
+
+          load_test_result = run_load_test(load_test_config)
+
+          load_test_results = {
+            total_requests: load_test_result.total_requests,
+            failed_requests: load_test_result.failed_requests,
+            rps: load_test_result.requests_per_second,
+            p95_response_time: load_test_result.p95,
+            errors: load_test_result.errors
+          }
+
+      step_3_verify_nfr_targets:
+        description: "Verify NFR performance targets met"
+        action: |
+          nfr_verification = []
+
+          FOR nfr IN requirements.nonfunctional_requirements WHERE nfr.category == PERFORMANCE:
+            target_met = verify_performance_target(nfr, benchmarks, load_test_results)
+
+            nfr_verification.append({
+              nfr_id: nfr.req_id,
+              target: nfr.target,
+              actual: get_actual_measurement(nfr, benchmarks),
+              met: target_met
+            })
+
+    outputs:
+      - performance_test_results (dict)
+
+    gates:
+      - GATE_PERFORMANCE_TESTS_COMPLETE
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 6: Results Aggregation & Reporting
+  # ───────────────────────────────────────────────────────────
+
+  phase_6_results_aggregation:
+    description: "Aggregate all test results and generate report"
+    sequence: 6
+
+    steps:
+      step_1_aggregate_results:
+        description: "Combine all test results"
+        action: |
+          test_results = {
+            dp_id: f"{project_context.project_id}-TEST",
+            artifact_type: "test-results",
+            schema_ref: "schemas/test-results-schema.yaml",
+
+            summary: {
+              total_tests: (
+                unit_test_results.total_tests +
+                integration_test_results.total_tests +
+                security_test_results.total_tests
+              ),
+              passed: sum_passed(),
+              failed: sum_failed(),
+              skipped: sum_skipped(),
+              coverage_percent: unit_test_results.coverage_percent,
+              duration_seconds: sum_durations()
+            },
+
+            unit_tests: unit_test_results,
+            integration_tests: integration_test_results,
+            e2e_tests: e2e_test_results if e2e_tests else null,
+            security_tests: security_test_results,
+            performance_tests: performance_test_results,
+
+            failures: aggregate_all_failures(),
+
+            requirements_coverage: calculate_requirements_coverage(),
+
+            verdict: determine_verdict(),
+
+            created_at: now(),
+            created_by: "deep-test"
+          }
+
+      step_2_determine_verdict:
+        description: "Determine overall test status"
+        action: |
+          verdict_logic = """
+          IF critical_failures > 0:
+            verdict = FAIL
+            reason = "Critical test failures detected"
+
+          ELIF security_critical_issues > 0:
+            verdict = FAIL
+            reason = "Critical security vulnerabilities detected"
+
+          ELIF test_results.summary.failed > 0:
+            verdict = CONDITIONAL
+            reason = "Some tests failed, requires review"
+
+          ELIF test_results.summary.coverage_percent < 80:
+            verdict = CONDITIONAL
+            reason = "Coverage below 80% threshold"
+
+          ELIF performance_targets_not_met > 0:
+            verdict = CONDITIONAL
+            reason = "Performance targets not met"
+
+          ELSE:
+            verdict = PASS
+            reason = "All tests passed"
+          """
+
+          test_results.verdict = apply_verdict_logic(verdict_logic)
+
+      step_3_save_test_results:
+        description: "Save test results artifact"
+        action: |
+          save_yaml(test_results, f"artifacts/{project_id}/test-results.yaml")
+
+      step_4_generate_test_report:
+        description: "Generate human-readable test report"
+        action: |
+          report = f"""
+          # Test Report - {project_context.project_name}
+
+          ## Summary
+          - **Total Tests**: {test_results.summary.total_tests}
+          - **Passed**: {test_results.summary.passed} ✓
+          - **Failed**: {test_results.summary.failed} ✗
+          - **Coverage**: {test_results.summary.coverage_percent}%
+          - **Verdict**: {test_results.verdict}
+
+          ## Unit Tests
+          {format_unit_test_results(unit_test_results)}
+
+          ## Integration Tests
+          {format_integration_test_results(integration_test_results)}
+
+          ## Security Tests
+          {format_security_test_results(security_test_results)}
+
+          ## Performance Tests
+          {format_performance_test_results(performance_test_results)}
+
+          ## Failed Tests
+          {format_failures(test_results.failures)}
+
+          ## Requirements Coverage
+          {format_requirements_coverage(test_results.requirements_coverage)}
+          """
+
+          save_markdown(report, f"artifacts/{project_id}/test-report.md")
+
+      step_5_create_handoff_checkpoint:
+        description: "Prepare handoff to deep-verify (code validation)"
+        action: |
+          handoff_checkpoint = {
+            source_process: "deep-test",
+            target_process: "deep-verify",
+            handoff_type: "SEQUENTIAL",
+            handoff_payload: {
+              artifacts: ["test-results.yaml"],
+              verdict: test_results.verdict
+            },
+            pre_validation_status: run_pre_validation()
+          }
+
+          save_yaml(handoff_checkpoint, f"artifacts/{project_id}/handoff-checkpoint-06.yaml")
+
+    outputs:
+      - test-results.yaml
+      - test-report.md
+      - handoff-checkpoint-06.yaml
+
+    gates:
+      - GATE_RESULTS_AGGREGATED
+      - GATE_HANDOFF_READY
+
+# ═══════════════════════════════════════════════════════════════
+# OUTPUTS
+# ═══════════════════════════════════════════════════════════════
+
+outputs:
+  test-results:
+    artifact_type: "test-results"
+    schema_ref: "schemas/test-results-schema.yaml"
+    path: "artifacts/{project_id}/test-results.yaml"
+
+  test-report:
+    type: "file"
+    format: "markdown"
+    path: "artifacts/{project_id}/test-report.md"
+
+  test-files:
+    type: "directory"
+    path: "artifacts/{project_id}/tests/**/*"
+
+# ═══════════════════════════════════════════════════════════════
+# VALIDATION GATES
+# ═══════════════════════════════════════════════════════════════
+
+validation_gates:
+  GATE_TESTS_GENERATED:
+    description: "Test files generated for all components"
+    validation_rule: "len(unit_tests) > 0 AND len(integration_tests) > 0"
+
+  GATE_UNIT_TESTS_COMPLETE:
+    description: "Unit tests executed"
+    validation_rule: "unit_test_results.total_tests > 0"
+
+  GATE_INTEGRATION_TESTS_COMPLETE:
+    description: "Integration tests executed"
+    validation_rule: "integration_test_results.total_tests > 0"
+
+  GATE_SECURITY_TESTS_COMPLETE:
+    description: "Security tests executed"
+    validation_rule: "security_test_results defined"
+
+  GATE_PERFORMANCE_TESTS_COMPLETE:
+    description: "Performance tests executed"
+    validation_rule: "performance_test_results defined"
+
+  GATE_RESULTS_AGGREGATED:
+    description: "All test results aggregated"
+    validation_rule: "test-results.yaml exists AND valid schema"
+
+  GATE_HANDOFF_READY:
+    description: "Ready for handoff to validation"
+    validation_rule: "handoff_checkpoint.pre_validation_status == PASSED"
+
+# ═══════════════════════════════════════════════════════════════
+# ERROR HANDLING
+# ═══════════════════════════════════════════════════════════════
+
+error_handlers:
+  test_generation_failure:
+    trigger: "Cannot generate tests for component"
+    action: |
+      1. Log error
+      2. Skip component (mark as needs_manual_tests)
+      3. Continue with other components
+
+  test_execution_failure:
+    trigger: "Test execution crashes"
+    action: |
+      1. Capture error
+      2. Mark as FAIL
+      3. Trigger feedback loop to deep-implement
+
+  critical_security_issue:
+    trigger: "Critical security vulnerability detected"
+    action: |
+      1. HALT pipeline
+      2. Document vulnerability
+      3. Trigger feedback loop to deep-implement
+      4. Do NOT proceed to deployment
+
+# ═══════════════════════════════════════════════════════════════
+# COMPLIANCE
+# ═══════════════════════════════════════════════════════════════
+
+compliance_13_zasady:
+  zasada_1_self_contained:
+    status: COMPLIANT
+    evidence: "Process includes test generation, execution, and reporting logic"
+
+  zasada_2_binding_gates:
+    status: COMPLIANT
+    evidence: "7 validation gates enforce test completeness"
+
+  zasada_3_sequential_execution:
+    status: COMPLIANT
+    evidence: "Phases execute 1→2→3→4→5→6, unit before integration"
+
+  zasada_7_counter_checks:
+    status: COMPLIANT
+    evidence: "Multiple test types (unit, integration, security, performance) provide counter-checks"
+
+---
+# END deep-test.yaml

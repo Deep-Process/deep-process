@@ -1,0 +1,1031 @@
+---
+# Deep-Implement Process v1.0
+# Code implementation based on architecture and requirements
+---
+
+process_name: deep-implement
+version: "1.0.0"
+created: "2026-02-16"
+13_zasady_version: "1.0.0"
+
+# ═══════════════════════════════════════════════════════════════
+# METADATA
+# ═══════════════════════════════════════════════════════════════
+
+metadata:
+  category: IMPLEMENTATION
+  purpose: "Write actual source code implementing architecture and requirements"
+  role: "Software Developer (Full-Stack)"
+  complexity: HIGH
+  estimated_duration: "20-120 minutes (depends on project size)"
+
+# ═══════════════════════════════════════════════════════════════
+# TRIGGER CONDITIONS
+# ═══════════════════════════════════════════════════════════════
+
+triggers:
+  - trigger_type: ORCHESTRATOR_INVOCATION
+    description: "Orchestrator invokes for Phase 5 (implementation)"
+    event: PROCESS_STARTED
+
+  - trigger_type: FEEDBACK_LOOP
+    description: "Feedback loop triggers code fix (test failure, validation failure)"
+    event: CODE_FIX_NEEDED
+
+# ═══════════════════════════════════════════════════════════════
+# INPUTS
+# ═══════════════════════════════════════════════════════════════
+
+inputs:
+  project_context:
+    type: artifact
+    schema_ref: "schemas/project-context-schema.yaml"
+    required: true
+    path: "artifacts/{project_id}/project-context.yaml"
+
+  requirements:
+    type: artifact
+    schema_ref: "schemas/requirements-schema.yaml"
+    required: true
+    path: "artifacts/{project_id}/requirements.yaml"
+    description: "What to implement"
+
+  architecture:
+    type: artifact
+    schema_ref: "schemas/architecture-schema.yaml"
+    required: true
+    path: "artifacts/{project_id}/architecture.yaml"
+    description: "How to implement"
+
+  api_specifications:
+    type: artifact
+    schema_ref: "schemas/api-specification-schema.yaml"
+    required: false
+    path: "artifacts/{project_id}/api-specifications.yaml"
+    description: "API contracts to implement"
+
+  schemas:
+    type: list[artifact]
+    required: false
+    path: "artifacts/{project_id}/schemas/*.schema.yaml"
+    description: "Data model schemas"
+
+  risk_assessment:
+    type: artifact
+    schema_ref: "schemas/risk-assessment-schema.yaml"
+    required: false
+    path: "artifacts/{project_id}/risk-assessment.yaml"
+    description: "Security mitigations to implement"
+
+  existing_code:
+    type: directory
+    required: false
+    path: "artifacts/{project_id}/src"
+    description: "Existing code (if change request)"
+
+# ═══════════════════════════════════════════════════════════════
+# PHASES
+# ═══════════════════════════════════════════════════════════════
+
+phases:
+  total_phases: 7
+  execution: "Sequential with iterative refinement"
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 1: Technology Stack Selection
+  # ───────────────────────────────────────────────────────────
+
+  phase_1_tech_stack_selection:
+    description: "Determine optimal technology stack"
+    sequence: 1
+
+    steps:
+      step_1_analyze_requirements:
+        description: "Analyze requirements for tech stack hints"
+        action: |
+          tech_hints = {
+            backend: [],
+            frontend: [],
+            database: [],
+            infrastructure: []
+          }
+
+          # Check architecture for explicit tech choices
+          IF architecture.technology_stack:
+            tech_hints = architecture.technology_stack
+
+          # Check constraints for tech requirements
+          FOR constraint IN requirements.constraints:
+            IF constraint.type == TECHNOLOGY:
+              parse_tech_constraint(constraint, tech_hints)
+
+      step_2_select_backend:
+        description: "Select backend technology"
+        action: |
+          IF tech_hints.backend:
+            backend = tech_hints.backend
+          ELSE:
+            # Default selection based on requirements
+            backend = select_backend_tech(
+              requirements.nonfunctional_requirements,
+              architecture.architecture_type
+            )
+
+            # Selection heuristics:
+            # - Microservices + Performance → Go or Java (Spring Boot)
+            # - REST API + Rapid development → Python (FastAPI) or Node.js (Express)
+            # - Real-time + WebSockets → Node.js (Socket.io)
+            # - Enterprise + Complex business logic → Java (Spring Boot)
+            # - Data science integration → Python (FastAPI)
+
+          # Example: Python (FastAPI) for REST API
+          tech_stack.backend = {
+            language: "Python",
+            framework: "FastAPI",
+            version: "3.11+",
+            package_manager: "pip",
+            rationale: "Fast development, excellent async support, type hints"
+          }
+
+      step_3_select_frontend:
+        description: "Select frontend technology (if needed)"
+        action: |
+          IF architecture.components includes "frontend" OR "UI":
+            IF tech_hints.frontend:
+              frontend = tech_hints.frontend
+            ELSE:
+              frontend = select_frontend_tech(requirements)
+
+              # Selection heuristics:
+              # - Complex SPA → React or Vue
+              # - Simple UI → Plain HTML/CSS/JS or React
+              # - Real-time updates → React with WebSockets
+              # - Mobile + Web → React (with React Native option)
+
+            tech_stack.frontend = {
+              framework: "React",
+              version: "18+",
+              package_manager: "npm",
+              build_tool: "Vite"
+            }
+
+      step_4_select_database:
+        description: "Select database technology"
+        action: |
+          IF tech_hints.database:
+            database = tech_hints.database
+          ELSE:
+            database = select_database_tech(
+              requirements,
+              architecture.data_models
+            )
+
+            # Selection heuristics:
+            # - Structured data + ACID → PostgreSQL
+            # - Document-oriented → MongoDB
+            # - Key-value cache → Redis
+            # - Time-series → InfluxDB
+            # - Graph relationships → Neo4j
+
+          tech_stack.database = {
+            primary: "PostgreSQL",
+            version: "15+",
+            orm: "SQLAlchemy" if backend.language == "Python" else "Prisma",
+            cache: "Redis" if requires_caching else null
+          }
+
+      step_5_select_infrastructure:
+        description: "Select deployment infrastructure"
+        action: |
+          tech_stack.infrastructure = {
+            containerization: "Docker",
+            orchestration: "Docker Compose" if simple else "Kubernetes",
+            ci_cd: "GitHub Actions",
+            hosting: determine_hosting_platform(requirements.constraints)
+          }
+
+      step_6_save_tech_decisions:
+        description: "Document technology decisions"
+        action: |
+          tech_decisions = {
+            tech_stack: tech_stack,
+            rationale: {
+              backend: "Selected for ...",
+              frontend: "Selected for ...",
+              database: "Selected for ..."
+            },
+            alternatives_considered: [...]
+          }
+
+    outputs:
+      - tech_stack (dict)
+      - tech_decisions (dict)
+
+    gates:
+      - GATE_TECH_STACK_SELECTED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 2: Project Structure Setup
+  # ───────────────────────────────────────────────────────────
+
+  phase_2_project_structure:
+    description: "Initialize project structure and configuration"
+    sequence: 2
+
+    steps:
+      step_1_create_directory_structure:
+        description: "Create standard directory structure"
+        action: |
+          # Example for Python (FastAPI) backend:
+          directories = [
+            "src/",
+            "src/api/",           # API endpoints
+            "src/models/",        # Data models
+            "src/services/",      # Business logic
+            "src/repositories/",  # Database access
+            "src/schemas/",       # Pydantic schemas
+            "src/core/",          # Core utilities (config, security)
+            "tests/",
+            "tests/unit/",
+            "tests/integration/",
+            "docs/"
+          ]
+
+          FOR dir IN directories:
+            create_directory(f"artifacts/{project_id}/src/{dir}")
+
+      step_2_initialize_package_manager:
+        description: "Create package configuration files"
+        action: |
+          # For Python: requirements.txt or pyproject.toml
+          IF tech_stack.backend.language == "Python":
+            dependencies = [
+              "fastapi[all]==0.104.1",
+              "sqlalchemy==2.0.23",
+              "psycopg2-binary==2.9.9",
+              "pydantic==2.5.0",
+              "python-jose[cryptography]==3.3.0",  # JWT
+              "passlib[bcrypt]==1.7.4",  # Password hashing
+              "python-multipart==0.0.6",
+              "uvicorn[standard]==0.24.0"
+            ]
+
+            create_file(
+              path: "artifacts/{project_id}/src/requirements.txt",
+              content: "\n".join(dependencies)
+            )
+
+          # For Node.js: package.json
+          ELIF tech_stack.backend.language == "JavaScript":
+            package_json = {
+              "name": project_context.project_name,
+              "version": "1.0.0",
+              "dependencies": {
+                "express": "^4.18.2",
+                "dotenv": "^16.3.1"
+              },
+              "devDependencies": {
+                "jest": "^29.7.0",
+                "eslint": "^8.53.0"
+              }
+            }
+
+            create_file(
+              path: "artifacts/{project_id}/src/package.json",
+              content: json.dumps(package_json, indent=2)
+            )
+
+      step_3_create_configuration_files:
+        description: "Create configuration files"
+        action: |
+          # .env.example
+          env_example = """
+          DATABASE_URL=postgresql://user:pass@localhost:5432/dbname
+          SECRET_KEY=your-secret-key-here
+          ENVIRONMENT=development
+          """
+
+          create_file("artifacts/{project_id}/src/.env.example", env_example)
+
+          # config.py (Python) or config.js (Node)
+          IF tech_stack.backend.language == "Python":
+            config_py = '''
+            from pydantic_settings import BaseSettings
+
+            class Settings(BaseSettings):
+                database_url: str
+                secret_key: str
+                environment: str = "development"
+
+                class Config:
+                    env_file = ".env"
+
+            settings = Settings()
+            '''
+
+            create_file("artifacts/{project_id}/src/src/core/config.py", config_py)
+
+      step_4_create_main_entry_point:
+        description: "Create main application entry point"
+        action: |
+          IF tech_stack.backend.language == "Python" AND tech_stack.backend.framework == "FastAPI":
+            main_py = '''
+            from fastapi import FastAPI
+            from fastapi.middleware.cors import CORSMiddleware
+            from src.core.config import settings
+            from src.api import router
+
+            app = FastAPI(
+                title="''' + project_context.project_name + '''",
+                version="1.0.0"
+            )
+
+            # CORS middleware
+            app.add_middleware(
+                CORSMiddleware,
+                allow_origins=["*"],
+                allow_credentials=True,
+                allow_methods=["*"],
+                allow_headers=["*"],
+            )
+
+            # Include routers
+            app.include_router(router, prefix="/api/v1")
+
+            @app.get("/health")
+            async def health_check():
+                return {"status": "healthy"}
+            '''
+
+            create_file("artifacts/{project_id}/src/main.py", main_py)
+
+      step_5_setup_linting_and_formatting:
+        description: "Setup code quality tools"
+        action: |
+          # Python: .flake8, black, mypy
+          # JavaScript: .eslintrc, prettier
+
+          IF tech_stack.backend.language == "Python":
+            create_file("artifacts/{project_id}/src/.flake8", "[flake8]\nmax-line-length = 100")
+
+    outputs:
+      - Project directory structure created
+      - Configuration files created
+      - Main entry point created
+
+    gates:
+      - GATE_PROJECT_INITIALIZED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 3: Data Layer Implementation
+  # ───────────────────────────────────────────────────────────
+
+  phase_3_data_layer:
+    description: "Implement database models and schemas"
+    sequence: 3
+
+    steps:
+      step_1_implement_database_models:
+        description: "Create database models based on schemas"
+        action: |
+          FOR schema IN schemas:
+            model_code = generate_model_from_schema(
+              schema,
+              tech_stack.database.orm,
+              tech_stack.backend.language
+            )
+
+            # Example: User model from user schema
+            # Input: schemas/user-schema.yaml
+            # Output: src/models/user.py with SQLAlchemy model
+
+            model_file_path = f"src/models/{schema.name}.py"
+            create_file(model_file_path, model_code)
+
+          # Example generated code (Python + SQLAlchemy):
+          '''
+          from sqlalchemy import Column, Integer, String, Boolean, DateTime
+          from sqlalchemy.sql import func
+          from src.core.database import Base
+
+          class User(Base):
+              __tablename__ = "users"
+
+              id = Column(Integer, primary_key=True, index=True)
+              email = Column(String, unique=True, index=True, nullable=False)
+              username = Column(String, unique=True, index=True, nullable=False)
+              hashed_password = Column(String, nullable=False)
+              is_active = Column(Boolean, default=True)
+              created_at = Column(DateTime(timezone=True), server_default=func.now())
+          '''
+
+      step_2_implement_pydantic_schemas:
+        description: "Create validation schemas (Pydantic for Python)"
+        action: |
+          FOR schema IN schemas:
+            validation_schema_code = generate_validation_schema(
+              schema,
+              tech_stack.backend.language
+            )
+
+            schema_file_path = f"src/schemas/{schema.name}.py"
+            create_file(schema_file_path, validation_schema_code)
+
+          # Example: User validation schemas
+          '''
+          from pydantic import BaseModel, EmailStr
+          from datetime import datetime
+
+          class UserBase(BaseModel):
+              email: EmailStr
+              username: str
+
+          class UserCreate(UserBase):
+              password: str
+
+          class UserResponse(UserBase):
+              id: int
+              is_active: bool
+              created_at: datetime
+
+              class Config:
+                  from_attributes = True
+          '''
+
+      step_3_setup_database_connection:
+        description: "Setup database connection and session management"
+        action: |
+          database_py = '''
+          from sqlalchemy import create_engine
+          from sqlalchemy.ext.declarative import declarative_base
+          from sqlalchemy.orm import sessionmaker
+          from src.core.config import settings
+
+          engine = create_engine(settings.database_url)
+          SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+          Base = declarative_base()
+
+          def get_db():
+              db = SessionLocal()
+              try:
+                  yield db
+              finally:
+                  db.close()
+          '''
+
+          create_file("src/core/database.py", database_py)
+
+      step_4_create_database_migrations:
+        description: "Create initial database migration"
+        action: |
+          # Using Alembic for Python
+          # Create alembic.ini and migrations/
+
+          alembic_init = '''
+          [alembic]
+          script_location = migrations
+          sqlalchemy.url = %(DATABASE_URL)s
+          '''
+
+          create_file("alembic.ini", alembic_init)
+
+    outputs:
+      - Database models created
+      - Validation schemas created
+      - Database connection configured
+
+    gates:
+      - GATE_DATA_LAYER_COMPLETE
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 4: Business Logic Implementation
+  # ───────────────────────────────────────────────────────────
+
+  phase_4_business_logic:
+    description: "Implement core business logic and services"
+    sequence: 4
+
+    steps:
+      step_1_implement_repositories:
+        description: "Create repository layer (data access)"
+        action: |
+          FOR model IN database_models:
+            repository_code = generate_repository(model)
+
+            # Example: UserRepository
+            '''
+            from sqlalchemy.orm import Session
+            from src.models.user import User
+            from src.schemas.user import UserCreate
+
+            class UserRepository:
+                def __init__(self, db: Session):
+                    self.db = db
+
+                def get_by_id(self, user_id: int) -> User | None:
+                    return self.db.query(User).filter(User.id == user_id).first()
+
+                def get_by_email(self, email: str) -> User | None:
+                    return self.db.query(User).filter(User.email == email).first()
+
+                def create(self, user: UserCreate, hashed_password: str) -> User:
+                    db_user = User(
+                        email=user.email,
+                        username=user.username,
+                        hashed_password=hashed_password
+                    )
+                    self.db.add(db_user)
+                    self.db.commit()
+                    self.db.refresh(db_user)
+                    return db_user
+
+                def delete(self, user_id: int) -> bool:
+                    user = self.get_by_id(user_id)
+                    if user:
+                        self.db.delete(user)
+                        self.db.commit()
+                        return True
+                    return False
+            '''
+
+            create_file(f"src/repositories/{model.name}_repository.py", repository_code)
+
+      step_2_implement_services:
+        description: "Create service layer (business logic)"
+        action: |
+          FOR requirement IN requirements.functional_requirements WHERE priority == HIGH:
+            service_code = generate_service_for_requirement(requirement)
+
+            # Example: AuthService for authentication requirement
+            '''
+            from passlib.context import CryptContext
+            from jose import JWTError, jwt
+            from datetime import datetime, timedelta
+            from src.repositories.user_repository import UserRepository
+            from src.schemas.user import UserCreate, UserResponse
+            from src.core.config import settings
+
+            pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+            class AuthService:
+                def __init__(self, user_repo: UserRepository):
+                    self.user_repo = user_repo
+
+                def register_user(self, user_data: UserCreate) -> UserResponse:
+                    # Check if user exists
+                    if self.user_repo.get_by_email(user_data.email):
+                        raise ValueError("Email already registered")
+
+                    # Hash password
+                    hashed_password = pwd_context.hash(user_data.password)
+
+                    # Create user
+                    user = self.user_repo.create(user_data, hashed_password)
+                    return UserResponse.from_orm(user)
+
+                def authenticate(self, email: str, password: str) -> str | None:
+                    user = self.user_repo.get_by_email(email)
+                    if not user:
+                        return None
+
+                    if not pwd_context.verify(password, user.hashed_password):
+                        return None
+
+                    # Generate JWT token
+                    token = self._create_access_token({"sub": user.email})
+                    return token
+
+                def _create_access_token(self, data: dict) -> str:
+                    to_encode = data.copy()
+                    expire = datetime.utcnow() + timedelta(hours=24)
+                    to_encode.update({"exp": expire})
+                    return jwt.encode(to_encode, settings.secret_key, algorithm="HS256")
+            '''
+
+            create_file(f"src/services/{extract_service_name(requirement)}.py", service_code)
+
+      step_3_implement_security_mitigations:
+        description: "Implement security measures from risk assessment"
+        action: |
+          IF risk_assessment:
+            FOR risk IN risk_assessment.risks WHERE risk.category == SECURITY:
+              mitigation_code = generate_mitigation_code(risk.mitigation_strategy)
+
+              # Example: JWT authentication middleware
+              # Example: Rate limiting
+              # Example: Input validation
+              # Example: SQL injection prevention (parameterized queries)
+
+    outputs:
+      - Repository layer implemented
+      - Service layer implemented
+      - Security mitigations implemented
+
+    gates:
+      - GATE_BUSINESS_LOGIC_COMPLETE
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 5: API Layer Implementation
+  # ───────────────────────────────────────────────────────────
+
+  phase_5_api_layer:
+    description: "Implement API endpoints"
+    sequence: 5
+
+    steps:
+      step_1_implement_endpoints:
+        description: "Create API endpoints from specifications"
+        action: |
+          FOR endpoint IN api_specifications.endpoints:
+            endpoint_code = generate_endpoint(
+              endpoint,
+              tech_stack.backend.framework
+            )
+
+            # Example: User registration endpoint
+            '''
+            from fastapi import APIRouter, Depends, HTTPException
+            from sqlalchemy.orm import Session
+            from src.core.database import get_db
+            from src.schemas.user import UserCreate, UserResponse
+            from src.services.auth_service import AuthService
+            from src.repositories.user_repository import UserRepository
+
+            router = APIRouter(prefix="/auth", tags=["authentication"])
+
+            @router.post("/register", response_model=UserResponse, status_code=201)
+            async def register(
+                user_data: UserCreate,
+                db: Session = Depends(get_db)
+            ):
+                """Register a new user"""
+                try:
+                    user_repo = UserRepository(db)
+                    auth_service = AuthService(user_repo)
+                    user = auth_service.register_user(user_data)
+                    return user
+                except ValueError as e:
+                    raise HTTPException(status_code=400, detail=str(e))
+
+            @router.post("/login")
+            async def login(
+                email: str,
+                password: str,
+                db: Session = Depends(get_db)
+            ):
+                """Authenticate user and return JWT token"""
+                user_repo = UserRepository(db)
+                auth_service = AuthService(user_repo)
+                token = auth_service.authenticate(email, password)
+
+                if not token:
+                    raise HTTPException(status_code=401, detail="Invalid credentials")
+
+                return {"access_token": token, "token_type": "bearer"}
+            '''
+
+            router_file = f"src/api/{extract_router_name(endpoint)}.py"
+            create_file(router_file, endpoint_code)
+
+      step_2_implement_authentication_middleware:
+        description: "Implement auth dependency"
+        action: |
+          '''
+          from fastapi import Depends, HTTPException, status
+          from fastapi.security import HTTPBearer, HTTPAuthCredentials
+          from jose import JWTError, jwt
+          from src.core.config import settings
+          from src.core.database import get_db
+          from src.repositories.user_repository import UserRepository
+
+          security = HTTPBearer()
+
+          async def get_current_user(
+              credentials: HTTPAuthCredentials = Depends(security),
+              db: Session = Depends(get_db)
+          ):
+              try:
+                  payload = jwt.decode(
+                      credentials.credentials,
+                      settings.secret_key,
+                      algorithms=["HS256"]
+                  )
+                  email: str = payload.get("sub")
+                  if email is None:
+                      raise HTTPException(status_code=401, detail="Invalid token")
+
+                  user_repo = UserRepository(db)
+                  user = user_repo.get_by_email(email)
+                  if user is None:
+                      raise HTTPException(status_code=401, detail="User not found")
+
+                  return user
+              except JWTError:
+                  raise HTTPException(status_code=401, detail="Invalid token")
+          '''
+
+          create_file("src/core/auth.py", auth_code)
+
+      step_3_implement_error_handling:
+        description: "Implement global error handlers"
+        action: |
+          '''
+          from fastapi import Request
+          from fastapi.responses import JSONResponse
+
+          @app.exception_handler(ValueError)
+          async def value_error_handler(request: Request, exc: ValueError):
+              return JSONResponse(
+                  status_code=400,
+                  content={"detail": str(exc)}
+              )
+
+          @app.exception_handler(Exception)
+          async def general_exception_handler(request: Request, exc: Exception):
+              return JSONResponse(
+                  status_code=500,
+                  content={"detail": "Internal server error"}
+              )
+          '''
+
+      step_4_wire_up_routers:
+        description: "Connect all routers to main app"
+        action: |
+          # Update main.py to include all routers
+          '''
+          from src.api.auth_router import router as auth_router
+          from src.api.tasks_router import router as tasks_router
+
+          app.include_router(auth_router, prefix="/api/v1")
+          app.include_router(tasks_router, prefix="/api/v1")
+          '''
+
+    outputs:
+      - API endpoints implemented
+      - Authentication implemented
+      - Error handling implemented
+
+    gates:
+      - GATE_API_LAYER_COMPLETE
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 6: Documentation & Logging
+  # ───────────────────────────────────────────────────────────
+
+  phase_6_documentation:
+    description: "Add documentation and logging"
+    sequence: 6
+
+    steps:
+      step_1_add_code_comments:
+        description: "Add docstrings and comments where needed"
+        action: |
+          FOR file IN source_files:
+            add_docstrings(file)
+            add_inline_comments_where_complex(file)
+
+      step_2_create_readme:
+        description: "Create README.md with setup instructions"
+        action: |
+          readme = f'''
+          # {project_context.project_name}
+
+          ## Description
+          {extract_description(requirements)}
+
+          ## Tech Stack
+          - Backend: {tech_stack.backend.language} ({tech_stack.backend.framework})
+          - Database: {tech_stack.database.primary}
+          - Infrastructure: {tech_stack.infrastructure.containerization}
+
+          ## Setup
+
+          ### Prerequisites
+          - Python 3.11+
+          - PostgreSQL 15+
+          - Docker (optional)
+
+          ### Installation
+
+          1. Clone the repository
+          2. Install dependencies:
+             ```
+             pip install -r requirements.txt
+             ```
+          3. Setup database:
+             ```
+             createdb {project_context.project_name}
+             ```
+          4. Copy .env.example to .env and configure
+          5. Run migrations:
+             ```
+             alembic upgrade head
+             ```
+          6. Start the server:
+             ```
+             uvicorn main:app --reload
+             ```
+
+          ## API Documentation
+          Once running, visit:
+          - Swagger UI: http://localhost:8000/docs
+          - ReDoc: http://localhost:8000/redoc
+
+          ## Testing
+          ```
+          pytest
+          ```
+          '''
+
+          create_file("README.md", readme)
+
+      step_3_setup_logging:
+        description: "Configure application logging"
+        action: |
+          '''
+          import logging
+
+          logging.basicConfig(
+              level=logging.INFO,
+              format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+          )
+
+          logger = logging.getLogger(__name__)
+          '''
+
+    outputs:
+      - README.md created
+      - Code documented
+      - Logging configured
+
+    gates:
+      - GATE_DOCUMENTATION_COMPLETE
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 7: Implementation Log & Handoff
+  # ───────────────────────────────────────────────────────────
+
+  phase_7_implementation_log:
+    description: "Create implementation log and prepare handoff"
+    sequence: 7
+
+    steps:
+      step_1_create_implementation_log:
+        description: "Document what was implemented"
+        action: |
+          implementation_log = {
+            dp_id: f"{project_context.project_id}-IMPL",
+            artifact_type: "implementation-log",
+            schema_ref: "schemas/implementation-log-schema.yaml",
+
+            components_implemented: [
+              {
+                component_id: "COMP-001",
+                name: "Authentication Service",
+                files: ["src/services/auth_service.py", "src/api/auth_router.py"],
+                requirements_fulfilled: ["FR-001", "FR-002"],
+                status: "COMPLETE"
+              },
+              # ... more components
+            ],
+
+            requirements_fulfilled: list_fulfilled_requirements(),
+
+            deviations_from_architecture: [
+              {
+                deviation_id: "DEV-001",
+                reason: "Performance optimization",
+                impact: "Used connection pooling instead of single connection",
+                approved_by: "deep-verify (validation phase)"
+              }
+            ] if deviations else [],
+
+            technology_decisions: tech_decisions,
+
+            code_statistics: {
+              total_files: count_files("src/"),
+              total_lines: count_lines("src/"),
+              languages: {
+                "Python": percentage
+              }
+            },
+
+            created_at: now(),
+            created_by: "deep-implement"
+          }
+
+          save_yaml(implementation_log, f"artifacts/{project_id}/implementation-log.yaml")
+
+      step_2_create_handoff_checkpoint:
+        description: "Prepare handoff to deep-test"
+        action: |
+          handoff_checkpoint = {
+            dp_id: f"{project_context.project_id}-HANDOFF-05",
+            source_process: "deep-implement",
+            target_process: "deep-test",
+            handoff_type: "SEQUENTIAL",
+
+            handoff_payload: {
+              artifacts: [
+                "artifacts/{project_id}/implementation-log.yaml",
+                "artifacts/{project_id}/src/**/*"
+              ],
+              context: {
+                tech_stack: tech_stack,
+                requirements_implemented: list_requirements()
+              }
+            },
+
+            pre_validation_status: run_pre_validation()
+          }
+
+          save_yaml(handoff_checkpoint, f"artifacts/{project_id}/handoff-checkpoint-05.yaml")
+
+    outputs:
+      - implementation-log.yaml
+      - handoff-checkpoint-05.yaml
+
+    gates:
+      - GATE_IMPLEMENTATION_LOGGED
+      - GATE_HANDOFF_READY
+
+# ═══════════════════════════════════════════════════════════════
+# OUTPUTS
+# ═══════════════════════════════════════════════════════════════
+
+outputs:
+  source_code:
+    type: "directory"
+    path: "artifacts/{project_id}/src/**/*"
+    description: "All source code files"
+
+  implementation-log:
+    artifact_type: "implementation-log"
+    schema_ref: "schemas/implementation-log-schema.yaml"
+    path: "artifacts/{project_id}/implementation-log.yaml"
+
+  readme:
+    type: "file"
+    format: "markdown"
+    path: "artifacts/{project_id}/README.md"
+
+# ═══════════════════════════════════════════════════════════════
+# VALIDATION GATES
+# ═══════════════════════════════════════════════════════════════
+
+validation_gates:
+  GATE_TECH_STACK_SELECTED:
+    description: "Technology stack selected and documented"
+    validation_rule: "tech_stack defined AND all(backend, database, infrastructure)"
+
+  GATE_PROJECT_INITIALIZED:
+    description: "Project structure created and configured"
+    validation_rule: "directory_structure created AND config_files exist"
+
+  GATE_DATA_LAYER_COMPLETE:
+    description: "Database models and schemas implemented"
+    validation_rule: "all(models implemented) AND database_connection configured"
+
+  GATE_BUSINESS_LOGIC_COMPLETE:
+    description: "Services and repositories implemented"
+    validation_rule: "all(high_priority_requirements have corresponding service)"
+
+  GATE_API_LAYER_COMPLETE:
+    description: "API endpoints implemented"
+    validation_rule: "all(api_specifications.endpoints implemented)"
+
+  GATE_DOCUMENTATION_COMPLETE:
+    description: "Code documented and README created"
+    validation_rule: "README.md exists AND code has docstrings"
+
+  GATE_IMPLEMENTATION_LOGGED:
+    description: "Implementation log created"
+    validation_rule: "implementation-log.yaml exists AND valid schema"
+
+  GATE_HANDOFF_READY:
+    description: "Ready for handoff to testing"
+    validation_rule: "handoff_checkpoint.pre_validation_status == PASSED"
+
+# ═══════════════════════════════════════════════════════════════
+# COMPLIANCE
+# ═══════════════════════════════════════════════════════════════
+
+compliance_13_zasady:
+  zasada_1_self_contained:
+    status: COMPLIANT
+    evidence: "Process includes all implementation logic and code generation"
+
+  zasada_2_binding_gates:
+    status: COMPLIANT
+    evidence: "8 validation gates enforce implementation completeness"
+
+  zasada_3_sequential_execution:
+    status: COMPLIANT
+    evidence: "Phases execute 1→2→3→4→5→6→7, data layer before business logic"
+
+  zasada_9_traceable_decisions:
+    status: COMPLIANT
+    evidence: "All technology decisions logged in implementation-log"
+
+---
+# END deep-implement.yaml

@@ -1,0 +1,79 @@
+---
+# Architecture Schema
+# System architecture design
+---
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/architecture-schema.yaml"
+
+title: "Architecture"
+description: "Complete system architecture design"
+type: "object"
+
+required:
+  - dp_id
+  - artifact_type
+  - project_info
+  - architecture_type
+  - components
+
+properties:
+  dp_id:
+    type: "string"
+
+  artifact_type:
+    type: "string"
+    const: "architecture"
+
+  project_info:
+    type: "object"
+
+  architecture_type:
+    type: "string"
+    enum: ["MONOLITHIC", "MICROSERVICES", "SERVERLESS", "LAYERED", "EVENT_DRIVEN"]
+
+  components:
+    type: "array"
+    items:
+      type: "object"
+      properties:
+        component_id:
+          type: "string"
+        name:
+          type: "string"
+        type:
+          type: "string"
+        description:
+          type: "string"
+        dependencies:
+          type: "array"
+
+  data_models:
+    type: "object"
+
+  api_design:
+    type: "object"
+
+  security_architecture:
+    type: "object"
+
+  deployment_architecture:
+    type: "object"
+
+  technology_stack:
+    type: "object"
+
+  created_at:
+    type: "string"
+    format: "date-time"
+
+examples:
+  - dp_id: "PRJ-001-ARCH"
+    artifact_type: "architecture"
+    architecture_type: "LAYERED"
+    components:
+      - component_id: "COMP-001"
+        name: "Authentication Service"
+        type: "SERVICE"
+        description: "Handles user authentication"
+    created_at: "2026-02-16T10:30:00Z"

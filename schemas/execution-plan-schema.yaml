@@ -1,0 +1,59 @@
+---
+# Execution Plan Schema
+# Orchestrator's execution plan
+---
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/execution-plan-schema.yaml"
+
+title: "Execution Plan"
+description: "Detailed plan of phases to execute"
+type: "object"
+
+required:
+  - project_id
+  - phases
+
+properties:
+  project_id:
+    type: "string"
+
+  phases:
+    type: "array"
+    items:
+      type: "object"
+      required: ["phase_number", "phase_name", "process_name", "status"]
+      properties:
+        phase_number:
+          type: "integer"
+          minimum: 0
+          maximum: 8
+        phase_name:
+          type: "string"
+        process_name:
+          type: "string"
+        status:
+          type: "string"
+          enum: ["PENDING", "IN_PROGRESS", "COMPLETED", "FAILED", "SKIPPED", "AWAITING_APPROVAL"]
+        inputs:
+          type: "object"
+        expected_outputs:
+          type: "array"
+        outputs:
+          type: "array"
+        error:
+          type: "string"
+
+examples:
+  - project_id: "PRJ-001"
+    phases:
+      - phase_number: 1
+        phase_name: "Requirements Analysis"
+        process_name: "deep-requirements"
+        status: "COMPLETED"
+        expected_outputs: ["requirements.yaml"]
+        outputs: ["requirements.yaml"]
+      - phase_number: 2
+        phase_name: "Architecture Design"
+        process_name: "deep-architecture"
+        status: "IN_PROGRESS"

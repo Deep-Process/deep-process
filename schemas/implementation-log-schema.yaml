@@ -1,0 +1,124 @@
+---
+# Implementation Log Schema
+# Tracks implementation progress and deviations
+---
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/implementation-log-schema.yaml"
+
+title: "Implementation Log"
+description: "Tracks what was implemented, tech decisions, and deviations from architecture"
+type: "object"
+
+required:
+  - dp_id
+  - artifact_type
+  - components_implemented
+  - requirements_fulfilled
+  - technology_decisions
+
+properties:
+  dp_id:
+    type: "string"
+    pattern: "^[A-Z0-9]+-IMPL$"
+
+  artifact_type:
+    type: "string"
+    const: "implementation-log"
+
+  components_implemented:
+    type: "array"
+    items:
+      type: "object"
+      required: ["component_id", "name", "files", "status"]
+      properties:
+        component_id:
+          type: "string"
+        name:
+          type: "string"
+        files:
+          type: "array"
+          items:
+            type: "string"
+        requirements_fulfilled:
+          type: "array"
+          items:
+            type: "string"
+        status:
+          type: "string"
+          enum: ["COMPLETE", "IN_PROGRESS", "BLOCKED"]
+
+  requirements_fulfilled:
+    type: "array"
+    items:
+      type: "string"
+      pattern: "^(FR|NFR)-\\d{3}$"
+
+  deviations_from_architecture:
+    type: "array"
+    items:
+      type: "object"
+      properties:
+        deviation_id:
+          type: "string"
+        reason:
+          type: "string"
+        impact:
+          type: "string"
+        approved_by:
+          type: "string"
+
+  technology_decisions:
+    type: "object"
+    properties:
+      tech_stack:
+        type: "object"
+        properties:
+          backend:
+            type: "object"
+          frontend:
+            type: "object"
+          database:
+            type: "object"
+          infrastructure:
+            type: "object"
+      rationale:
+        type: "object"
+
+  code_statistics:
+    type: "object"
+    properties:
+      total_files:
+        type: "integer"
+      total_lines:
+        type: "integer"
+      languages:
+        type: "object"
+
+  created_at:
+    type: "string"
+    format: "date-time"
+
+  created_by:
+    type: "string"
+
+examples:
+  - dp_id: "PRJ-001-IMPL"
+    artifact_type: "implementation-log"
+    components_implemented:
+      - component_id: "COMP-001"
+        name: "Authentication Service"
+        files: ["src/services/auth_service.py", "src/api/auth_router.py"]
+        requirements_fulfilled: ["FR-001", "FR-002"]
+        status: "COMPLETE"
+    requirements_fulfilled: ["FR-001", "FR-002", "FR-003"]
+    technology_decisions:
+      tech_stack:
+        backend:
+          language: "Python"
+          framework: "FastAPI"
+    code_statistics:
+      total_files: 25
+      total_lines: 1847
+    created_at: "2026-02-16T12:00:00Z"
+    created_by: "deep-implement"

@@ -1,0 +1,857 @@
+---
+# Orchestrator Master Process v1.0
+# Main orchestrator coordinating all deep-process executions
+---
+
+process_name: orchestrator-master
+version: "1.0.0"
+created: "2026-02-16"
+13_zasady_version: "1.0.0"
+
+# ═══════════════════════════════════════════════════════════════
+# METADATA
+# ═══════════════════════════════════════════════════════════════
+
+metadata:
+  category: ORCHESTRATION
+  purpose: "Main entry point for all projects - analyzes requests, invokes processes, manages lifecycle"
+  role: "Meta-orchestrator coordinating entire ecosystem"
+  complexity: HIGH
+  estimated_duration: "Continuous (lifecycle management)"
+
+# ═══════════════════════════════════════════════════════════════
+# TRIGGER CONDITIONS
+# ═══════════════════════════════════════════════════════════════
+
+triggers:
+  - trigger_type: USER_REQUEST
+    description: "User submits new project idea or change request"
+    event: REQUEST_RECEIVED
+
+  - trigger_type: SCHEDULED
+    description: "Periodic check for time-based activations (temporal branching)"
+    event: CRON_TRIGGERED
+    frequency: "Daily at 00:00 UTC"
+
+  - trigger_type: PROCESS_COMPLETED
+    description: "Child process completed, orchestrator resumes control"
+    event: HANDOFF_COMPLETED
+
+  - trigger_type: PROCESS_FAILED
+    description: "Child process failed, orchestrator handles error"
+    event: PROCESS_FAILED
+
+# ═══════════════════════════════════════════════════════════════
+# INPUTS
+# ═══════════════════════════════════════════════════════════════
+
+inputs:
+  user_request:
+    type: string
+    description: "User's project idea or change request"
+    required: true
+    examples:
+      - "I want a task management app with authentication"
+      - "Add ability to assign tasks to users"
+      - "Deploy the application to production"
+
+  existing_artifacts:
+    type: list
+    description: "List of existing project artifacts (if any)"
+    required: false
+    loaded_from: "./artifacts/*.yaml"
+
+  process_registry:
+    type: artifact
+    schema_ref: "schemas/process-registry-schema.yaml"
+    description: "Registry of all active/queued projects"
+    required: false
+    default: "Empty registry (first run)"
+
+# ═══════════════════════════════════════════════════════════════
+# PHASES
+# ═══════════════════════════════════════════════════════════════
+
+phases:
+  total_phases: 6
+  execution: "Sequential with conditional branching"
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 0: Initialization
+  # ───────────────────────────────────────────────────────────
+
+  phase_0_initialization:
+    description: "Initialize orchestrator, load context"
+    sequence: 0
+
+    steps:
+      step_1_load_registry:
+        description: "Load process registry (active projects)"
+        action: |
+          IF file_exists("artifacts/process-registry.yaml"):
+            registry = load_yaml("artifacts/process-registry.yaml")
+          ELSE:
+            registry = create_empty_registry()
+
+      step_2_load_event_log:
+        description: "Load event log for state reconstruction"
+        action: |
+          IF file_exists("artifacts/event-log.yaml"):
+            events = load_yaml("artifacts/event-log.yaml")
+            last_event = events[-1]
+          ELSE:
+            events = []
+            last_event = null
+
+      step_3_emit_event:
+        description: "Emit ORCHESTRATOR_STARTED event"
+        action: |
+          emit_event(
+            event_type: ORCHESTRATOR_STARTED,
+            payload: {
+              timestamp: now(),
+              user_request: user_request
+            }
+          )
+
+    outputs:
+      - registry (loaded or created)
+      - events (loaded or empty)
+
+    gates:
+      - GATE_ORCHESTRATOR_INITIALIZED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 1: Request Analysis
+  # ───────────────────────────────────────────────────────────
+
+  phase_1_request_analysis:
+    description: "Analyze user request to determine project type and scope"
+    sequence: 1
+
+    steps:
+      step_1_parse_request:
+        description: "Parse user request using NLU"
+        action: |
+          request_intent = analyze_intent(user_request)
+          # Intents: NEW_PROJECT, CHANGE_REQUEST, DEPLOY_REQUEST,
+          #          QUERY_STATUS, CANCEL_PROJECT
+
+      step_2_detect_project:
+        description: "Check if request refers to existing project"
+        action: |
+          project_references = extract_project_references(user_request)
+
+          IF project_references:
+            # User mentioned existing project
+            project_id = resolve_project_id(project_references)
+            project_context = load_yaml(f"artifacts/{project_id}/project-context.yaml")
+            mode = MODIFY_EXISTING
+          ELSE:
+            # Check if we're in conversation context with active project
+            IF current_session_has_active_project():
+              project_id = get_active_project_id()
+              project_context = load_yaml(f"artifacts/{project_id}/project-context.yaml")
+              mode = MODIFY_EXISTING
+            ELSE:
+              # New project
+              project_id = generate_project_id()  # e.g., PRJ-001
+              project_context = null
+              mode = NEW_PROJECT
+
+      step_3_classify_request:
+        description: "Classify request type"
+        action: |
+          request_type = classify_request(user_request, mode, project_context)
+
+          # Request types:
+          # - NEW_PROJECT: Create new project from scratch
+          # - ADD_FEATURE: Add functionality to existing project
+          # - FIX_BUG: Fix issue in existing project
+          # - REFACTOR: Improve existing code
+          # - DEPLOY: Deploy to environment
+          # - QUERY: Ask about project status
+          # - CANCEL: Cancel project
+
+      step_4_extract_requirements:
+        description: "Extract high-level requirements from request"
+        action: |
+          high_level_requirements = extract_key_requirements(user_request)
+          # e.g., ["task management", "authentication", "REST API"]
+
+      step_5_determine_scope:
+        description: "Determine impact scope (which phases need execution)"
+        action: |
+          IF mode == NEW_PROJECT:
+            # Check if discovery phase needed
+            needs_discovery = check_if_discovery_needed(user_request)
+
+            IF needs_discovery:
+              # Start with Phase 0 (deep-explore)
+              execution_phases = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+              restart_phase = 0
+            ELSE:
+              # Skip discovery, go straight to requirements
+              execution_phases = [1, 2, 3, 4, 5, 6, 7, 8]
+              restart_phase = 1
+
+          ELIF request_type == ADD_FEATURE:
+            # Analyze impact
+            impact = analyze_feature_impact(user_request, project_context)
+
+            IF impact.affects_requirements:
+              restart_phase = 1
+              execution_phases = [1, 2, 3, 4, 5, 6, 7]  # Skip deploy for now
+            ELIF impact.affects_architecture:
+              restart_phase = 2
+              execution_phases = [2, 3, 4, 5, 6, 7]
+            ELIF impact.code_only:
+              restart_phase = 5
+              execution_phases = [5, 6, 7]
+
+          ELIF request_type == FIX_BUG:
+            restart_phase = 5  # Typically just code + tests
+            execution_phases = [5, 6, 7]
+
+          ELIF request_type == DEPLOY:
+            restart_phase = 8
+            execution_phases = [8]
+
+    outputs:
+      - analysis_result.yaml:
+          mode: NEW_PROJECT | MODIFY_EXISTING
+          request_type: classification
+          project_id: project identifier
+          restart_phase: phase number
+          execution_phases: list of phases
+          high_level_requirements: extracted requirements
+
+    gates:
+      - GATE_REQUEST_UNDERSTOOD
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 2: Project Initialization / Context Loading
+  # ───────────────────────────────────────────────────────────
+
+  phase_2_project_setup:
+    description: "Create or load project context"
+    sequence: 2
+
+    steps:
+      step_1_create_or_load_context:
+        description: "Setup project context"
+        action: |
+          IF mode == NEW_PROJECT:
+            # Create new project structure
+            create_directory(f"artifacts/{project_id}")
+
+            project_context = {
+              project_id: project_id,
+              project_name: generate_project_name(user_request),
+              status: CREATED,
+              created_at: now(),
+              created_by: get_user_id(),
+              current_phase: restart_phase,
+              progress_percent: 0,
+              decision_log: [],
+              change_history: [],
+              artifacts_directory: f"artifacts/{project_id}"
+            }
+
+            save_yaml(project_context, f"artifacts/{project_id}/project-context.yaml")
+
+          ELSE:  # MODIFY_EXISTING
+            # Load existing context
+            project_context = load_yaml(f"artifacts/{project_id}/project-context.yaml")
+
+            # Update context
+            project_context.last_updated = now()
+            project_context.change_history.append({
+              timestamp: now(),
+              change_type: request_type,
+              user_request: user_request
+            })
+
+      step_2_register_project:
+        description: "Register/update in process registry"
+        action: |
+          IF mode == NEW_PROJECT:
+            registry.active_projects.append({
+              project_id: project_id,
+              name: project_context.project_name,
+              status: RUNNING,
+              current_phase: f"Phase {restart_phase}",
+              priority: determine_priority(user_request),
+              last_activity: now()
+            })
+          ELSE:
+            # Update existing entry
+            entry = registry.find(project_id)
+            entry.status = RUNNING
+            entry.current_phase = f"Phase {restart_phase}"
+            entry.last_activity = now()
+
+          save_yaml(registry, "artifacts/process-registry.yaml")
+
+      step_3_acquire_lock:
+        description: "Acquire project lock (prevent concurrent modifications)"
+        action: |
+          orchestration_state = {
+            project_id: project_id,
+            lock_status: {
+              is_locked: true,
+              locked_by: "orchestrator-master",
+              locked_at: now()
+            },
+            current_process: "orchestrator-master",
+            current_phase: "phase_2_project_setup",
+            next_action: f"Execute Phase {restart_phase}"
+          }
+
+          save_yaml(orchestration_state, f"artifacts/{project_id}/orchestration-state.yaml")
+
+      step_4_emit_event:
+        description: "Emit PROJECT_STARTED or PROJECT_RESUMED event"
+        action: |
+          IF mode == NEW_PROJECT:
+            emit_event(
+              event_type: PROJECT_STARTED,
+              project_id: project_id,
+              payload: {
+                project_name: project_context.project_name,
+                user_request: user_request
+              }
+            )
+          ELSE:
+            emit_event(
+              event_type: PROJECT_RESUMED,
+              project_id: project_id,
+              payload: {
+                request_type: request_type,
+                restart_phase: restart_phase
+              }
+            )
+
+    outputs:
+      - artifacts/{project_id}/project-context.yaml
+      - artifacts/{project_id}/orchestration-state.yaml
+      - artifacts/process-registry.yaml (updated)
+
+    gates:
+      - GATE_PROJECT_INITIALIZED
+      - GATE_LOCK_ACQUIRED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 3: Process Invocation
+  # ───────────────────────────────────────────────────────────
+
+  phase_3_process_invocation:
+    description: "Invoke appropriate child processes based on execution plan"
+    sequence: 3
+
+    steps:
+      step_1_prepare_execution_plan:
+        description: "Create detailed execution plan"
+        action: |
+          execution_plan = {
+            project_id: project_id,
+            phases: []
+          }
+
+          FOR phase_num IN execution_phases:
+            phase_config = {
+              phase_number: phase_num,
+              phase_name: get_phase_name(phase_num),
+              process_name: get_process_for_phase(phase_num),
+              status: PENDING,
+              inputs: prepare_phase_inputs(phase_num, project_id),
+              expected_outputs: get_expected_outputs(phase_num)
+            }
+            execution_plan.phases.append(phase_config)
+
+          save_yaml(execution_plan, f"artifacts/{project_id}/execution-plan.yaml")
+
+      step_2_execute_phases_sequentially:
+        description: "Execute each phase in sequence"
+        action: |
+          FOR phase IN execution_plan.phases:
+            # Update orchestration state
+            orchestration_state.current_phase = phase.phase_name
+            orchestration_state.current_process = phase.process_name
+            save_yaml(orchestration_state, f"artifacts/{project_id}/orchestration-state.yaml")
+
+            # Invoke child process
+            result = invoke_process(
+              process_name: phase.process_name,
+              inputs: phase.inputs,
+              project_id: project_id
+            )
+
+            # Check result
+            IF result.status == SUCCESS:
+              phase.status = COMPLETED
+              phase.outputs = result.outputs
+
+              # Update progress
+              progress = calculate_progress(execution_plan)
+              project_context.progress_percent = progress
+              save_yaml(project_context, f"artifacts/{project_id}/project-context.yaml")
+
+              # Emit event
+              emit_event(
+                event_type: PROCESS_COMPLETED,
+                project_id: project_id,
+                payload: {
+                  process: phase.process_name,
+                  phase: phase.phase_number
+                }
+              )
+
+            ELIF result.status == FAILURE:
+              phase.status = FAILED
+              phase.error = result.error
+
+              # Trigger feedback loop
+              invoke_feedback_loop(
+                project_id: project_id,
+                failed_phase: phase.phase_number,
+                error: result.error
+              )
+
+              # HALT execution
+              BREAK
+
+            ELIF result.status == CONDITIONAL:
+              # Requires user approval
+              phase.status = AWAITING_APPROVAL
+
+              request_user_approval(
+                project_id: project_id,
+                phase: phase.phase_number,
+                details: result.approval_required
+              )
+
+              # Wait for user response
+              user_decision = await_user_decision()
+
+              IF user_decision == APPROVE:
+                phase.status = COMPLETED
+              ELSE:
+                phase.status = REJECTED
+                invoke_feedback_loop(...)
+                BREAK
+
+      step_3_save_execution_plan:
+        description: "Save updated execution plan"
+        action: |
+          save_yaml(execution_plan, f"artifacts/{project_id}/execution-plan.yaml")
+
+    outputs:
+      - artifacts/{project_id}/execution-plan.yaml
+
+    gates:
+      - GATE_EXECUTION_STARTED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 4: Result Aggregation
+  # ───────────────────────────────────────────────────────────
+
+  phase_4_result_aggregation:
+    description: "Aggregate results from all executed phases"
+    sequence: 4
+
+    steps:
+      step_1_collect_artifacts:
+        description: "Collect all artifacts created during execution"
+        action: |
+          created_artifacts = []
+
+          FOR phase IN execution_plan.phases WHERE phase.status == COMPLETED:
+            created_artifacts.extend(phase.outputs)
+
+      step_2_verify_completeness:
+        description: "Verify all expected artifacts were created"
+        action: |
+          missing_artifacts = []
+
+          FOR phase IN execution_plan.phases:
+            FOR expected_artifact IN phase.expected_outputs:
+              IF expected_artifact NOT IN created_artifacts:
+                missing_artifacts.append(expected_artifact)
+
+          IF len(missing_artifacts) > 0:
+            log_warning(f"Missing artifacts: {missing_artifacts}")
+
+      step_3_create_summary:
+        description: "Create execution summary"
+        action: |
+          execution_summary = {
+            project_id: project_id,
+            execution_time: calculate_execution_time(),
+            phases_executed: len(execution_plan.phases),
+            phases_successful: count_successful_phases(),
+            phases_failed: count_failed_phases(),
+            artifacts_created: created_artifacts,
+            final_status: determine_final_status()
+          }
+
+          save_yaml(execution_summary, f"artifacts/{project_id}/execution-summary.yaml")
+
+    outputs:
+      - artifacts/{project_id}/execution-summary.yaml
+
+    gates:
+      - GATE_RESULTS_AGGREGATED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 5: State Finalization
+  # ───────────────────────────────────────────────────────────
+
+  phase_5_state_finalization:
+    description: "Finalize project state and update registry"
+    sequence: 5
+
+    steps:
+      step_1_update_project_context:
+        description: "Update project context with final state"
+        action: |
+          project_context.status = determine_final_status()
+          project_context.current_phase = "COMPLETED" OR "FAILED"
+          project_context.progress_percent = 100 OR calculate_progress()
+          project_context.completed_at = now()
+
+          save_yaml(project_context, f"artifacts/{project_id}/project-context.yaml")
+
+      step_2_release_lock:
+        description: "Release project lock"
+        action: |
+          orchestration_state.lock_status.is_locked = false
+          orchestration_state.lock_status.locked_by = null
+          save_yaml(orchestration_state, f"artifacts/{project_id}/orchestration-state.yaml")
+
+      step_3_update_registry:
+        description: "Update process registry"
+        action: |
+          entry = registry.find(project_id)
+          entry.status = project_context.status
+          entry.last_activity = now()
+
+          IF project_context.status == COMPLETED:
+            # Move to completed list
+            registry.completed_projects.append(entry)
+            registry.active_projects.remove(entry)
+
+          save_yaml(registry, "artifacts/process-registry.yaml")
+
+      step_4_emit_final_event:
+        description: "Emit PROJECT_COMPLETED or PROJECT_FAILED event"
+        action: |
+          IF project_context.status == COMPLETED:
+            emit_event(
+              event_type: PROJECT_COMPLETED,
+              project_id: project_id,
+              payload: {
+                execution_time: execution_summary.execution_time,
+                artifacts_created: execution_summary.artifacts_created
+              }
+            )
+          ELSE:
+            emit_event(
+              event_type: PROJECT_FAILED,
+              project_id: project_id,
+              payload: {
+                error: execution_summary.error
+              }
+            )
+
+    outputs:
+      - artifacts/{project_id}/project-context.yaml (finalized)
+      - artifacts/process-registry.yaml (updated)
+
+    gates:
+      - GATE_STATE_FINALIZED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 6: User Notification
+  # ───────────────────────────────────────────────────────────
+
+  phase_6_user_notification:
+    description: "Notify user of completion and provide summary"
+    sequence: 6
+
+    steps:
+      step_1_generate_report:
+        description: "Generate human-readable report"
+        action: |
+          report = generate_completion_report(
+            project_context,
+            execution_summary,
+            created_artifacts
+          )
+
+      step_2_notify_user:
+        description: "Display report to user"
+        action: |
+          display_to_user(report)
+
+          # Example report:
+          # ✓ Project PRJ-001 COMPLETED
+          # Time: 1h 17min
+          # Phases executed: 8
+          # Artifacts created: 15
+          # Deployment URL: https://app.example.com
+          # Documentation: ./artifacts/PRJ-001/README.md
+
+    outputs:
+      - User notification (displayed)
+
+    gates:
+      - GATE_USER_NOTIFIED
+
+# ═══════════════════════════════════════════════════════════════
+# OUTPUTS
+# ═══════════════════════════════════════════════════════════════
+
+outputs:
+  project-context:
+    artifact_type: "project-context"
+    schema_ref: "schemas/project-context-schema.yaml"
+    path: "artifacts/{project_id}/project-context.yaml"
+    description: "Complete project metadata and state"
+
+  orchestration-state:
+    artifact_type: "orchestration-state"
+    schema_ref: "schemas/orchestration-state-machine-schema.yaml"
+    path: "artifacts/{project_id}/orchestration-state.yaml"
+    description: "Current orchestration state for resumption"
+
+  execution-plan:
+    artifact_type: "execution-plan"
+    schema_ref: "schemas/execution-plan-schema.yaml"
+    path: "artifacts/{project_id}/execution-plan.yaml"
+    description: "Detailed plan of phases to execute"
+
+  execution-summary:
+    artifact_type: "execution-summary"
+    schema_ref: "schemas/execution-summary-schema.yaml"
+    path: "artifacts/{project_id}/execution-summary.yaml"
+    description: "Summary of execution results"
+
+  process-registry:
+    artifact_type: "process-registry"
+    schema_ref: "schemas/process-registry-schema.yaml"
+    path: "artifacts/process-registry.yaml"
+    description: "Registry of all projects (updated)"
+
+# ═══════════════════════════════════════════════════════════════
+# VALIDATION GATES
+# ═══════════════════════════════════════════════════════════════
+
+validation_gates:
+  GATE_ORCHESTRATOR_INITIALIZED:
+    description: "Orchestrator loaded context successfully"
+    validation_rule: "registry loaded AND event_log loaded"
+
+  GATE_REQUEST_UNDERSTOOD:
+    description: "User request analyzed and classified"
+    validation_rule: "request_type identified AND execution_phases determined"
+
+  GATE_PROJECT_INITIALIZED:
+    description: "Project context created or loaded"
+    validation_rule: "project-context.yaml exists AND valid schema"
+
+  GATE_LOCK_ACQUIRED:
+    description: "Project lock acquired (no concurrent access)"
+    validation_rule: "orchestration-state.lock_status.is_locked == true"
+
+  GATE_EXECUTION_STARTED:
+    description: "Child processes invoked"
+    validation_rule: "execution-plan.yaml created AND at least one phase invoked"
+
+  GATE_RESULTS_AGGREGATED:
+    description: "Results collected from all phases"
+    validation_rule: "execution-summary.yaml created"
+
+  GATE_STATE_FINALIZED:
+    description: "Project state finalized and persisted"
+    validation_rule: "project-context.status IN [COMPLETED, FAILED] AND lock released"
+
+  GATE_USER_NOTIFIED:
+    description: "User received completion notification"
+    validation_rule: "report displayed"
+
+# ═══════════════════════════════════════════════════════════════
+# ERROR HANDLING
+# ═══════════════════════════════════════════════════════════════
+
+error_handlers:
+  child_process_failure:
+    trigger: "PROCESS_FAILED event received"
+    action: |
+      1. Capture error details
+      2. Update execution_plan (mark phase as FAILED)
+      3. Invoke feedback-loop-handler
+      4. Await remediation
+      5. Optionally retry from failed phase
+
+  lock_conflict:
+    trigger: "Cannot acquire project lock"
+    action: |
+      1. Check who holds lock
+      2. Check lock age
+      3. IF lock stale (>1 hour) THEN force release
+      4. ELSE notify user and queue request
+
+  missing_artifacts:
+    trigger: "Expected artifact not found"
+    action: |
+      1. Log warning
+      2. Check if artifact critical
+      3. IF critical THEN HALT and invoke feedback loop
+      4. ELSE continue with warning
+
+  user_cancellation:
+    trigger: "User cancels during execution"
+    action: |
+      1. Stop current phase gracefully
+      2. Release locks
+      3. Update project status to CANCELLED
+      4. Save checkpoint for potential resumption
+
+# ═══════════════════════════════════════════════════════════════
+# HELPERS
+# ═══════════════════════════════════════════════════════════════
+
+helper_functions:
+  get_phase_name:
+    description: "Map phase number to phase name"
+    mapping:
+      0: "Discovery (Research & Exploration)"
+      1: "Requirements Analysis"
+      2: "Architecture Design"
+      3: "Architecture Verification"
+      4: "Risk Analysis"
+      5: "Implementation"
+      6: "Testing"
+      7: "Code Validation"
+      8: "Deployment"
+
+  get_process_for_phase:
+    description: "Map phase number to process name"
+    mapping:
+      0: "deep-explore"
+      1: "deep-requirements"
+      2: "deep-architecture"
+      3: "deep-verify"
+      4: "deep-risk"
+      5: "deep-implement"
+      6: "deep-test"
+      7: "deep-verify"  # Second invocation for code validation
+      8: "deep-deploy"
+
+  check_if_discovery_needed:
+    description: "Determine if discovery phase (deep-explore) is needed"
+    logic: |
+      # Discovery is needed when:
+      # 1. User request is vague/high-level (lacks specific requirements)
+      # 2. User explicitly requests research
+      # 3. Request is generic domain term without details
+
+      vague_indicators = [
+        "I want",
+        "I need",
+        "something for",
+        "build a",
+        "create a"
+      ]
+
+      domain_terms = [
+        "task management",
+        "CRM",
+        "e-commerce",
+        "social media",
+        "analytics",
+        "dashboard",
+        "platform"
+      ]
+
+      research_keywords = [
+        "research",
+        "explore",
+        "what are",
+        "best practices",
+        "similar to"
+      ]
+
+      # Check if request contains vague language + domain term
+      has_vague_language = any(indicator in user_request.lower() for indicator in vague_indicators)
+      has_domain_term = any(term in user_request.lower() for term in domain_terms)
+      has_research_keyword = any(keyword in user_request.lower() for keyword in research_keywords)
+
+      # Check if request lacks specific requirements
+      specific_requirement_indicators = [
+        "must have",
+        "should include",
+        "needs to",
+        "with the following features"
+      ]
+      has_specific_requirements = any(indicator in user_request.lower() for indicator in specific_requirement_indicators)
+
+      # Discovery needed if:
+      # - Explicitly requested OR
+      # - (Vague + domain term) AND no specific requirements
+      IF has_research_keyword:
+        return true
+      ELIF has_vague_language AND has_domain_term AND NOT has_specific_requirements:
+        return true
+      ELSE:
+        return false
+
+  determine_priority:
+    description: "Determine project priority from request"
+    logic: |
+      IF user_request contains ["urgent", "critical", "production"]:
+        return HIGH
+      ELIF user_request contains ["bug", "fix", "broken"]:
+        return MEDIUM
+      ELSE:
+        return LOW
+
+  calculate_progress:
+    description: "Calculate project completion percentage"
+    logic: |
+      completed_phases = count(execution_plan.phases WHERE status == COMPLETED)
+      total_phases = count(execution_plan.phases)
+      return (completed_phases / total_phases) * 100
+
+# ═══════════════════════════════════════════════════════════════
+# COMPLIANCE
+# ═══════════════════════════════════════════════════════════════
+
+compliance_13_zasady:
+  zasada_1_self_contained:
+    status: COMPLIANT
+    evidence: "Process includes all logic, no external dependencies except child processes"
+
+  zasada_2_binding_gates:
+    status: COMPLIANT
+    evidence: "8 validation gates enforce constraints (GATE_LOCK_ACQUIRED prevents concurrent access)"
+
+  zasada_3_sequential_execution:
+    status: COMPLIANT
+    evidence: "Phases execute 0→1→2→3→4→5→6, cannot skip"
+
+  zasada_4_completeness_markers:
+    status: COMPLIANT
+    evidence: "All artifacts have status, timestamps, completion markers"
+
+  zasada_7_counter_checks:
+    status: COMPLIANT
+    evidence: "Lock mechanism, artifact existence checks, phase status validation"
+
+  zasada_9_traceable_decisions:
+    status: COMPLIANT
+    evidence: "All decisions logged in project-context.decision_log, events emitted"
+
+---
+# END orchestrator-master.yaml

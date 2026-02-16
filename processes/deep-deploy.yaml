@@ -1,0 +1,771 @@
+---
+# Deep-Deploy Process v1.0
+# Deployment, containerization, CI/CD, and infrastructure provisioning
+---
+
+process_name: deep-deploy
+version: "1.0.0"
+created: "2026-02-16"
+13_zasady_version: "1.0.0"
+
+# ═══════════════════════════════════════════════════════════════
+# METADATA
+# ═══════════════════════════════════════════════════════════════
+
+metadata:
+  category: DEPLOYMENT
+  purpose: "Deploy application with containerization, CI/CD, and monitoring"
+  role: "DevOps Engineer + SRE"
+  complexity: MEDIUM
+  estimated_duration: "8-15 minutes"
+
+# ═══════════════════════════════════════════════════════════════
+# TRIGGER CONDITIONS
+# ═══════════════════════════════════════════════════════════════
+
+triggers:
+  - trigger_type: ORCHESTRATOR_INVOCATION
+    description: "Orchestrator invokes for Phase 8 (deployment)"
+    event: PROCESS_STARTED
+
+  - trigger_type: CODE_VALIDATED
+    description: "Code passed all validations, ready for deploy"
+    event: VALIDATION_PASSED
+
+  - trigger_type: USER_REQUEST
+    description: "User explicitly requests deployment"
+    event: DEPLOY_REQUESTED
+
+# ═══════════════════════════════════════════════════════════════
+# INPUTS
+# ═══════════════════════════════════════════════════════════════
+
+inputs:
+  project_context:
+    type: artifact
+    schema_ref: "schemas/project-context-schema.yaml"
+    required: true
+
+  source_code:
+    type: directory
+    required: true
+    path: "artifacts/{project_id}/src/**/*"
+
+  test_results:
+    type: artifact
+    schema_ref: "schemas/test-results-schema.yaml"
+    required: true
+    description: "Must show tests passing"
+
+  validation_report:
+    type: artifact
+    schema_ref: "schemas/validation-report-schema.yaml"
+    required: true
+    description: "Code validation results"
+
+  deployment_architecture:
+    type: artifact
+    required: false
+    path: "artifacts/{project_id}/deployment-architecture.yaml"
+    description: "Infrastructure design from architecture phase"
+
+  implementation_log:
+    type: artifact
+    schema_ref: "schemas/implementation-log-schema.yaml"
+    required: true
+    description: "Tech stack information"
+
+# ═══════════════════════════════════════════════════════════════
+# PHASES
+# ═══════════════════════════════════════════════════════════════
+
+phases:
+  total_phases: 5
+  execution: "Sequential"
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 1: Containerization
+  # ───────────────────────────────────────────────────────────
+
+  phase_1_containerization:
+    description: "Create Docker containers for application"
+    sequence: 1
+
+    steps:
+      step_1_create_dockerfile:
+        description: "Generate Dockerfile for application"
+        action: |
+          tech_stack = implementation_log.technology_decisions.tech_stack
+
+          IF tech_stack.backend.language == "Python":
+            dockerfile = '''
+            FROM python:3.11-slim
+
+            WORKDIR /app
+
+            # Install dependencies
+            COPY requirements.txt .
+            RUN pip install --no-cache-dir -r requirements.txt
+
+            # Copy application code
+            COPY src/ .
+
+            # Expose port
+            EXPOSE 8000
+
+            # Health check
+            HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \\
+              CMD curl -f http://localhost:8000/health || exit 1
+
+            # Run application
+            CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+            '''
+
+          ELIF tech_stack.backend.language == "Node.js":
+            dockerfile = '''
+            FROM node:18-alpine
+
+            WORKDIR /app
+
+            COPY package*.json ./
+            RUN npm ci --only=production
+
+            COPY src/ .
+
+            EXPOSE 3000
+
+            HEALTHCHECK --interval=30s --timeout=3s \\
+              CMD node healthcheck.js || exit 1
+
+            CMD ["node", "server.js"]
+            '''
+
+          create_file("Dockerfile", dockerfile)
+
+      step_2_create_dockerignore:
+        description: "Create .dockerignore file"
+        action: |
+          dockerignore = '''
+          __pycache__
+          *.pyc
+          *.pyo
+          *.pyd
+          .Python
+          env/
+          venv/
+          .env
+          .git
+          .gitignore
+          tests/
+          docs/
+          *.md
+          '''
+
+          create_file(".dockerignore", dockerignore)
+
+      step_3_create_docker_compose:
+        description: "Create docker-compose.yml for local development"
+        action: |
+          compose = f'''
+          version: '3.8'
+
+          services:
+            app:
+              build: .
+              ports:
+                - "8000:8000"
+              environment:
+                - DATABASE_URL=postgresql://user:pass@db:5432/''' + project_context.project_name + '''
+                - ENVIRONMENT=development
+              depends_on:
+                - db
+              volumes:
+                - ./src:/app
+
+            db:
+              image: postgres:15-alpine
+              environment:
+                - POSTGRES_USER=user
+                - POSTGRES_PASSWORD=pass
+                - POSTGRES_DB=''' + project_context.project_name + '''
+              ports:
+                - "5432:5432"
+              volumes:
+                - postgres_data:/var/lib/postgresql/data
+
+          volumes:
+            postgres_data:
+          '''
+
+          create_file("docker-compose.yml", compose)
+
+      step_4_build_container_image:
+        description: "Build Docker image"
+        action: |
+          image_tag = f"{project_context.project_name}:latest"
+
+          result = run_command(f"docker build -t {image_tag} .")
+
+          IF result.exit_code != 0:
+            raise BuildError(f"Docker build failed: {result.stderr}")
+
+          container_image_id = extract_image_id(result.stdout)
+
+      step_5_test_container:
+        description: "Test container starts successfully"
+        action: |
+          # Start container
+          container_id = run_command(f"docker run -d -p 8000:8000 {image_tag}")
+
+          # Wait for health check
+          sleep(10)
+
+          # Check health endpoint
+          health_response = http_get("http://localhost:8000/health")
+
+          IF health_response.status_code != 200:
+            raise HealthCheckError("Container health check failed")
+
+          # Stop test container
+          run_command(f"docker stop {container_id}")
+
+    outputs:
+      - Dockerfile
+      - docker-compose.yml
+      - container_image_id
+
+    gates:
+      - GATE_CONTAINER_BUILT
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 2: CI/CD Pipeline Setup
+  # ───────────────────────────────────────────────────────────
+
+  phase_2_cicd_setup:
+    description: "Create CI/CD pipeline configuration"
+    sequence: 2
+
+    steps:
+      step_1_create_github_actions_workflow:
+        description: "Create GitHub Actions CI/CD workflow"
+        action: |
+          workflow = '''
+          name: CI/CD Pipeline
+
+          on:
+            push:
+              branches: [main, develop]
+            pull_request:
+              branches: [main]
+
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+
+              services:
+                postgres:
+                  image: postgres:15
+                  env:
+                    POSTGRES_USER: test_user
+                    POSTGRES_PASSWORD: test_pass
+                    POSTGRES_DB: test_db
+                  options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+              steps:
+                - uses: actions/checkout@v3
+
+                - name: Set up Python
+                  uses: actions/setup-python@v4
+                  with:
+                    python-version: '3.11'
+
+                - name: Install dependencies
+                  run: |
+                    pip install -r requirements.txt
+                    pip install pytest pytest-cov
+
+                - name: Run tests
+                  env:
+                    DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_db
+                  run: |
+                    pytest tests/ -v --cov=src --cov-report=xml
+
+                - name: Upload coverage
+                  uses: codecov/codecov-action@v3
+
+            build:
+              needs: test
+              runs-on: ubuntu-latest
+              if: github.ref == 'refs/heads/main'
+
+              steps:
+                - uses: actions/checkout@v3
+
+                - name: Build Docker image
+                  run: docker build -t ''' + project_context.project_name + ''':${{ github.sha }} .
+
+                - name: Push to registry
+                  run: |
+                    echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+                    docker push ''' + project_context.project_name + ''':${{ github.sha }}
+
+            deploy:
+              needs: build
+              runs-on: ubuntu-latest
+              if: github.ref == 'refs/heads/main'
+
+              steps:
+                - name: Deploy to staging
+                  run: |
+                    # Add deployment commands here
+                    echo "Deploying to staging..."
+          '''
+
+          create_directory(".github/workflows")
+          create_file(".github/workflows/ci-cd.yml", workflow)
+
+      step_2_create_pre_commit_hooks:
+        description: "Create pre-commit hooks for code quality"
+        action: |
+          pre_commit_config = '''
+          repos:
+            - repo: https://github.com/pre-commit/pre-commit-hooks
+              rev: v4.5.0
+              hooks:
+                - id: trailing-whitespace
+                - id: end-of-file-fixer
+                - id: check-yaml
+                - id: check-added-large-files
+
+            - repo: https://github.com/psf/black
+              rev: 23.11.0
+              hooks:
+                - id: black
+
+            - repo: https://github.com/PyCQA/flake8
+              rev: 6.1.0
+              hooks:
+                - id: flake8
+          '''
+
+          create_file(".pre-commit-config.yaml", pre_commit_config)
+
+    outputs:
+      - .github/workflows/ci-cd.yml
+      - .pre-commit-config.yaml
+
+    gates:
+      - GATE_CICD_CONFIGURED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 3: Infrastructure Provisioning
+  # ───────────────────────────────────────────────────────────
+
+  phase_3_infrastructure:
+    description: "Provision infrastructure (if needed)"
+    sequence: 3
+
+    steps:
+      step_1_determine_hosting_platform:
+        description: "Determine where to deploy"
+        action: |
+          # Options: Docker Compose (local), Heroku, Railway, Fly.io,
+          #          AWS (ECS/Fargate), GCP (Cloud Run), Azure
+
+          IF deployment_architecture AND deployment_architecture.hosting_platform:
+            platform = deployment_architecture.hosting_platform
+          ELSE:
+            # Default to simple option for small projects
+            platform = "Railway" # or "Render" or "Fly.io"
+
+      step_2_create_infrastructure_config:
+        description: "Create infrastructure configuration files"
+        action: |
+          IF platform == "Railway":
+            # Railway uses railway.json or railway.toml
+            railway_config = {
+              "build": {
+                "builder": "DOCKERFILE"
+              },
+              "deploy": {
+                "startCommand": "uvicorn main:app --host 0.0.0.0 --port $PORT",
+                "healthcheckPath": "/health",
+                "healthcheckTimeout": 100
+              }
+            }
+            create_file("railway.json", json.dumps(railway_config, indent=2))
+
+          ELIF platform == "Heroku":
+            # Heroku uses Procfile
+            procfile = "web: uvicorn main:app --host 0.0.0.0 --port $PORT"
+            create_file("Procfile", procfile)
+
+          ELIF platform == "AWS":
+            # Create terraform configuration for AWS ECS
+            terraform_main = '''
+            provider "aws" {
+              region = "us-east-1"
+            }
+
+            resource "aws_ecs_cluster" "main" {
+              name = "''' + project_context.project_name + '''-cluster"
+            }
+
+            # ECS task definition, service, load balancer, etc.
+            '''
+            create_directory("terraform")
+            create_file("terraform/main.tf", terraform_main)
+
+      step_3_setup_environment_variables:
+        description: "Document required environment variables"
+        action: |
+          env_docs = '''
+          # Environment Variables
+
+          Required environment variables for deployment:
+
+          - `DATABASE_URL`: PostgreSQL connection string
+          - `SECRET_KEY`: JWT secret key (generate with: openssl rand -hex 32)
+          - `ENVIRONMENT`: production | staging | development
+          - `PORT`: Port to listen on (default: 8000)
+          '''
+
+          create_file("docs/ENVIRONMENT.md", env_docs)
+
+    outputs:
+      - Infrastructure configuration files
+      - docs/ENVIRONMENT.md
+
+    gates:
+      - GATE_INFRASTRUCTURE_CONFIGURED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 4: Deployment Execution
+  # ───────────────────────────────────────────────────────────
+
+  phase_4_deployment_execution:
+    description: "Execute deployment to staging/production"
+    sequence: 4
+
+    steps:
+      step_1_deploy_to_staging:
+        description: "Deploy application to staging environment"
+        action: |
+          IF platform == "Railway":
+            # Railway CLI deployment
+            result = run_command("railway up")
+
+            deployment_url = extract_deployment_url(result.stdout)
+
+          ELIF platform == "Heroku":
+            result = run_command("git push heroku main")
+            deployment_url = extract_heroku_url(result.stdout)
+
+          ELIF platform == "Docker Compose":
+            # Deploy locally or to VPS with docker-compose
+            result = run_command("docker-compose up -d")
+            deployment_url = "http://localhost:8000"
+
+          ELSE:
+            # Manual deployment instructions
+            deployment_url = null
+
+      step_2_run_database_migrations:
+        description: "Run database migrations on staging"
+        action: |
+          IF deployment_url:
+            # Connect to staging and run migrations
+            run_remote_command(deployment_url, "alembic upgrade head")
+
+      step_3_verify_deployment:
+        description: "Verify deployment successful"
+        action: |
+          IF deployment_url:
+            # Wait for deployment to be ready
+            sleep(30)
+
+            # Check health endpoint
+            health_check = http_get(f"{deployment_url}/health")
+
+            IF health_check.status_code != 200:
+              raise DeploymentError("Health check failed after deployment")
+
+            deployment_status = "SUCCESS"
+          ELSE:
+            deployment_status = "MANUAL_DEPLOYMENT_REQUIRED"
+
+      step_4_run_smoke_tests:
+        description: "Run smoke tests against deployed app"
+        action: |
+          IF deployment_url:
+            smoke_tests = [
+              test_health_endpoint(deployment_url),
+              test_api_responds(deployment_url),
+              test_database_connection(deployment_url)
+            ]
+
+            smoke_test_results = {
+              total: len(smoke_tests),
+              passed: count(smoke_tests WHERE passed),
+              failed: count(smoke_tests WHERE failed)
+            }
+
+            IF smoke_test_results.failed > 0:
+              raise DeploymentError("Smoke tests failed")
+
+    outputs:
+      - deployment_url
+      - deployment_status
+      - smoke_test_results
+
+    gates:
+      - GATE_DEPLOYED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 5: Monitoring & Documentation
+  # ───────────────────────────────────────────────────────────
+
+  phase_5_monitoring_docs:
+    description: "Setup monitoring and create deployment documentation"
+    sequence: 5
+
+    steps:
+      step_1_setup_monitoring:
+        description: "Configure application monitoring"
+        action: |
+          # Add monitoring integration
+          # Options: Sentry (errors), Datadog, New Relic, Prometheus + Grafana
+
+          monitoring_config = {
+            error_tracking: "Sentry" if available else "Built-in logging",
+            metrics: "Application logs",
+            alerts: "Email on errors"
+          }
+
+          # Add Sentry integration if Python
+          IF implementation_log.technology_decisions.tech_stack.backend.language == "Python":
+            sentry_integration = '''
+            import sentry_sdk
+
+            sentry_sdk.init(
+                dsn=settings.sentry_dsn,
+                traces_sample_rate=1.0,
+            )
+            '''
+            # Add to main.py
+
+      step_2_setup_logging:
+        description: "Configure structured logging"
+        action: |
+          # Ensure proper logging configured
+          # Log to stdout for container environments
+
+      step_3_create_deployment_guide:
+        description: "Create deployment documentation"
+        action: |
+          deployment_guide = f'''
+          # Deployment Guide - {project_context.project_name}
+
+          ## Current Deployment
+          - **Environment**: Staging
+          - **URL**: {deployment_url}
+          - **Platform**: {platform}
+          - **Status**: {deployment_status}
+
+          ## Architecture
+          - **Backend**: {tech_stack.backend.framework}
+          - **Database**: {tech_stack.database.primary}
+          - **Container**: Docker
+
+          ## Deployment Process
+
+          ### Automated (CI/CD)
+          1. Push to `main` branch
+          2. GitHub Actions runs tests
+          3. Builds Docker image
+          4. Deploys to staging automatically
+
+          ### Manual Deployment
+          ```bash
+          # Build image
+          docker build -t {project_context.project_name} .
+
+          # Run locally
+          docker-compose up
+
+          # Deploy to production
+          # (platform-specific commands)
+          ```
+
+          ## Environment Variables
+          See `docs/ENVIRONMENT.md` for required environment variables.
+
+          ## Monitoring
+          - **Error Tracking**: {monitoring_config.error_tracking}
+          - **Logs**: Application logs via `docker logs` or platform dashboard
+          - **Health Check**: {deployment_url}/health
+
+          ## Troubleshooting
+          - Check logs: `docker logs <container_id>`
+          - Check health: `curl {deployment_url}/health`
+          - Database connection: Verify DATABASE_URL environment variable
+
+          ## Rollback Procedure
+          1. Identify last working version
+          2. Redeploy that version
+          3. Run database rollback if needed: `alembic downgrade -1`
+          '''
+
+          create_file("docs/DEPLOYMENT.md", deployment_guide)
+
+      step_4_create_deployment_report:
+        description: "Create deployment report artifact"
+        action: |
+          deployment_report = {
+            dp_id: f"{project_context.project_id}-DEPLOY",
+            artifact_type: "deployment-report",
+            schema_ref: "schemas/deployment-report-schema.yaml",
+
+            deployment_status: deployment_status,
+            environment: "staging",
+            deployment_url: deployment_url,
+            platform: platform,
+
+            infrastructure: {
+              containers: [container_image_id],
+              database: tech_stack.database.primary,
+              hosting_platform: platform
+            },
+
+            health_checks: {
+              health_endpoint: "PASS" if deployment_status == "SUCCESS" else "FAIL",
+              smoke_tests: smoke_test_results if smoke_test_results else null
+            },
+
+            monitoring: monitoring_config,
+
+            deployed_at: now(),
+            deployed_by: "deep-deploy"
+          }
+
+          save_yaml(deployment_report, f"artifacts/{project_id}/deployment-report.yaml")
+
+    outputs:
+      - docs/DEPLOYMENT.md
+      - deployment-report.yaml
+
+    gates:
+      - GATE_MONITORING_CONFIGURED
+      - GATE_DOCUMENTATION_COMPLETE
+
+# ═══════════════════════════════════════════════════════════════
+# OUTPUTS
+# ═══════════════════════════════════════════════════════════════
+
+outputs:
+  deployment-report:
+    artifact_type: "deployment-report"
+    schema_ref: "schemas/deployment-report-schema.yaml"
+    path: "artifacts/{project_id}/deployment-report.yaml"
+
+  deployment-guide:
+    type: "file"
+    format: "markdown"
+    path: "artifacts/{project_id}/docs/DEPLOYMENT.md"
+
+  docker-files:
+    type: "files"
+    paths:
+      - "Dockerfile"
+      - "docker-compose.yml"
+      - ".dockerignore"
+
+  cicd-config:
+    type: "file"
+    path: ".github/workflows/ci-cd.yml"
+
+# ═══════════════════════════════════════════════════════════════
+# VALIDATION GATES
+# ═══════════════════════════════════════════════════════════════
+
+validation_gates:
+  GATE_CONTAINER_BUILT:
+    description: "Docker image built and tested"
+    validation_rule: "container_image_id exists AND health_check passed"
+
+  GATE_CICD_CONFIGURED:
+    description: "CI/CD pipeline configured"
+    validation_rule: "ci-cd.yml exists"
+
+  GATE_INFRASTRUCTURE_CONFIGURED:
+    description: "Infrastructure configuration created"
+    validation_rule: "platform selected AND config files created"
+
+  GATE_DEPLOYED:
+    description: "Application deployed successfully"
+    validation_rule: "deployment_status == SUCCESS OR MANUAL_DEPLOYMENT_REQUIRED"
+
+  GATE_MONITORING_CONFIGURED:
+    description: "Monitoring and logging configured"
+    validation_rule: "monitoring_config defined"
+
+  GATE_DOCUMENTATION_COMPLETE:
+    description: "Deployment documentation created"
+    validation_rule: "DEPLOYMENT.md exists"
+
+# ═══════════════════════════════════════════════════════════════
+# ERROR HANDLING
+# ═══════════════════════════════════════════════════════════════
+
+error_handlers:
+  build_failure:
+    trigger: "Docker build fails"
+    action: |
+      1. Capture build logs
+      2. Analyze error (missing dependency? syntax error?)
+      3. Trigger feedback loop to deep-implement
+      4. HALT deployment
+
+  deployment_failure:
+    trigger: "Deployment to platform fails"
+    action: |
+      1. Capture deployment logs
+      2. Check common issues (env vars, permissions, quota)
+      3. Provide manual deployment instructions
+      4. Mark as MANUAL_DEPLOYMENT_REQUIRED
+
+  health_check_failure:
+    trigger: "Health check fails after deployment"
+    action: |
+      1. Check application logs
+      2. Check database connection
+      3. Rollback deployment if possible
+      4. Trigger feedback loop to deep-implement
+
+# ═══════════════════════════════════════════════════════════════
+# COMPLIANCE
+# ═══════════════════════════════════════════════════════════════
+
+compliance_13_zasady:
+  zasada_1_self_contained:
+    status: COMPLIANT
+    evidence: "Process includes containerization, CI/CD, deployment logic"
+
+  zasada_2_binding_gates:
+    status: COMPLIANT
+    evidence: "6 validation gates enforce deployment readiness"
+
+  zasada_3_sequential_execution:
+    status: COMPLIANT
+    evidence: "Phases execute 1→2→3→4→5, build before deploy"
+
+  zasada_9_traceable_decisions:
+    status: COMPLIANT
+    evidence: "All deployment decisions logged in deployment-report"
+
+---
+# END deep-deploy.yaml

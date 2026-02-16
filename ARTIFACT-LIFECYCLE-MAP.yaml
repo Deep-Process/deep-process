@@ -1,0 +1,745 @@
+---
+# Artifact Lifecycle Map v1.0
+# Complete mapping of all artifacts in the deep-process ecosystem
+---
+
+map_version: "1.0.0"
+created: "2026-02-16"
+
+# ═══════════════════════════════════════════════════════════════
+# ARTIFACT CATEGORIES
+# ═══════════════════════════════════════════════════════════════
+
+artifact_categories:
+  orchestration:
+    description: "Artifacts that control system orchestration"
+    artifacts: [project-context, orchestration-state, process-registry, event-log]
+
+  requirements:
+    description: "Artifacts defining what to build"
+    artifacts: [requirements, user-stories, acceptance-criteria]
+
+  architecture:
+    description: "Artifacts defining how to build"
+    artifacts: [architecture, schemas, api-specifications, component-diagram, deployment-architecture]
+
+  verification:
+    description: "Artifacts from validation processes"
+    artifacts: [verification-report, validation-report, coherence-violation]
+
+  risk:
+    description: "Artifacts from risk analysis"
+    artifacts: [risk-assessment, threat-model, mitigation-plan]
+
+  implementation:
+    description: "Artifacts from code implementation"
+    artifacts: [implementation-log, source-code, deviations-log]
+
+  testing:
+    description: "Artifacts from testing processes"
+    artifacts: [test-results, test-files, coverage-report, performance-benchmarks]
+
+  deployment:
+    description: "Artifacts from deployment processes"
+    artifacts: [deployment-report, container-images, infrastructure-code, ci-cd-config]
+
+  coordination:
+    description: "Artifacts for process coordination"
+    artifacts: [handoff-checkpoint, state-synchronization, feedback-event]
+
+# ═══════════════════════════════════════════════════════════════
+# ARTIFACT DEFINITIONS
+# ═══════════════════════════════════════════════════════════════
+
+artifacts:
+  # ─────────────────────────────────────────────────────────────
+  # ORCHESTRATION ARTIFACTS
+  # ─────────────────────────────────────────────────────────────
+
+  project-context:
+    artifact_type: "project-context"
+    schema: "schemas/project-context-schema.yaml"
+    category: orchestration
+    created_by: "orchestrator-master"
+    created_in_phase: "Phase 0"
+    lifecycle: PERSISTENT
+    purpose: "Root artifact tracking project metadata and history"
+    dependencies: []
+    dependents: [requirements, architecture, orchestration-state]
+    update_triggers:
+      - "Project initialization"
+      - "Phase completion"
+      - "Major decision made"
+      - "Status change"
+    fields:
+      - project_id
+      - project_name
+      - current_phase
+      - progress_percent
+      - decision_log
+      - change_history
+
+  orchestration-state:
+    artifact_type: "orchestration-state"
+    schema: "schemas/orchestration-state-machine-schema.yaml"
+    category: orchestration
+    created_by: "orchestrator-master"
+    created_in_phase: "Phase 0"
+    lifecycle: PERSISTENT
+    purpose: "Tracks current orchestration state for session resumption"
+    dependencies: [project-context]
+    dependents: []
+    update_triggers:
+      - "State transition"
+      - "Phase change"
+      - "Checkpoint created"
+    fields:
+      - current_process
+      - current_phase
+      - current_step
+      - next_action
+      - checkpoint_artifacts
+
+  process-registry:
+    artifact_type: "process-registry"
+    schema: "schemas/process-registry-schema.yaml"
+    category: orchestration
+    created_by: "orchestrator-master"
+    created_in_phase: "Phase 0"
+    lifecycle: PERSISTENT
+    purpose: "Tracks all active projects (multi-project management)"
+    dependencies: []
+    dependents: [project-context]
+    update_triggers:
+      - "Project created"
+      - "Project status changed"
+      - "Project archived"
+    fields:
+      - active_projects
+      - queued_requests
+      - archived_projects
+
+  event-log:
+    artifact_type: "event-log"
+    schema: "schemas/event-log-schema.yaml"
+    category: orchestration
+    created_by: "ALL_PROCESSES"
+    created_in_phase: "All phases"
+    lifecycle: APPEND_ONLY
+    purpose: "Immutable log of all events for state reconstruction"
+    dependencies: []
+    dependents: [orchestration-state]
+    update_triggers:
+      - "Any significant event"
+      - "Process start/complete"
+      - "Artifact created/updated"
+      - "Gate passed/failed"
+    fields:
+      - event_id
+      - event_type
+      - event_sequence
+      - timestamp
+      - payload
+      - event_hash
+      - previous_event_hash
+
+  # ─────────────────────────────────────────────────────────────
+  # REQUIREMENTS ARTIFACTS
+  # ─────────────────────────────────────────────────────────────
+
+  requirements:
+    artifact_type: "requirements"
+    schema: "schemas/requirements-schema.yaml"
+    category: requirements
+    created_by: "deep-requirements"
+    created_in_phase: "Phase 1"
+    lifecycle: MUTABLE
+    purpose: "Defines what to build"
+    dependencies: [project-context]
+    dependents: [architecture, implementation-log, test-results]
+    update_triggers:
+      - "User change request"
+      - "Feedback loop from verification"
+      - "Scope change"
+    propagation_impact: ALL_DOWNSTREAM
+    fields:
+      - functional_requirements
+      - non_functional_requirements
+      - success_criteria
+      - constraints
+      - stakeholders
+      - acceptance_criteria
+
+  # ─────────────────────────────────────────────────────────────
+  # ARCHITECTURE ARTIFACTS
+  # ─────────────────────────────────────────────────────────────
+
+  architecture:
+    artifact_type: "architecture"
+    schema: "schemas/architecture-schema.yaml"
+    category: architecture
+    created_by: "deep-architecture"
+    created_in_phase: "Phase 2"
+    lifecycle: MUTABLE
+    purpose: "Defines how to build (system design)"
+    dependencies: [requirements]
+    dependents: [schemas, api-specifications, implementation-log, deployment-architecture]
+    update_triggers:
+      - "Requirements change"
+      - "Verification REJECT"
+      - "Risk mitigation requires redesign"
+      - "Code-architecture mismatch (architecture outdated)"
+    propagation_impact: [implementation-log, test-results, deployment-report]
+    fields:
+      - components
+      - data_models
+      - api_design
+      - security_architecture
+      - deployment_architecture
+      - technology_stack
+
+  schemas:
+    artifact_type: "schema"
+    schema: "schemas/base-artifact.schema.yaml"
+    category: architecture
+    created_by: "deep-architecture"
+    created_in_phase: "Phase 2"
+    lifecycle: MUTABLE
+    purpose: "Data model definitions (JSON Schema)"
+    dependencies: [architecture, requirements]
+    dependents: [implementation-log, test-files]
+    update_triggers:
+      - "Data model changes in architecture"
+      - "Requirements change affecting data"
+    fields:
+      - schema definitions (per schema file)
+
+  api-specifications:
+    artifact_type: "api-specification"
+    schema: "schemas/api-specification-schema.yaml"
+    category: architecture
+    created_by: "deep-architecture"
+    created_in_phase: "Phase 2"
+    lifecycle: MUTABLE
+    purpose: "API contracts (OpenAPI/Swagger)"
+    dependencies: [architecture, requirements]
+    dependents: [implementation-log, test-files]
+    update_triggers:
+      - "Architecture API changes"
+      - "Requirements affecting API"
+    fields:
+      - endpoints
+      - request_schemas
+      - response_schemas
+      - authentication
+      - error_codes
+
+  deployment-architecture:
+    artifact_type: "deployment-architecture"
+    schema: "schemas/deployment-architecture-schema.yaml"
+    category: architecture
+    created_by: "deep-architecture"
+    created_in_phase: "Phase 2"
+    lifecycle: MUTABLE
+    purpose: "Infrastructure and deployment design"
+    dependencies: [architecture, requirements]
+    dependents: [deployment-report, ci-cd-config]
+    update_triggers:
+      - "Architecture changes affecting deployment"
+      - "NFR changes (scaling, performance)"
+    fields:
+      - infrastructure
+      - scaling_strategy
+      - monitoring
+      - disaster_recovery
+
+  # ─────────────────────────────────────────────────────────────
+  # VERIFICATION ARTIFACTS
+  # ─────────────────────────────────────────────────────────────
+
+  verification-report:
+    artifact_type: "verification-report"
+    schema: "schemas/verification-report-schema.yaml"
+    category: verification
+    created_by: "deep-verify"
+    created_in_phase: "Phase 3 (architecture) / Phase 7 (code)"
+    lifecycle: VERSIONED
+    purpose: "Results of architecture or code verification"
+    dependencies: [architecture, requirements] # Phase 3
+    dependencies_alt: [implementation-log, architecture, requirements] # Phase 7
+    dependents: [risk-assessment, implementation-log]
+    update_triggers:
+      - "Architecture updated"
+      - "Code updated"
+      - "Re-verification requested"
+    fields:
+      - verdict (ACCEPT/REJECT/CONDITIONAL)
+      - confidence_score
+      - findings
+      - recommendations
+
+  validation-report:
+    artifact_type: "validation-report"
+    schema: "schemas/validation-report-schema.yaml"
+    category: verification
+    created_by: "deep-verify"
+    created_in_phase: "Phase 7"
+    lifecycle: VERSIONED
+    purpose: "Code ↔ architecture ↔ requirements coherence validation"
+    dependencies: [implementation-log, architecture, requirements, test-results]
+    dependents: [deployment-report]
+    update_triggers:
+      - "Code updated"
+      - "Architecture updated"
+    fields:
+      - coherence_checks
+      - architecture_alignment
+      - requirements_traceability
+      - code_quality
+
+  coherence-violation:
+    artifact_type: "coherence-violation"
+    schema: "schemas/coherence-violation-schema.yaml"
+    category: verification
+    created_by: "coherence-pipeline"
+    created_in_phase: "Any (real-time)"
+    lifecycle: APPEND_ONLY
+    purpose: "Records coherence violations detected by pipeline"
+    dependencies: [ANY_ARTIFACT]
+    dependents: [feedback-event]
+    update_triggers:
+      - "Coherence pipeline detects violation"
+    fields:
+      - violation_type
+      - validation_stage
+      - severity
+      - artifact_affected
+      - description
+      - remediation
+
+  # ─────────────────────────────────────────────────────────────
+  # RISK ARTIFACTS
+  # ─────────────────────────────────────────────────────────────
+
+  risk-assessment:
+    artifact_type: "risk-assessment"
+    schema: "schemas/risk-assessment-schema.yaml"
+    category: risk
+    created_by: "deep-risk"
+    created_in_phase: "Phase 4"
+    lifecycle: MUTABLE
+    purpose: "Risk identification, assessment, and mitigation planning"
+    dependencies: [architecture, requirements, verification-report]
+    dependents: [implementation-log, test-files]
+    update_triggers:
+      - "Architecture changes"
+      - "New risks identified"
+      - "Mitigation strategies updated"
+    fields:
+      - risks
+      - threat_model
+      - mitigation_strategies
+      - contingency_plans
+
+  # ─────────────────────────────────────────────────────────────
+  # IMPLEMENTATION ARTIFACTS
+  # ─────────────────────────────────────────────────────────────
+
+  implementation-log:
+    artifact_type: "implementation-log"
+    schema: "schemas/implementation-log-schema.yaml"
+    category: implementation
+    created_by: "deep-implement"
+    created_in_phase: "Phase 5"
+    lifecycle: MUTABLE
+    purpose: "Tracks implementation progress and deviations"
+    dependencies: [architecture, requirements, api-specifications, schemas, risk-assessment]
+    dependents: [test-results, validation-report]
+    update_triggers:
+      - "Component implemented"
+      - "Deviation from architecture"
+      - "Implementation status change"
+    fields:
+      - components_implemented
+      - requirements_fulfilled
+      - deviations_from_architecture
+      - technology_decisions
+
+  source-code:
+    artifact_type: "source-code"
+    schema: null # External files
+    category: implementation
+    created_by: "deep-implement"
+    created_in_phase: "Phase 5"
+    lifecycle: MUTABLE
+    purpose: "Actual source code files"
+    dependencies: [architecture, api-specifications, schemas]
+    dependents: [test-files, validation-report, deployment-report]
+    update_triggers:
+      - "Feature implementation"
+      - "Bug fix"
+      - "Refactoring"
+    storage: "Git repository"
+
+  # ─────────────────────────────────────────────────────────────
+  # TESTING ARTIFACTS
+  # ─────────────────────────────────────────────────────────────
+
+  test-results:
+    artifact_type: "test-results"
+    schema: "schemas/test-results-schema.yaml"
+    category: testing
+    created_by: "deep-test"
+    created_in_phase: "Phase 6"
+    lifecycle: VERSIONED
+    purpose: "Results of all testing (unit, integration, e2e)"
+    dependencies: [source-code, requirements, api-specifications]
+    dependents: [validation-report, feedback-event]
+    update_triggers:
+      - "Test run completed"
+      - "Code changed"
+    fields:
+      - summary (total, passed, failed, coverage)
+      - failures
+      - performance_results
+      - security_test_results
+
+  test-files:
+    artifact_type: "test-code"
+    schema: null # External files
+    category: testing
+    created_by: "deep-test"
+    created_in_phase: "Phase 6"
+    lifecycle: MUTABLE
+    purpose: "Test code files"
+    dependencies: [source-code, requirements, api-specifications]
+    dependents: [test-results]
+    storage: "Git repository"
+
+  # ─────────────────────────────────────────────────────────────
+  # DEPLOYMENT ARTIFACTS
+  # ─────────────────────────────────────────────────────────────
+
+  deployment-report:
+    artifact_type: "deployment-report"
+    schema: "schemas/deployment-report-schema.yaml"
+    category: deployment
+    created_by: "deep-deploy"
+    created_in_phase: "Phase 8"
+    lifecycle: VERSIONED
+    purpose: "Deployment status and infrastructure state"
+    dependencies: [source-code, validation-report, deployment-architecture]
+    dependents: []
+    update_triggers:
+      - "Deployment executed"
+      - "Infrastructure changed"
+    fields:
+      - deployment_status
+      - environment
+      - deployment_url
+      - infrastructure
+      - health_checks
+
+  container-images:
+    artifact_type: "container-image"
+    schema: null # External (Docker registry)
+    category: deployment
+    created_by: "deep-deploy"
+    created_in_phase: "Phase 8"
+    lifecycle: IMMUTABLE_VERSIONED
+    purpose: "Built container images"
+    dependencies: [source-code]
+    storage: "Docker registry"
+
+  ci-cd-config:
+    artifact_type: "ci-cd-configuration"
+    schema: null # External files (.github/workflows/*.yml)
+    category: deployment
+    created_by: "deep-deploy"
+    created_in_phase: "Phase 8"
+    lifecycle: MUTABLE
+    purpose: "CI/CD pipeline configuration"
+    dependencies: [deployment-architecture, test-files]
+    storage: "Git repository"
+
+  # ─────────────────────────────────────────────────────────────
+  # COORDINATION ARTIFACTS
+  # ─────────────────────────────────────────────────────────────
+
+  handoff-checkpoint:
+    artifact_type: "handoff-checkpoint"
+    schema: "schemas/handoff-checkpoint-schema.yaml"
+    category: coordination
+    created_by: "ALL_PROCESSES"
+    created_in_phase: "All phases (at handoffs)"
+    lifecycle: VERSIONED
+    purpose: "Tracks handoff between processes with validation"
+    dependencies: [source_process_output]
+    dependents: [target_process_input]
+    update_triggers:
+      - "Handoff initiated"
+      - "Validation completed"
+    fields:
+      - source_process
+      - target_process
+      - handoff_type
+      - handoff_payload
+      - pre_validation_status
+      - post_verification_status
+
+  state-synchronization:
+    artifact_type: "state-synchronization"
+    schema: "schemas/state-synchronization-schema.yaml"
+    category: coordination
+    created_by: "artifact-sync-daemon"
+    created_in_phase: "All phases (continuous)"
+    lifecycle: EPHEMERAL
+    purpose: "Real-time coherence validation across artifacts"
+    dependencies: [multiple artifacts]
+    update_triggers:
+      - "Artifact updated"
+      - "Coherence check triggered"
+    fields:
+      - sync_type
+      - sync_status
+      - artifacts_involved
+      - conflicts_detected
+
+  feedback-event:
+    artifact_type: "feedback-event"
+    schema: "schemas/feedback-event-schema.yaml"
+    category: coordination
+    created_by: "feedback-loop-handler"
+    created_in_phase: "Any (on error/failure)"
+    lifecycle: APPEND_ONLY
+    purpose: "Records feedback events triggering re-execution"
+    dependencies: [error_artifact]
+    dependents: [orchestration-state]
+    update_triggers:
+      - "Test failure"
+      - "Validation failure"
+      - "User change request"
+    fields:
+      - trigger_event
+      - root_cause
+      - impact_scope
+      - restart_phase
+      - remediation_plan
+
+# ═══════════════════════════════════════════════════════════════
+# ARTIFACT LIFECYCLE STATES
+# ═══════════════════════════════════════════════════════════════
+
+lifecycle_types:
+  PERSISTENT:
+    description: "Artifact exists throughout project lifetime"
+    examples: [project-context, orchestration-state, process-registry]
+
+  MUTABLE:
+    description: "Artifact can be updated multiple times"
+    versioning: "Optional (via event-log)"
+    examples: [requirements, architecture, implementation-log]
+
+  VERSIONED:
+    description: "Artifact creates new version on update (keeps history)"
+    versioning: "Mandatory"
+    examples: [verification-report, test-results, deployment-report]
+
+  APPEND_ONLY:
+    description: "Artifact can only append, never modify existing entries"
+    examples: [event-log, coherence-violation, feedback-event]
+
+  EPHEMERAL:
+    description: "Artifact exists temporarily during coordination"
+    examples: [state-synchronization]
+
+  IMMUTABLE_VERSIONED:
+    description: "Once created, never modified (but new versions created)"
+    examples: [container-images]
+
+# ═══════════════════════════════════════════════════════════════
+# ARTIFACT DEPENDENCY GRAPH
+# ═══════════════════════════════════════════════════════════════
+
+dependency_graph:
+  level_0_root:
+    - project-context
+
+  level_1_orchestration:
+    - orchestration-state (depends: project-context)
+    - process-registry
+    - event-log
+
+  level_2_requirements:
+    - requirements (depends: project-context)
+
+  level_3_architecture:
+    - architecture (depends: requirements)
+    - schemas (depends: architecture, requirements)
+    - api-specifications (depends: architecture, requirements)
+    - deployment-architecture (depends: architecture, requirements)
+
+  level_4_verification:
+    - verification-report (depends: architecture, requirements)
+
+  level_5_risk:
+    - risk-assessment (depends: architecture, requirements, verification-report)
+
+  level_6_implementation:
+    - implementation-log (depends: architecture, requirements, api-specifications, schemas, risk-assessment)
+    - source-code (depends: architecture, api-specifications, schemas)
+
+  level_7_testing:
+    - test-results (depends: source-code, requirements, api-specifications)
+    - test-files (depends: source-code, requirements, api-specifications)
+
+  level_8_validation:
+    - validation-report (depends: implementation-log, architecture, requirements, test-results)
+
+  level_9_deployment:
+    - deployment-report (depends: source-code, validation-report, deployment-architecture)
+    - container-images (depends: source-code)
+    - ci-cd-config (depends: deployment-architecture, test-files)
+
+  coordination_artifacts:
+    - handoff-checkpoint (depends: source_process_output)
+    - state-synchronization (depends: multiple)
+    - feedback-event (depends: error_artifact)
+
+# ═══════════════════════════════════════════════════════════════
+# PROPAGATION RULES
+# ═══════════════════════════════════════════════════════════════
+
+propagation_rules:
+  requirements_updated:
+    impact: ALL_DOWNSTREAM
+    affected_artifacts:
+      - architecture
+      - schemas
+      - api-specifications
+      - implementation-log
+      - test-results
+      - validation-report
+    required_actions:
+      - Re-execute Phase 2 (deep-architecture)
+      - Re-execute Phase 3 (deep-verify)
+      - Re-execute Phase 5 (deep-implement) if needed
+      - Re-execute Phase 6 (deep-test)
+      - Re-execute Phase 7 (deep-verify validation)
+
+  architecture_updated:
+    impact: DOWNSTREAM_FROM_PHASE_5
+    affected_artifacts:
+      - schemas
+      - api-specifications
+      - implementation-log
+      - test-results
+      - validation-report
+    required_actions:
+      - Update schemas/API if structural change
+      - Re-execute Phase 5 (deep-implement) if needed
+      - Re-execute Phase 6 (deep-test)
+      - Re-execute Phase 7 (deep-verify validation)
+
+  source_code_updated:
+    impact: DOWNSTREAM_FROM_PHASE_6
+    affected_artifacts:
+      - test-results
+      - validation-report
+      - deployment-report
+    required_actions:
+      - Re-execute Phase 6 (deep-test)
+      - Re-execute Phase 7 (deep-verify validation)
+      - Re-execute Phase 8 (deep-deploy) if tests pass
+
+  verification_failed:
+    impact: FEEDBACK_LOOP
+    affected_artifacts:
+      - architecture OR implementation-log (depending on phase)
+    required_actions:
+      - Analyze findings
+      - Fix issues
+      - Re-execute from appropriate phase
+
+# ═══════════════════════════════════════════════════════════════
+# ARTIFACT STORAGE
+# ═══════════════════════════════════════════════════════════════
+
+storage_strategy:
+  yaml_artifacts:
+    location: "project-root/artifacts/*.yaml"
+    format: "YAML"
+    versioning: "Git + event-log"
+    artifacts:
+      - project-context
+      - orchestration-state
+      - requirements
+      - architecture
+      - verification-report
+      - risk-assessment
+      - implementation-log
+      - test-results
+      - validation-report
+      - deployment-report
+
+  schema_artifacts:
+    location: "project-root/schemas/*.schema.yaml"
+    format: "JSON Schema (YAML)"
+    versioning: "Git"
+
+  code_artifacts:
+    location: "project-root/src/**/*"
+    format: "Source code files"
+    versioning: "Git"
+
+  test_artifacts:
+    location: "project-root/tests/**/*"
+    format: "Test code files"
+    versioning: "Git"
+
+  deployment_artifacts:
+    location: "project-root/deployment/**/*"
+    format: "Dockerfile, k8s manifests, terraform"
+    versioning: "Git"
+
+  event_log:
+    location: "project-root/artifacts/event-log.yaml"
+    format: "YAML (append-only)"
+    versioning: "Immutable (hash chain)"
+
+  container_images:
+    location: "Docker registry"
+    format: "Docker images"
+    versioning: "Image tags"
+
+# ═══════════════════════════════════════════════════════════════
+# ARTIFACT SUMMARY
+# ═══════════════════════════════════════════════════════════════
+
+summary:
+  total_artifact_types: 25
+  by_category:
+    orchestration: 4
+    requirements: 1
+    architecture: 4
+    verification: 3
+    risk: 1
+    implementation: 2
+    testing: 2
+    deployment: 3
+    coordination: 3
+
+  by_lifecycle:
+    PERSISTENT: 3
+    MUTABLE: 9
+    VERSIONED: 5
+    APPEND_ONLY: 3
+    EPHEMERAL: 1
+    IMMUTABLE_VERSIONED: 1
+
+  by_schema_status:
+    existing_schemas: 13
+    to_create_schemas: 12
+
+---
+# END ARTIFACT-LIFECYCLE-MAP.yaml

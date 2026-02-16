@@ -1,0 +1,185 @@
+---
+# Project Context Schema
+# Root artifact tracking project metadata and history
+---
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/project-context-schema.yaml"
+
+title: "Project Context"
+description: "Root artifact containing project metadata, status, and history"
+type: "object"
+
+required:
+  - dp_id
+  - artifact_type
+  - version
+  - project_id
+  - project_name
+  - status
+  - created_at
+  - created_by
+  - current_phase
+  - progress_percent
+
+properties:
+  dp_id:
+    type: "string"
+    pattern: "^[A-Z0-9]+-CONTEXT$"
+    description: "Unique identifier (e.g., PRJ-001-CONTEXT)"
+
+  artifact_type:
+    type: "string"
+    const: "project-context"
+
+  version:
+    type: "string"
+    pattern: "^\\d+\\.\\d+\\.\\d+$"
+    default: "1.0.0"
+
+  project_id:
+    type: "string"
+    pattern: "^PRJ-\\d{3}$"
+    description: "Project identifier (e.g., PRJ-001)"
+
+  project_name:
+    type: "string"
+    minLength: 3
+    maxLength: 100
+    description: "Human-readable project name"
+
+  description:
+    type: "string"
+    description: "Project description from user request"
+
+  status:
+    type: "string"
+    enum: ["CREATED", "RUNNING", "PAUSED", "COMPLETED", "FAILED", "CANCELLED", "ARCHIVED"]
+    description: "Current project status"
+
+  current_phase:
+    type: "integer"
+    minimum: 0
+    maximum: 8
+    description: "Current execution phase (0=discovery, 1-8=main phases)"
+
+  progress_percent:
+    type: "number"
+    minimum: 0
+    maximum: 100
+    description: "Overall completion percentage"
+
+  created_at:
+    type: "string"
+    format: "date-time"
+
+  created_by:
+    type: "string"
+    description: "User ID or system component that created project"
+
+  last_updated:
+    type: "string"
+    format: "date-time"
+
+  completed_at:
+    type: "string"
+    format: "date-time"
+
+  artifacts_directory:
+    type: "string"
+    description: "Path to project artifacts"
+    default: "artifacts/{project_id}"
+
+  decision_log:
+    type: "array"
+    items:
+      type: "object"
+      required: ["timestamp", "decision", "rationale"]
+      properties:
+        timestamp:
+          type: "string"
+          format: "date-time"
+        decision:
+          type: "string"
+        rationale:
+          type: "string"
+        phase:
+          type: "integer"
+
+  change_history:
+    type: "array"
+    items:
+      type: "object"
+      required: ["timestamp", "change_type"]
+      properties:
+        timestamp:
+          type: "string"
+          format: "date-time"
+        change_type:
+          type: "string"
+          enum: ["CREATED", "REQUIREMENTS_UPDATED", "ARCHITECTURE_UPDATED", "CODE_UPDATED", "FEEDBACK_LOOP_FIX", "USER_MODIFICATION"]
+        user_request:
+          type: "string"
+        description:
+          type: "string"
+
+  sessions:
+    type: "array"
+    description: "Session history for multi-session continuity"
+    items:
+      type: "object"
+      properties:
+        session_id:
+          type: "string"
+        started_at:
+          type: "string"
+          format: "date-time"
+        ended_at:
+          type: "string"
+          format: "date-time"
+
+  current_session_id:
+    type: "string"
+
+  compliance_flags:
+    type: "object"
+    properties:
+      self_contained:
+        type: "boolean"
+      has_counter_checks:
+        type: "boolean"
+      binding_gates_enforced:
+        type: "boolean"
+
+  13_zasady_version:
+    type: "string"
+    const: "1.0.0"
+
+examples:
+  - dp_id: "PRJ-001-CONTEXT"
+    artifact_type: "project-context"
+    version: "1.0.0"
+    project_id: "PRJ-001"
+    project_name: "Task Manager App"
+    description: "Task management application with user authentication"
+    status: "RUNNING"
+    current_phase: 5
+    progress_percent: 60
+    created_at: "2026-02-16T10:00:00Z"
+    created_by: "user-12345"
+    last_updated: "2026-02-16T14:30:00Z"
+    artifacts_directory: "artifacts/PRJ-001"
+    decision_log:
+      - timestamp: "2026-02-16T10:15:00Z"
+        decision: "Use PostgreSQL instead of MongoDB"
+        rationale: "ACID guarantees required for task data"
+        phase: 2
+    change_history:
+      - timestamp: "2026-02-16T10:00:00Z"
+        change_type: "CREATED"
+        user_request: "I want a task management app"
+    compliance_flags:
+      self_contained: true
+      has_counter_checks: true
+      binding_gates_enforced: true
+    13_zasady_version: "1.0.0"

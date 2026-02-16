@@ -1,0 +1,143 @@
+---
+# Discovery Report Schema
+# Research findings from deep-explore process
+---
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/discovery-report-schema.yaml"
+
+title: "Discovery Report"
+description: "Comprehensive research findings and recommendations from discovery phase"
+type: "object"
+
+required:
+  - dp_id
+  - artifact_type
+  - user_request
+  - domain_analysis
+  - market_research
+  - recommendations
+
+properties:
+  dp_id:
+    type: "string"
+    pattern: "^[A-Z0-9]+-EXPLORE$"
+
+  artifact_type:
+    type: "string"
+    const: "discovery-report"
+
+  user_request:
+    type: "string"
+
+  discovery_scope:
+    type: "string"
+    enum: ["QUICK", "COMPREHENSIVE", "FOCUSED"]
+
+  domain_analysis:
+    type: "object"
+    required: ["domain", "sub_category"]
+    properties:
+      domain:
+        type: "string"
+      sub_category:
+        type: "string"
+      target_users:
+        type: "array"
+        items:
+          type: "string"
+
+  market_research:
+    type: "object"
+    properties:
+      similar_projects:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            approach:
+              type: "string"
+            key_features:
+              type: "array"
+              items:
+                type: "string"
+            tech_stack:
+              type: "string"
+            strengths:
+              type: "string"
+            weaknesses:
+              type: "string"
+      common_features:
+        type: "object"
+      unique_approaches:
+        type: "array"
+
+  technical_analysis:
+    type: "object"
+    properties:
+      architecture_patterns:
+        type: "array"
+      database_patterns:
+        type: "array"
+      real_time_patterns:
+        type: "array"
+
+  recommendations:
+    type: "object"
+    required: ["tech_stack_options", "recommended_stack", "feature_recommendations"]
+    properties:
+      tech_stack_options:
+        type: "array"
+        minItems: 2
+      recommended_stack:
+        type: "object"
+      feature_recommendations:
+        type: "object"
+        properties:
+          must_have:
+            type: "array"
+          should_have:
+            type: "array"
+          could_have:
+            type: "array"
+      innovative_suggestions:
+        type: "array"
+
+  next_steps:
+    type: "array"
+    items:
+      type: "string"
+
+  created_at:
+    type: "string"
+    format: "date-time"
+
+  created_by:
+    type: "string"
+    const: "deep-explore"
+
+examples:
+  - dp_id: "PRJ-001-EXPLORE"
+    artifact_type: "discovery-report"
+    user_request: "Task management app with team collaboration"
+    discovery_scope: "COMPREHENSIVE"
+    domain_analysis:
+      domain: "Productivity"
+      sub_category: "Task Management"
+      target_users: ["teams", "project managers"]
+    market_research:
+      similar_projects:
+        - name: "Trello"
+          approach: "Kanban boards"
+          key_features: ["Boards", "Cards", "Labels"]
+          tech_stack: "React + Node.js"
+    recommendations:
+      recommended_stack:
+        name: "Modern Full-Stack"
+        backend:
+          language: "Python"
+          framework: "FastAPI"
+    created_at: "2026-02-16T10:03:00Z"
+    created_by: "deep-explore"

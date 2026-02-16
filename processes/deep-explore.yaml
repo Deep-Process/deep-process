@@ -1,0 +1,736 @@
+---
+# Deep-Explore Process v1.0
+# Discovery phase - research, analyze patterns, explore approaches
+---
+
+process_name: deep-explore
+version: "1.0.0"
+created: "2026-02-16"
+13_zasady_version: "1.0.0"
+
+# ═══════════════════════════════════════════════════════════════
+# METADATA
+# ═══════════════════════════════════════════════════════════════
+
+metadata:
+  category: DISCOVERY
+  purpose: "Research similar projects, analyze patterns, help user refine vague ideas into concrete concepts"
+  role: "Research Analyst + Product Discovery Specialist"
+  complexity: MEDIUM
+  estimated_duration: "3-10 minutes"
+  phase_number: 0  # Runs BEFORE Phase 1 (requirements)
+
+# ═══════════════════════════════════════════════════════════════
+# TRIGGER CONDITIONS
+# ═══════════════════════════════════════════════════════════════
+
+triggers:
+  - trigger_type: VAGUE_USER_REQUEST
+    description: "User request is high-level or lacks details"
+    event: DISCOVERY_NEEDED
+    examples:
+      - "I want a task management app"
+      - "Need something for team collaboration"
+      - "Build an e-commerce platform"
+
+  - trigger_type: USER_REQUESTS_RESEARCH
+    description: "User explicitly asks for research/exploration"
+    event: RESEARCH_REQUESTED
+    examples:
+      - "Research task management best practices"
+      - "What are common features in CRM systems?"
+      - "Explore different approaches to real-time notifications"
+
+  - trigger_type: ORCHESTRATOR_INVOCATION
+    description: "Orchestrator determines discovery phase needed"
+    event: PROCESS_STARTED
+
+# ═══════════════════════════════════════════════════════════════
+# INPUTS
+# ═══════════════════════════════════════════════════════════════
+
+inputs:
+  user_request:
+    type: string
+    description: "User's high-level idea or domain"
+    required: true
+    examples:
+      - "Task management app with team collaboration"
+      - "CRM system for small business"
+      - "Social media analytics dashboard"
+
+  project_context:
+    type: artifact
+    schema_ref: "schemas/project-context-schema.yaml"
+    required: false
+    description: "Project metadata (if continuing existing project)"
+
+  discovery_scope:
+    type: string
+    description: "Scope of discovery research"
+    required: false
+    default: "COMPREHENSIVE"
+    options:
+      - QUICK: "Basic research (3 min)"
+      - COMPREHENSIVE: "Thorough research (10 min)"
+      - FOCUSED: "Specific topic research"
+
+# ═══════════════════════════════════════════════════════════════
+# PHASES
+# ═══════════════════════════════════════════════════════════════
+
+phases:
+  total_phases: 6
+  execution: "Sequential"
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 1: Domain Analysis
+  # ───────────────────────────────────────────────────────────
+
+  phase_1_domain_analysis:
+    description: "Analyze domain and identify project category"
+    sequence: 1
+
+    steps:
+      step_1_extract_domain:
+        description: "Extract domain/category from user request"
+        action: |
+          domain_keywords = extract_keywords(user_request)
+          # Examples: "task management", "CRM", "e-commerce", "analytics", "social"
+
+          domain_classification = classify_domain(domain_keywords)
+
+          # Domain categories:
+          # - Productivity (task management, note-taking, calendars)
+          # - Business (CRM, ERP, inventory, invoicing)
+          # - E-commerce (online stores, marketplaces)
+          # - Social (social networks, forums, messaging)
+          # - Analytics (dashboards, reporting, BI)
+          # - Media (streaming, galleries, content management)
+          # - Education (LMS, courses, assessments)
+          # - Healthcare (patient management, scheduling)
+          # - Finance (accounting, budgeting, trading)
+          # - Other
+
+      step_2_identify_sub_category:
+        description: "Identify specific sub-category"
+        action: |
+          IF domain_classification == "Productivity":
+            sub_categories = [
+              "Task Management", "Project Management", "Note-Taking",
+              "Calendar/Scheduling", "Time Tracking", "Document Collaboration"
+            ]
+
+          ELIF domain_classification == "Business":
+            sub_categories = [
+              "CRM", "ERP", "Inventory Management", "Invoicing/Billing",
+              "HR Management", "Customer Support"
+            ]
+
+          # ... more categories
+
+          sub_category = match_sub_category(user_request, sub_categories)
+
+      step_3_define_target_users:
+        description: "Identify target user personas"
+        action: |
+          target_users = infer_target_users(user_request, domain_classification)
+
+          # Examples:
+          # - Task management → "teams", "individuals", "project managers"
+          # - CRM → "sales teams", "account managers", "support agents"
+          # - E-commerce → "shoppers", "store owners", "admins"
+
+    outputs:
+      - domain_classification
+      - sub_category
+      - target_users
+
+    gates:
+      - GATE_DOMAIN_IDENTIFIED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 2: Similar Projects Research
+  # ───────────────────────────────────────────────────────────
+
+  phase_2_similar_projects:
+    description: "Research existing similar projects and competitors"
+    sequence: 2
+
+    steps:
+      step_1_identify_competitors:
+        description: "Identify well-known projects in this domain"
+        action: |
+          # Built-in knowledge of popular projects by category
+
+          IF sub_category == "Task Management":
+            similar_projects = [
+              {
+                name: "Trello",
+                approach: "Kanban boards",
+                key_features: ["Boards", "Cards", "Lists", "Labels", "Due dates", "Attachments"],
+                tech_stack: "React + Node.js + MongoDB",
+                target_users: "Teams, individuals",
+                strengths: "Visual, simple, flexible",
+                weaknesses: "Limited reporting, no Gantt charts"
+              },
+              {
+                name: "Asana",
+                approach: "List/Board/Timeline views",
+                key_features: ["Tasks", "Projects", "Sections", "Custom fields", "Automations"],
+                tech_stack: "React + Python + MySQL",
+                target_users: "Teams, enterprises",
+                strengths: "Powerful, many views, integrations",
+                weaknesses: "Complex UI, steep learning curve"
+              },
+              {
+                name: "Todoist",
+                approach: "Simple task lists",
+                key_features: ["Tasks", "Projects", "Labels", "Filters", "Natural language"],
+                tech_stack: "React Native + Python",
+                target_users: "Individuals, small teams",
+                strengths: "Fast, simple, cross-platform",
+                weaknesses: "Limited team features"
+              }
+            ]
+
+          ELIF sub_category == "CRM":
+            similar_projects = [
+              {name: "Salesforce", approach: "Enterprise CRM", ...},
+              {name: "HubSpot", approach: "Inbound CRM", ...},
+              {name: "Pipedrive", approach: "Sales pipeline", ...}
+            ]
+
+          # ... more categories
+
+      step_2_analyze_common_patterns:
+        description: "Identify common patterns across similar projects"
+        action: |
+          common_features = {}
+
+          FOR project IN similar_projects:
+            FOR feature IN project.key_features:
+              IF feature IN common_features:
+                common_features[feature].count += 1
+                common_features[feature].projects.append(project.name)
+              ELSE:
+                common_features[feature] = {
+                  count: 1,
+                  projects: [project.name]
+                }
+
+          # Sort by frequency
+          most_common_features = sort(common_features, key=count, descending)
+
+          # Example output for task management:
+          # 1. Task creation/editing (100% - all 3 projects)
+          # 2. Projects/Categories (100% - all 3 projects)
+          # 3. Due dates (100% - all 3 projects)
+          # 4. Assignees (67% - Trello, Asana)
+          # 5. Labels/Tags (100% - all 3 projects)
+
+      step_3_identify_unique_approaches:
+        description: "Identify unique/innovative approaches"
+        action: |
+          unique_approaches = []
+
+          FOR project IN similar_projects:
+            IF project has unique feature:
+              unique_approaches.append({
+                project: project.name,
+                approach: project.unique_feature,
+                description: "..."
+              })
+
+          # Example:
+          # - Trello: Card-based Kanban (pioneered visual task management)
+          # - Asana: Timeline view (Gantt-like project visualization)
+          # - Todoist: Natural language input ("tomorrow at 5pm")
+
+    outputs:
+      - similar_projects (list)
+      - common_features (dict)
+      - unique_approaches (list)
+
+    gates:
+      - GATE_COMPETITORS_RESEARCHED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 3: Architecture Patterns Analysis
+  # ───────────────────────────────────────────────────────────
+
+  phase_3_architecture_patterns:
+    description: "Analyze common architecture patterns for this domain"
+    sequence: 3
+
+    steps:
+      step_1_identify_common_architectures:
+        description: "Identify architecture patterns used in this domain"
+        action: |
+          architecture_patterns = []
+
+          IF domain_classification == "Productivity":
+            architecture_patterns = [
+              {
+                pattern: "REST API + SPA",
+                frequency: "Very Common (80%)",
+                description: "Backend REST API with React/Vue/Angular frontend",
+                pros: ["Scalable", "Decoupled", "Easy to maintain"],
+                cons: ["More complex setup", "SEO challenges"],
+                example_tech: "FastAPI + React, Express + Vue"
+              },
+              {
+                pattern: "Monolithic MVC",
+                frequency: "Common (40%)",
+                description: "Traditional server-rendered app (Django, Rails)",
+                pros: ["Simple deployment", "Good SEO", "Faster initial dev"],
+                cons: ["Harder to scale", "Coupled frontend/backend"],
+                example_tech: "Django, Ruby on Rails, Laravel"
+              },
+              {
+                pattern: "Serverless",
+                frequency: "Emerging (20%)",
+                description: "Functions as a Service (AWS Lambda, Vercel)",
+                pros: ["Auto-scaling", "Pay per use", "No server management"],
+                cons: ["Cold starts", "Vendor lock-in", "Debugging harder"],
+                example_tech: "AWS Lambda + API Gateway, Vercel Functions"
+              }
+            ]
+
+      step_2_identify_data_storage_patterns:
+        description: "Analyze database choices"
+        action: |
+          database_patterns = []
+
+          IF domain_classification == "Productivity":
+            database_patterns = [
+              {
+                type: "Relational (PostgreSQL, MySQL)",
+                frequency: "Very Common (70%)",
+                use_case: "Structured data, complex queries, ACID transactions",
+                pros: ["Strong consistency", "Complex queries", "Well understood"],
+                cons: ["Schema rigidity", "Harder to scale horizontally"],
+                when_to_use: "Tasks with relationships, projects, users"
+              },
+              {
+                type: "Document (MongoDB)",
+                frequency: "Common (40%)",
+                use_case: "Flexible schema, nested data",
+                pros: ["Schema flexibility", "Easy to scale", "Fast writes"],
+                cons: ["Weaker consistency", "No joins", "Query limitations"],
+                when_to_use: "Documents, notes, flexible metadata"
+              },
+              {
+                type: "Cache (Redis)",
+                frequency: "Very Common (60%)",
+                use_case: "Session storage, real-time data, rate limiting",
+                pros: ["Very fast", "Pub/sub", "Expiration built-in"],
+                cons: ["In-memory only", "Data loss risk", "Limited queries"],
+                when_to_use: "Sessions, real-time notifications, caching"
+              }
+            ]
+
+      step_3_identify_real_time_patterns:
+        description: "Analyze real-time communication patterns"
+        action: |
+          IF requires_real_time(user_request):
+            real_time_patterns = [
+              {
+                pattern: "WebSocket",
+                frequency: "Common (50%)",
+                use_case: "Bi-directional real-time communication",
+                libraries: ["Socket.io", "ws", "Django Channels"]
+              },
+              {
+                pattern: "Server-Sent Events (SSE)",
+                frequency: "Less Common (20%)",
+                use_case: "Server-to-client streaming",
+                libraries: ["Native EventSource API"]
+              },
+              {
+                pattern: "Polling",
+                frequency: "Common (40%)",
+                use_case: "Simpler alternative to WebSocket",
+                libraries: ["Axios, Fetch with setInterval"]
+              }
+            ]
+
+    outputs:
+      - architecture_patterns (list)
+      - database_patterns (list)
+      - real_time_patterns (list if applicable)
+
+    gates:
+      - GATE_PATTERNS_ANALYZED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 4: Technology Stack Recommendations
+  # ───────────────────────────────────────────────────────────
+
+  phase_4_tech_recommendations:
+    description: "Generate technology stack recommendations"
+    sequence: 4
+
+    steps:
+      step_1_generate_stack_options:
+        description: "Generate 3 technology stack options"
+        action: |
+          tech_stack_options = []
+
+          # Option A: Modern, popular stack
+          option_a = {
+            name: "Modern Full-Stack (Recommended)",
+            backend: {
+              language: "Python",
+              framework: "FastAPI",
+              rationale: "Fast, modern, excellent async support, type hints"
+            },
+            frontend: {
+              framework: "React",
+              rationale: "Most popular, large ecosystem, excellent tooling"
+            },
+            database: {
+              primary: "PostgreSQL",
+              cache: "Redis",
+              rationale: "Reliable, ACID compliant, excellent for structured data"
+            },
+            deployment: "Docker + Railway/Render",
+            pros: ["Fast development", "Modern tech", "Great developer experience"],
+            cons: ["Learning curve for FastAPI if new"],
+            best_for: "Most projects, especially MVPs"
+          }
+
+          # Option B: Enterprise-grade stack
+          option_b = {
+            name: "Enterprise-Grade",
+            backend: {
+              language: "Java",
+              framework: "Spring Boot",
+              rationale: "Industry standard, excellent for large teams"
+            },
+            frontend: {
+              framework: "Angular",
+              rationale: "TypeScript-first, opinionated, good for large apps"
+            },
+            database: {
+              primary: "PostgreSQL",
+              cache: "Redis",
+              rationale: "Enterprise standard"
+            },
+            deployment: "Kubernetes + AWS",
+            pros: ["Battle-tested", "Great for large teams", "Strong typing"],
+            cons: ["Verbose", "Slower development", "Steeper learning curve"],
+            best_for: "Enterprise projects, large teams"
+          }
+
+          # Option C: Rapid prototyping stack
+          option_c = {
+            name: "Rapid Prototyping",
+            backend: {
+              language: "JavaScript",
+              framework: "Express",
+              rationale: "Simple, fast to prototype, JavaScript everywhere"
+            },
+            frontend: {
+              framework: "Vue",
+              rationale: "Gentler learning curve, fast development"
+            },
+            database: {
+              primary: "MongoDB",
+              rationale: "Flexible schema, fast to iterate"
+            },
+            deployment: "Heroku/Vercel",
+            pros: ["Fastest to prototype", "JavaScript everywhere", "Simple"],
+            cons: ["Less type safety", "Can get messy at scale"],
+            best_for: "Quick MVPs, prototypes, small projects"
+          }
+
+          tech_stack_options = [option_a, option_b, option_c]
+
+      step_2_recommend_best_option:
+        description: "Recommend best option based on project needs"
+        action: |
+          # Factors to consider:
+          # - Project complexity
+          # - Team size
+          # - Timeline
+          # - Scalability needs
+          # - User's tech preferences (if mentioned)
+
+          IF user_request mentions "MVP" OR "prototype":
+            recommended = option_c
+          ELIF user_request mentions "enterprise" OR "large team":
+            recommended = option_b
+          ELSE:
+            recommended = option_a  # Default to modern stack
+
+    outputs:
+      - tech_stack_options (list of 3)
+      - recommended_stack (dict)
+
+    gates:
+      - GATE_TECH_RECOMMENDED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 5: Feature Recommendations
+  # ───────────────────────────────────────────────────────────
+
+  phase_5_feature_recommendations:
+    description: "Recommend core and optional features"
+    sequence: 5
+
+    steps:
+      step_1_categorize_features:
+        description: "Categorize features by priority"
+        action: |
+          feature_recommendations = {
+            must_have: [],
+            should_have: [],
+            could_have: [],
+            wont_have_v1: []
+          }
+
+          # Based on common_features from Phase 2
+          FOR feature, data IN common_features:
+            IF data.count / len(similar_projects) >= 0.8:
+              # 80%+ of similar projects have this
+              feature_recommendations.must_have.append({
+                feature: feature,
+                rationale: f"Standard in {data.count}/{len(similar_projects)} similar projects",
+                examples: data.projects
+              })
+            ELIF data.count / len(similar_projects) >= 0.5:
+              feature_recommendations.should_have.append({
+                feature: feature,
+                rationale: f"Common feature ({data.count}/{len(similar_projects)} projects)"
+              })
+            ELSE:
+              feature_recommendations.could_have.append({
+                feature: feature,
+                rationale: f"Nice to have ({data.count}/{len(similar_projects)} projects)"
+              })
+
+      step_2_suggest_innovative_features:
+        description: "Suggest innovative/differentiating features"
+        action: |
+          innovative_suggestions = []
+
+          # Based on unique_approaches from Phase 2
+          FOR approach IN unique_approaches:
+            innovative_suggestions.append({
+              feature: approach.approach,
+              inspiration: approach.project,
+              description: approach.description,
+              differentiation_value: "HIGH" if approach is_unique else "MEDIUM"
+            })
+
+          # Add emerging trends
+          IF domain_classification == "Productivity":
+            innovative_suggestions.append({
+              feature: "AI-powered task suggestions",
+              inspiration: "Emerging trend",
+              description: "ML model suggests task priorities based on history",
+              differentiation_value: "HIGH"
+            })
+
+    outputs:
+      - feature_recommendations (dict)
+      - innovative_suggestions (list)
+
+    gates:
+      - GATE_FEATURES_RECOMMENDED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 6: Discovery Report Generation
+  # ───────────────────────────────────────────────────────────
+
+  phase_6_discovery_report:
+    description: "Generate comprehensive discovery report"
+    sequence: 6
+
+    steps:
+      step_1_create_discovery_report:
+        description: "Compile all research into discovery-report.yaml"
+        action: |
+          discovery_report = {
+            dp_id: f"{project_context.project_id if project_context else 'DISCOVERY'}-EXPLORE",
+            artifact_type: "discovery-report",
+            schema_ref: "schemas/discovery-report-schema.yaml",
+
+            user_request: user_request,
+            discovery_scope: discovery_scope,
+
+            domain_analysis: {
+              domain: domain_classification,
+              sub_category: sub_category,
+              target_users: target_users
+            },
+
+            market_research: {
+              similar_projects: similar_projects,
+              common_features: most_common_features,
+              unique_approaches: unique_approaches
+            },
+
+            technical_analysis: {
+              architecture_patterns: architecture_patterns,
+              database_patterns: database_patterns,
+              real_time_patterns: real_time_patterns if applicable
+            },
+
+            recommendations: {
+              tech_stack_options: tech_stack_options,
+              recommended_stack: recommended_stack,
+              feature_recommendations: feature_recommendations,
+              innovative_suggestions: innovative_suggestions
+            },
+
+            next_steps: [
+              "Review recommendations and select preferred approach",
+              "Refine feature list based on MVP vs full product",
+              "Proceed to deep-requirements with informed context"
+            ],
+
+            created_at: now(),
+            created_by: "deep-explore"
+          }
+
+          save_yaml(discovery_report, f"artifacts/{project_id}/discovery-report.yaml")
+
+      step_2_generate_user_summary:
+        description: "Create human-readable summary for user"
+        action: |
+          summary = f"""
+          # Discovery Report - {sub_category}
+
+          ## Market Analysis
+          Researched {len(similar_projects)} similar projects: {', '.join([p.name for p in similar_projects])}
+
+          ### Common Features (Must-Have)
+          {format_features(feature_recommendations.must_have)}
+
+          ### Optional Features (Nice-to-Have)
+          {format_features(feature_recommendations.should_have)}
+
+          ### Innovative Ideas
+          {format_innovative(innovative_suggestions)}
+
+          ## Technology Recommendations
+
+          ### Recommended Stack (Best for your project)
+          - **Backend**: {recommended_stack.backend.framework} ({recommended_stack.backend.language})
+          - **Frontend**: {recommended_stack.frontend.framework}
+          - **Database**: {recommended_stack.database.primary}
+          - **Why**: {recommended_stack.rationale}
+
+          ### Alternative Options
+          {format_alternatives(tech_stack_options)}
+
+          ## Next Steps
+          1. Review feature recommendations
+          2. Select technology stack (or use recommended)
+          3. Proceed to requirements phase with context
+
+          ---
+          Ready to proceed to requirements? (deep-requirements will use this context)
+          """
+
+          save_markdown(summary, f"artifacts/{project_id}/discovery-summary.md")
+
+          display_to_user(summary)
+
+    outputs:
+      - discovery-report.yaml
+      - discovery-summary.md
+
+    gates:
+      - GATE_DISCOVERY_COMPLETE
+
+# ═══════════════════════════════════════════════════════════════
+# OUTPUTS
+# ═══════════════════════════════════════════════════════════════
+
+outputs:
+  discovery-report:
+    artifact_type: "discovery-report"
+    schema_ref: "schemas/discovery-report-schema.yaml"
+    path: "artifacts/{project_id}/discovery-report.yaml"
+    description: "Comprehensive research findings and recommendations"
+
+  discovery-summary:
+    type: "file"
+    format: "markdown"
+    path: "artifacts/{project_id}/discovery-summary.md"
+    description: "Human-readable discovery summary"
+
+# ═══════════════════════════════════════════════════════════════
+# VALIDATION GATES
+# ═══════════════════════════════════════════════════════════════
+
+validation_gates:
+  GATE_DOMAIN_IDENTIFIED:
+    description: "Domain and sub-category identified"
+    validation_rule: "domain_classification exists AND sub_category exists"
+
+  GATE_COMPETITORS_RESEARCHED:
+    description: "Similar projects researched"
+    validation_rule: "len(similar_projects) >= 2"
+
+  GATE_PATTERNS_ANALYZED:
+    description: "Architecture patterns analyzed"
+    validation_rule: "architecture_patterns exists AND database_patterns exists"
+
+  GATE_TECH_RECOMMENDED:
+    description: "Technology stack options generated"
+    validation_rule: "len(tech_stack_options) >= 2 AND recommended_stack exists"
+
+  GATE_FEATURES_RECOMMENDED:
+    description: "Features categorized and recommended"
+    validation_rule: "feature_recommendations.must_have exists"
+
+  GATE_DISCOVERY_COMPLETE:
+    description: "Discovery report generated"
+    validation_rule: "discovery-report.yaml exists AND valid schema"
+
+# ═══════════════════════════════════════════════════════════════
+# ERROR HANDLING
+# ═══════════════════════════════════════════════════════════════
+
+error_handlers:
+  unknown_domain:
+    trigger: "Cannot classify domain from user request"
+    action: |
+      1. Ask user clarifying questions about domain
+      2. Provide domain category list
+      3. Retry with user-provided classification
+
+  insufficient_research:
+    trigger: "Cannot find similar projects"
+    action: |
+      1. Research more broadly (adjacent domains)
+      2. Use general best practices for domain
+      3. Note in report: "Limited similar projects found"
+
+# ═══════════════════════════════════════════════════════════════
+# COMPLIANCE
+# ═══════════════════════════════════════════════════════════════
+
+compliance_13_zasady:
+  zasada_1_self_contained:
+    status: COMPLIANT
+    evidence: "Process includes research, analysis, recommendation logic"
+
+  zasada_2_binding_gates:
+    status: COMPLIANT
+    evidence: "6 validation gates enforce research completeness"
+
+  zasada_3_sequential_execution:
+    status: COMPLIANT
+    evidence: "Phases execute 1→2→3→4→5→6, domain before competitors"
+
+  zasada_9_traceable_decisions:
+    status: COMPLIANT
+    evidence: "All research findings and recommendations documented in discovery-report"
+
+---
+# END deep-explore.yaml

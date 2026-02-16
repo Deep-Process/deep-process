@@ -1,0 +1,697 @@
+---
+# Feedback-Loop-Handler Process v1.0
+# Error capture, root cause analysis, and remediation orchestration
+---
+
+process_name: feedback-loop-handler
+version: "1.0.0"
+created: "2026-02-16"
+13_zasady_version: "1.0.0"
+
+# ═══════════════════════════════════════════════════════════════
+# METADATA
+# ═══════════════════════════════════════════════════════════════
+
+metadata:
+  category: ERROR_HANDLING
+  purpose: "Handle failures, analyze root cause, determine remediation, and trigger re-execution"
+  role: "System Recovery Coordinator"
+  complexity: HIGH
+  estimated_duration: "1-5 minutes (analysis) + re-execution time"
+
+# ═══════════════════════════════════════════════════════════════
+# TRIGGER CONDITIONS
+# ═══════════════════════════════════════════════════════════════
+
+triggers:
+  - trigger_type: TEST_FAILURE
+    description: "Tests failed in deep-test process"
+    event: VALIDATION_FAILED
+    severity: HIGH
+
+  - trigger_type: VALIDATION_FAILURE
+    description: "Verification failed in deep-verify process"
+    event: VERIFICATION_REJECTED
+    severity: CRITICAL
+
+  - trigger_type: DEPLOYMENT_FAILURE
+    description: "Deployment failed in deep-deploy process"
+    event: DEPLOYMENT_FAILED
+    severity: HIGH
+
+  - trigger_type: BUILD_FAILURE
+    description: "Build/compilation failed"
+    event: BUILD_FAILED
+    severity: HIGH
+
+  - trigger_type: USER_CHANGE_REQUEST
+    description: "User requests changes to existing project"
+    event: CHANGE_REQUESTED
+    severity: MEDIUM
+
+  - trigger_type: RUNTIME_ERROR
+    description: "Application crashed or encountered runtime error"
+    event: RUNTIME_ERROR_DETECTED
+    severity: CRITICAL
+
+# ═══════════════════════════════════════════════════════════════
+# INPUTS
+# ═══════════════════════════════════════════════════════════════
+
+inputs:
+  feedback_trigger:
+    type: object
+    description: "Information about what triggered feedback loop"
+    required: true
+    fields:
+      - trigger_type (TEST_FAILURE | VALIDATION_FAILURE | etc.)
+      - trigger_source (process name that failed)
+      - trigger_phase (phase number where failure occurred)
+      - severity (CRITICAL | HIGH | MEDIUM | LOW)
+
+  error_details:
+    type: object
+    description: "Detailed error information"
+    required: true
+    fields:
+      - error_message
+      - error_type
+      - stack_trace (if applicable)
+      - failed_artifact (which artifact caused the issue)
+      - context (additional context about the error)
+
+  project_context:
+    type: artifact
+    schema_ref: "schemas/project-context-schema.yaml"
+    required: true
+
+  all_project_artifacts:
+    type: list[artifact]
+    description: "All project artifacts for analysis"
+    required: true
+    includes:
+      - requirements.yaml
+      - architecture.yaml
+      - implementation-log.yaml
+      - test-results.yaml
+      - etc.
+
+# ═══════════════════════════════════════════════════════════════
+# PHASES
+# ═══════════════════════════════════════════════════════════════
+
+phases:
+  total_phases: 6
+  execution: "Sequential with decision branching"
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 1: Error Capture & Classification
+  # ───────────────────────────────────────────────────────────
+
+  phase_1_error_capture:
+    description: "Capture and classify the error"
+    sequence: 1
+
+    steps:
+      step_1_create_feedback_event:
+        description: "Create feedback-event artifact"
+        action: |
+          feedback_event = {
+            dp_id: generate_feedback_event_id(),
+            artifact_type: "feedback-event",
+            schema_ref: "schemas/feedback-event-schema.yaml",
+
+            trigger_type: feedback_trigger.trigger_type,
+            trigger_source: feedback_trigger.trigger_source,
+            trigger_phase: feedback_trigger.trigger_phase,
+            severity: feedback_trigger.severity,
+
+            error_details: error_details,
+
+            captured_at: now(),
+            project_id: project_context.project_id
+          }
+
+          save_yaml(feedback_event, f"artifacts/{project_id}/feedback-event-{now()}.yaml")
+
+      step_2_classify_error_type:
+        description: "Classify error into categories"
+        action: |
+          error_classification = classify_error(error_details)
+
+          # Error categories:
+          # - CODE_BUG: Bug in implementation
+          # - ARCHITECTURE_FLAW: Architecture design issue
+          # - REQUIREMENTS_ISSUE: Requirements incomplete/contradictory
+          # - TEST_ISSUE: Test itself is broken (false failure)
+          # - INFRASTRUCTURE_ISSUE: Deployment/infrastructure problem
+          # - DEPENDENCY_ISSUE: External dependency problem
+          # - CONFIGURATION_ISSUE: Configuration error
+
+          feedback_event.error_classification = error_classification
+
+      step_3_assess_severity:
+        description: "Assess error severity and impact"
+        action: |
+          severity_assessment = {
+            severity: feedback_trigger.severity,
+            impact_scope: determine_impact_scope(error_details),
+            blocking: is_blocking(error_classification, severity),
+            urgency: determine_urgency(severity, impact_scope)
+          }
+
+          feedback_event.severity_assessment = severity_assessment
+
+    outputs:
+      - feedback_event (artifact)
+      - error_classification
+      - severity_assessment
+
+    gates:
+      - GATE_ERROR_CAPTURED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 2: Root Cause Analysis
+  # ───────────────────────────────────────────────────────────
+
+  phase_2_root_cause_analysis:
+    description: "Analyze root cause of the error"
+    sequence: 2
+
+    steps:
+      step_1_analyze_error_context:
+        description: "Analyze error in context of project artifacts"
+        action: |
+          context_analysis = {
+            failing_component: identify_failing_component(error_details),
+            related_requirements: find_related_requirements(failing_component),
+            related_architecture: find_related_architecture(failing_component),
+            related_code: find_related_code(failing_component)
+          }
+
+      step_2_identify_root_cause:
+        description: "Determine root cause"
+        action: |
+          root_cause_analysis = {
+            primary_cause: identify_primary_cause(error_details, context_analysis),
+            contributing_factors: identify_contributing_factors(),
+            symptoms: [error_details.error_message],
+            underlying_issue: determine_underlying_issue()
+          }
+
+          # Examples of root causes:
+          # - "Missing input validation in user registration endpoint"
+          # - "Database schema doesn't match model definitions"
+          # - "JWT secret key not configured in environment"
+          # - "Architecture assumes synchronous operation, but implementation is async"
+
+      step_3_verify_root_cause:
+        description: "Verify root cause hypothesis"
+        action: |
+          # Check if fixing identified root cause would resolve the error
+
+          verification = verify_root_cause_hypothesis(
+            root_cause_analysis.primary_cause,
+            error_details
+          )
+
+          IF not verification.confident:
+            # Generate alternative hypotheses
+            alternative_causes = generate_alternative_hypotheses()
+            root_cause_analysis.alternatives = alternative_causes
+
+    outputs:
+      - root_cause_analysis (dict)
+
+    gates:
+      - GATE_ROOT_CAUSE_IDENTIFIED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 3: Impact Analysis
+  # ───────────────────────────────────────────────────────────
+
+  phase_3_impact_analysis:
+    description: "Determine which artifacts are affected and need updates"
+    sequence: 3
+
+    steps:
+      step_1_cascade_impact_analysis:
+        description: "Analyze cascade impact across artifacts"
+        action: |
+          # Use Method #107: Cascade Impact Analysis
+
+          impact_analysis = {
+            directly_affected: [],
+            indirectly_affected: [],
+            restart_phase: null
+          }
+
+          IF error_classification == CODE_BUG:
+            impact_analysis.directly_affected = [
+              "implementation-log.yaml",
+              "source code"
+            ]
+            impact_analysis.restart_phase = 5  # deep-implement
+
+          ELIF error_classification == ARCHITECTURE_FLAW:
+            impact_analysis.directly_affected = [
+              "architecture.yaml",
+              "schemas",
+              "api-specifications.yaml"
+            ]
+            impact_analysis.indirectly_affected = [
+              "implementation-log.yaml",
+              "source code",
+              "test files"
+            ]
+            impact_analysis.restart_phase = 2  # deep-architecture
+
+          ELIF error_classification == REQUIREMENTS_ISSUE:
+            impact_analysis.directly_affected = [
+              "requirements.yaml"
+            ]
+            impact_analysis.indirectly_affected = [
+              "architecture.yaml",
+              "implementation-log.yaml",
+              "source code"
+            ]
+            impact_analysis.restart_phase = 1  # deep-requirements
+
+          ELIF error_classification == TEST_ISSUE:
+            impact_analysis.directly_affected = [
+              "test files"
+            ]
+            impact_analysis.restart_phase = 6  # deep-test (regenerate tests)
+
+          ELIF error_classification == INFRASTRUCTURE_ISSUE:
+            impact_analysis.directly_affected = [
+              "Dockerfile",
+              "deployment config"
+            ]
+            impact_analysis.restart_phase = 8  # deep-deploy
+
+          ELIF error_classification == CONFIGURATION_ISSUE:
+            impact_analysis.directly_affected = [
+              "config files",
+              "environment variables"
+            ]
+            impact_analysis.restart_phase = 5  # deep-implement (fix config)
+
+      step_2_determine_phases_to_rerun:
+        description: "Determine which phases need re-execution"
+        action: |
+          phases_to_rerun = []
+
+          restart_phase = impact_analysis.restart_phase
+
+          # Re-run from restart_phase through current_phase
+          FOR phase_num IN range(restart_phase, feedback_trigger.trigger_phase + 1):
+            phases_to_rerun.append(phase_num)
+
+          impact_analysis.phases_to_rerun = phases_to_rerun
+
+      step_3_estimate_fix_effort:
+        description: "Estimate effort required to fix"
+        action: |
+          effort_estimate = {
+            complexity: estimate_fix_complexity(root_cause_analysis),
+            estimated_duration: estimate_duration(complexity, phases_to_rerun),
+            automated_fix_possible: can_auto_fix(root_cause_analysis)
+          }
+
+    outputs:
+      - impact_analysis (dict)
+      - effort_estimate (dict)
+
+    gates:
+      - GATE_IMPACT_ANALYZED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 4: Remediation Planning
+  # ───────────────────────────────────────────────────────────
+
+  phase_4_remediation_planning:
+    description: "Create remediation plan"
+    sequence: 4
+
+    steps:
+      step_1_generate_fix_strategy:
+        description: "Generate strategy to fix the issue"
+        action: |
+          fix_strategy = {
+            approach: determine_fix_approach(root_cause_analysis),
+            steps: generate_fix_steps(root_cause_analysis, impact_analysis),
+            artifacts_to_modify: impact_analysis.directly_affected,
+            validation: define_fix_validation_criteria()
+          }
+
+          # Example fix strategies:
+          # - "Add input validation to endpoint"
+          # - "Update database schema and re-run migrations"
+          # - "Fix JWT configuration in settings"
+          # - "Redesign authentication flow in architecture"
+
+      step_2_create_remediation_plan:
+        description: "Create detailed remediation plan"
+        action: |
+          remediation_plan = {
+            dp_id: f"{project_context.project_id}-REMEDIATION-{now()}",
+            artifact_type: "remediation-plan",
+
+            root_cause: root_cause_analysis.primary_cause,
+            impact_scope: impact_analysis,
+
+            fix_strategy: fix_strategy,
+
+            execution_plan: {
+              restart_phase: impact_analysis.restart_phase,
+              phases_to_rerun: impact_analysis.phases_to_rerun,
+              artifacts_to_update: list_artifacts_to_update(),
+              estimated_duration: effort_estimate.estimated_duration
+            },
+
+            success_criteria: [
+              "Root cause fixed",
+              "All tests pass",
+              "No regressions introduced"
+            ],
+
+            created_at: now()
+          }
+
+          save_yaml(remediation_plan, f"artifacts/{project_id}/remediation-plan.yaml")
+
+      step_3_check_auto_fix_possibility:
+        description: "Check if automatic fix is possible"
+        action: |
+          IF effort_estimate.automated_fix_possible:
+            auto_fix_plan = generate_auto_fix_plan(root_cause_analysis)
+            remediation_plan.auto_fix_plan = auto_fix_plan
+          ELSE:
+            # Requires manual intervention or user guidance
+            remediation_plan.requires_manual_fix = true
+            remediation_plan.manual_fix_guidance = generate_manual_fix_guidance()
+
+    outputs:
+      - remediation_plan (artifact)
+
+    gates:
+      - GATE_REMEDIATION_PLANNED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 5: Fix Application
+  # ───────────────────────────────────────────────────────────
+
+  phase_5_fix_application:
+    description: "Apply fix (automatic or request user intervention)"
+    sequence: 5
+
+    steps:
+      step_1_apply_automatic_fixes:
+        description: "Apply automatic fixes if possible"
+        action: |
+          IF remediation_plan.auto_fix_plan:
+            FOR fix_step IN remediation_plan.auto_fix_plan.steps:
+              apply_fix_step(fix_step)
+
+            fix_applied = true
+            fix_method = "AUTOMATIC"
+
+          ELSE:
+            fix_applied = false
+            fix_method = "MANUAL_REQUIRED"
+
+      step_2_update_artifacts:
+        description: "Update affected artifacts"
+        action: |
+          IF fix_applied:
+            FOR artifact IN remediation_plan.artifacts_to_modify:
+              update_artifact_with_fix(artifact, remediation_plan.fix_strategy)
+
+      step_3_log_fix_attempt:
+        description: "Log fix attempt"
+        action: |
+          fix_log = {
+            fix_applied: fix_applied,
+            fix_method: fix_method,
+            fixes_applied: list_fixes_applied() if fix_applied else [],
+            artifacts_modified: list_modified_artifacts() if fix_applied else [],
+            applied_at: now()
+          }
+
+          feedback_event.fix_log = fix_log
+
+      step_4_request_user_intervention:
+        description: "Request user help if cannot auto-fix"
+        action: |
+          IF not fix_applied:
+            user_intervention_request = {
+              message: "Cannot automatically fix issue. Manual intervention required.",
+              root_cause: root_cause_analysis.primary_cause,
+              suggested_fix: remediation_plan.fix_strategy.approach,
+              guidance: remediation_plan.manual_fix_guidance,
+              artifacts_to_check: remediation_plan.artifacts_to_modify
+            }
+
+            display_to_user(user_intervention_request)
+
+            # Wait for user to fix and indicate readiness to continue
+            await_user_confirmation()
+
+    outputs:
+      - fix_log (dict)
+
+    gates:
+      - GATE_FIX_APPLIED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 6: Re-execution Orchestration
+  # ───────────────────────────────────────────────────────────
+
+  phase_6_reexecution:
+    description: "Trigger re-execution from appropriate phase"
+    sequence: 6
+
+    steps:
+      step_1_prepare_reexecution:
+        description: "Prepare for re-execution"
+        action: |
+          # Update project context with feedback event
+          project_context.change_history.append({
+            timestamp: now(),
+            change_type: "FEEDBACK_LOOP_FIX",
+            error: error_details.error_message,
+            root_cause: root_cause_analysis.primary_cause,
+            fix_applied: fix_log.fix_applied
+          })
+
+          save_yaml(project_context, f"artifacts/{project_id}/project-context.yaml")
+
+      step_2_trigger_orchestrator:
+        description: "Signal orchestrator to resume execution"
+        action: |
+          reexecution_request = {
+            project_id: project_context.project_id,
+            restart_from_phase: remediation_plan.execution_plan.restart_phase,
+            phases_to_run: remediation_plan.execution_plan.phases_to_rerun,
+            reason: "FEEDBACK_LOOP_REMEDIATION",
+            feedback_event_id: feedback_event.dp_id
+          }
+
+          # Send to orchestrator-master
+          invoke_orchestrator_resume(reexecution_request)
+
+      step_3_emit_feedback_completed_event:
+        description: "Emit feedback loop completion event"
+        action: |
+          emit_event(
+            event_type: FEEDBACK_LOOP_COMPLETED,
+            project_id: project_context.project_id,
+            payload: {
+              feedback_event_id: feedback_event.dp_id,
+              root_cause: root_cause_analysis.primary_cause,
+              fix_applied: fix_log.fix_applied,
+              restart_phase: remediation_plan.execution_plan.restart_phase
+            }
+          )
+
+      step_4_save_feedback_summary:
+        description: "Save complete feedback loop summary"
+        action: |
+          feedback_summary = {
+            feedback_event: feedback_event,
+            root_cause_analysis: root_cause_analysis,
+            impact_analysis: impact_analysis,
+            remediation_plan: remediation_plan,
+            fix_log: fix_log,
+            reexecution_request: reexecution_request,
+
+            completed_at: now(),
+            duration_seconds: calculate_duration(feedback_event.captured_at, now())
+          }
+
+          save_yaml(feedback_summary, f"artifacts/{project_id}/feedback-loop-summary-{now()}.yaml")
+
+    outputs:
+      - reexecution_request (dict)
+      - feedback_summary (artifact)
+
+    gates:
+      - GATE_REEXECUTION_TRIGGERED
+
+# ═══════════════════════════════════════════════════════════════
+# OUTPUTS
+# ═══════════════════════════════════════════════════════════════
+
+outputs:
+  feedback-event:
+    artifact_type: "feedback-event"
+    schema_ref: "schemas/feedback-event-schema.yaml"
+    path: "artifacts/{project_id}/feedback-event-{timestamp}.yaml"
+
+  remediation-plan:
+    artifact_type: "remediation-plan"
+    schema_ref: "schemas/remediation-plan-schema.yaml"
+    path: "artifacts/{project_id}/remediation-plan.yaml"
+
+  feedback-loop-summary:
+    artifact_type: "feedback-loop-summary"
+    path: "artifacts/{project_id}/feedback-loop-summary-{timestamp}.yaml"
+
+# ═══════════════════════════════════════════════════════════════
+# VALIDATION GATES
+# ═══════════════════════════════════════════════════════════════
+
+validation_gates:
+  GATE_ERROR_CAPTURED:
+    description: "Error captured and classified"
+    validation_rule: "feedback_event created AND error_classification determined"
+
+  GATE_ROOT_CAUSE_IDENTIFIED:
+    description: "Root cause identified"
+    validation_rule: "root_cause_analysis.primary_cause identified"
+
+  GATE_IMPACT_ANALYZED:
+    description: "Impact scope determined"
+    validation_rule: "impact_analysis.restart_phase determined"
+
+  GATE_REMEDIATION_PLANNED:
+    description: "Remediation plan created"
+    validation_rule: "remediation_plan created AND fix_strategy defined"
+
+  GATE_FIX_APPLIED:
+    description: "Fix applied (automatic or manual)"
+    validation_rule: "fix_log.fix_applied == true OR user confirmed manual fix"
+
+  GATE_REEXECUTION_TRIGGERED:
+    description: "Re-execution orchestrated"
+    validation_rule: "reexecution_request sent to orchestrator"
+
+# ═══════════════════════════════════════════════════════════════
+# HELPER FUNCTIONS
+# ═══════════════════════════════════════════════════════════════
+
+helper_functions:
+  classify_error:
+    description: "Classify error into categories"
+    logic: |
+      IF error involves "test" AND error is in test file:
+        return TEST_ISSUE
+      ELIF error involves "AssertionError" OR "test failed":
+        return CODE_BUG
+      ELIF error involves "schema" OR "validation":
+        return ARCHITECTURE_FLAW
+      ELIF error involves "requirements" OR "contradiction":
+        return REQUIREMENTS_ISSUE
+      ELIF error involves "deployment" OR "container":
+        return INFRASTRUCTURE_ISSUE
+      ELIF error involves "configuration" OR "environment":
+        return CONFIGURATION_ISSUE
+      ELSE:
+        return CODE_BUG (default)
+
+  determine_impact_scope:
+    description: "Determine how widespread the impact is"
+    logic: |
+      IF error_classification == REQUIREMENTS_ISSUE:
+        return "PROJECT_WIDE" # Affects everything
+      ELIF error_classification == ARCHITECTURE_FLAW:
+        return "MULTI_COMPONENT" # Affects multiple components
+      ELIF error_classification == CODE_BUG:
+        return "SINGLE_COMPONENT" # Affects one component
+      ELIF error_classification == TEST_ISSUE:
+        return "ISOLATED" # Just test files
+      ELSE:
+        return "MULTI_COMPONENT"
+
+  can_auto_fix:
+    description: "Determine if error can be automatically fixed"
+    logic: |
+      auto_fixable_errors = [
+        "Missing import",
+        "Simple syntax error",
+        "Undefined variable (can infer type)",
+        "Missing docstring",
+        "Formatting issue"
+      ]
+
+      IF root_cause IN auto_fixable_errors:
+        return true
+      ELSE:
+        return false
+
+# ═══════════════════════════════════════════════════════════════
+# ERROR HANDLING
+# ═══════════════════════════════════════════════════════════════
+
+error_handlers:
+  cannot_identify_root_cause:
+    trigger: "Root cause analysis fails"
+    action: |
+      1. Generate best-guess hypotheses
+      2. Request user input for clarification
+      3. Provide all error details to user
+      4. Wait for user guidance
+
+  fix_application_fails:
+    trigger: "Automatic fix fails to apply"
+    action: |
+      1. Rollback any partial fixes
+      2. Mark as MANUAL_REQUIRED
+      3. Provide detailed guidance to user
+
+  infinite_loop_detection:
+    trigger: "Same error occurs 3+ times in a row"
+    action: |
+      1. HALT feedback loop
+      2. Escalate to user
+      3. Request manual intervention
+      4. Log infinite loop event
+
+# ═══════════════════════════════════════════════════════════════
+# COMPLIANCE
+# ═══════════════════════════════════════════════════════════════
+
+compliance_13_zasady:
+  zasada_1_self_contained:
+    status: COMPLIANT
+    evidence: "Process includes error capture, analysis, remediation, re-execution logic"
+
+  zasada_2_binding_gates:
+    status: COMPLIANT
+    evidence: "6 validation gates enforce proper error handling flow"
+
+  zasada_3_sequential_execution:
+    status: COMPLIANT
+    evidence: "Phases execute 1→2→3→4→5→6, capture before analysis before fix"
+
+  zasada_7_counter_checks:
+    status: COMPLIANT
+    evidence: "Root cause verification, fix validation, reexecution monitoring"
+
+  zasada_9_traceable_decisions:
+    status: COMPLIANT
+    evidence: "All feedback events logged, root cause documented, fixes tracked"
+
+---
+# END feedback-loop-handler.yaml

@@ -1,0 +1,678 @@
+---
+# Context-Manager Process v1.0
+# Session resumption and state reconstruction across Claude conversations
+---
+
+process_name: context-manager
+version: "1.0.0"
+created: "2026-02-16"
+13_zasady_version: "1.0.0"
+
+# ═══════════════════════════════════════════════════════════════
+# METADATA
+# ═══════════════════════════════════════════════════════════════
+
+metadata:
+  category: SESSION_MANAGEMENT
+  purpose: "Enable Claude to resume projects across conversation sessions by reconstructing state from artifacts"
+  role: "Session Continuity Manager"
+  complexity: MEDIUM
+  estimated_duration: "30 seconds - 2 minutes"
+
+# ═══════════════════════════════════════════════════════════════
+# TRIGGER CONDITIONS
+# ═══════════════════════════════════════════════════════════════
+
+triggers:
+  - trigger_type: SESSION_START
+    description: "New Claude conversation session starts"
+    event: CONVERSATION_INITIATED
+
+  - trigger_type: PROJECT_RESUME_REQUEST
+    description: "User explicitly requests to resume a project"
+    event: RESUME_PROJECT_REQUESTED
+
+  - trigger_type: CONTEXT_LOST
+    description: "Context was compacted/lost during conversation"
+    event: CONTEXT_COMPACTION_OCCURRED
+
+# ═══════════════════════════════════════════════════════════════
+# INPUTS
+# ═══════════════════════════════════════════════════════════════
+
+inputs:
+  project_id:
+    type: string
+    description: "Project identifier to resume"
+    required: false
+    notes: "If not provided, will list available projects"
+
+  user_request:
+    type: string
+    description: "User's message in current session"
+    required: false
+    examples:
+      - "Continue working on the task manager app"
+      - "Resume the last project"
+      - "What's the status of project PRJ-001?"
+
+  artifact_directory:
+    type: string
+    description: "Root directory containing all project artifacts"
+    required: true
+    default: "artifacts/"
+
+# ═══════════════════════════════════════════════════════════════
+# PHASES
+# ═══════════════════════════════════════════════════════════════
+
+phases:
+  total_phases: 5
+  execution: "Sequential"
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 1: Project Discovery
+  # ───────────────────────────────────────────────────────────
+
+  phase_1_project_discovery:
+    description: "Discover available projects and determine which to resume"
+    sequence: 1
+
+    steps:
+      step_1_scan_artifact_directory:
+        description: "Scan for existing projects"
+        action: |
+          projects = []
+
+          IF file_exists("artifacts/process-registry.yaml"):
+            registry = load_yaml("artifacts/process-registry.yaml")
+            projects = registry.active_projects + registry.completed_projects
+          ELSE:
+            # Scan directory for project folders
+            project_dirs = list_directories("artifacts/")
+
+            FOR dir IN project_dirs:
+              IF file_exists(f"{dir}/project-context.yaml"):
+                context = load_yaml(f"{dir}/project-context.yaml")
+                projects.append({
+                  project_id: context.project_id,
+                  project_name: context.project_name,
+                  status: context.status,
+                  last_updated: context.last_updated
+                })
+
+      step_2_determine_target_project:
+        description: "Determine which project to resume"
+        action: |
+          IF project_id provided:
+            target_project = find_project(projects, project_id)
+            IF not target_project:
+              raise ProjectNotFoundError(f"Project {project_id} not found")
+
+          ELIF user_request contains project reference:
+            # User mentioned project name or ID
+            project_ref = extract_project_reference(user_request)
+            target_project = fuzzy_match_project(projects, project_ref)
+
+            IF not target_project:
+              raise ProjectNotFoundError(f"Cannot find project matching '{project_ref}'")
+
+          ELIF len(projects) == 1:
+            # Only one project exists, resume it
+            target_project = projects[0]
+
+          ELIF len(projects) > 1:
+            # Multiple projects, ask user which one
+            display_available_projects(projects)
+            target_project = await_user_selection()
+
+          ELSE:
+            # No projects exist
+            raise NoProjectsError("No projects found to resume")
+
+      step_3_load_project_context:
+        description: "Load project context artifact"
+        action: |
+          project_context = load_yaml(
+            f"artifacts/{target_project.project_id}/project-context.yaml"
+          )
+
+    outputs:
+      - target_project (dict)
+      - project_context (artifact)
+
+    gates:
+      - GATE_PROJECT_IDENTIFIED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 2: State Reconstruction
+  # ───────────────────────────────────────────────────────────
+
+  phase_2_state_reconstruction:
+    description: "Reconstruct project state from events and artifacts"
+    sequence: 2
+
+    steps:
+      step_1_load_event_log:
+        description: "Load event log for state reconstruction"
+        action: |
+          IF file_exists("artifacts/event-log.yaml"):
+            events = load_yaml("artifacts/event-log.yaml")
+
+            # Filter events for this project
+            project_events = filter_events_by_project(events, project_context.project_id)
+          ELSE:
+            project_events = []
+
+      step_2_find_latest_checkpoint:
+        description: "Find most recent checkpoint/snapshot"
+        action: |
+          checkpoint_files = glob("artifacts/{project_id}/*checkpoint*.yaml")
+          snapshot_files = glob("artifacts/{project_id}/*snapshot*.yaml")
+
+          all_checkpoint_files = checkpoint_files + snapshot_files
+
+          IF len(all_checkpoint_files) > 0:
+            # Load most recent checkpoint
+            latest_checkpoint_file = max(all_checkpoint_files, key=modification_time)
+            latest_checkpoint = load_yaml(latest_checkpoint_file)
+            checkpoint_timestamp = latest_checkpoint.created_at
+          ELSE:
+            latest_checkpoint = null
+            checkpoint_timestamp = project_context.created_at
+
+      step_3_reconstruct_state:
+        description: "Reconstruct state using algorithm from event-sourcing-architecture"
+        action: |
+          # Algorithm from state-reconstruction-algorithm.md
+
+          IF latest_checkpoint:
+            state = latest_checkpoint.state
+            start_sequence = latest_checkpoint.event_sequence + 1
+          ELSE:
+            state = initialize_empty_state(project_context)
+            start_sequence = 1
+
+          # Get events since checkpoint
+          events_since_checkpoint = filter_events_after(
+            project_events,
+            start_sequence
+          )
+
+          # Validate event chain integrity
+          validate_event_chain(events_since_checkpoint)
+
+          # Replay events to reconstruct state
+          FOR event IN events_since_checkpoint:
+            state = apply_event(state, event)
+
+          current_state = state
+
+      step_4_verify_state_consistency:
+        description: "Verify reconstructed state matches artifacts"
+        action: |
+          # Cross-check reconstructed state with actual artifacts
+
+          consistency_checks = {
+            orchestration_state_matches: false,
+            artifacts_exist: false,
+            phase_alignment: false
+          }
+
+          IF file_exists(f"artifacts/{project_id}/orchestration-state.yaml"):
+            orchestration_state = load_yaml(f"artifacts/{project_id}/orchestration-state.yaml")
+
+            consistency_checks.orchestration_state_matches = (
+              orchestration_state.current_phase == current_state.current_phase
+            )
+
+          # Check required artifacts exist
+          required_artifacts = get_required_artifacts_for_phase(
+            current_state.current_phase
+          )
+
+          consistency_checks.artifacts_exist = all(
+            file_exists(f"artifacts/{project_id}/{artifact}")
+            for artifact in required_artifacts
+          )
+
+          IF not all(consistency_checks.values()):
+            log_warning("State inconsistency detected", consistency_checks)
+
+    outputs:
+      - current_state (dict)
+      - project_events (list)
+      - consistency_checks (dict)
+
+    gates:
+      - GATE_STATE_RECONSTRUCTED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 3: Context Compilation
+  # ───────────────────────────────────────────────────────────
+
+  phase_3_context_compilation:
+    description: "Compile comprehensive context summary for Claude"
+    sequence: 3
+
+    steps:
+      step_1_load_key_artifacts:
+        description: "Load key artifacts for context"
+        action: |
+          key_artifacts = {}
+
+          # Always load these if they exist
+          artifact_priority = [
+            "project-context.yaml",
+            "orchestration-state.yaml",
+            "requirements.yaml",
+            "architecture.yaml",
+            "implementation-log.yaml",
+            "test-results.yaml",
+            "verification-report.yaml"
+          ]
+
+          FOR artifact_name IN artifact_priority:
+            artifact_path = f"artifacts/{project_id}/{artifact_name}"
+
+            IF file_exists(artifact_path):
+              key_artifacts[artifact_name] = load_yaml(artifact_path)
+
+      step_2_analyze_project_progress:
+        description: "Analyze what's been done and what's next"
+        action: |
+          progress_analysis = {
+            completed_phases: [],
+            current_phase: current_state.current_phase,
+            next_phase: current_state.next_phase if hasattr(current_state, 'next_phase') else null,
+            progress_percent: project_context.progress_percent,
+
+            artifacts_created: count_artifacts(project_id),
+
+            recent_events: get_recent_events(project_events, limit=10),
+
+            blockers: identify_blockers(current_state, key_artifacts),
+
+            last_activity: project_context.last_updated
+          }
+
+          # Identify completed phases
+          FOR phase_num IN range(1, 9):
+            phase_artifact = get_phase_output_artifact(phase_num)
+
+            IF file_exists(f"artifacts/{project_id}/{phase_artifact}"):
+              progress_analysis.completed_phases.append(phase_num)
+
+      step_3_generate_decision_summary:
+        description: "Summarize key decisions made"
+        action: |
+          decision_summary = []
+
+          IF project_context.decision_log:
+            FOR decision IN project_context.decision_log:
+              decision_summary.append({
+                timestamp: decision.timestamp,
+                decision: decision.decision,
+                rationale: decision.rationale,
+                phase: decision.phase
+              })
+
+      step_4_identify_next_actions:
+        description: "Determine what should happen next"
+        action: |
+          next_actions = []
+
+          IF current_state.status == "FAILED":
+            # Check if feedback loop is in progress
+            IF file_exists(f"artifacts/{project_id}/remediation-plan.yaml"):
+              remediation_plan = load_yaml(f"artifacts/{project_id}/remediation-plan.yaml")
+              next_actions.append(f"Apply remediation: {remediation_plan.fix_strategy.approach}")
+              next_actions.append(f"Re-run from Phase {remediation_plan.execution_plan.restart_phase}")
+            ELSE:
+              next_actions.append("Analyze failure and create remediation plan")
+
+          ELIF current_state.status == "RUNNING":
+            IF orchestration_state:
+              next_actions.append(orchestration_state.next_action)
+            ELSE:
+              next_actions.append(f"Continue Phase {current_state.current_phase}")
+
+          ELIF current_state.status == "COMPLETED":
+            next_actions.append("Project completed - ready for deployment or enhancements")
+
+          ELIF current_state.status == "PAUSED":
+            next_actions.append("Resume project from current phase")
+
+    outputs:
+      - key_artifacts (dict)
+      - progress_analysis (dict)
+      - decision_summary (list)
+      - next_actions (list)
+
+    gates:
+      - GATE_CONTEXT_COMPILED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 4: Session Handoff Document Generation
+  # ───────────────────────────────────────────────────────────
+
+  phase_4_handoff_document:
+    description: "Generate human-readable session handoff document"
+    sequence: 4
+
+    steps:
+      step_1_generate_session_handoff:
+        description: "Create session-handoff.md for Claude"
+        action: |
+          handoff_doc = f'''
+          # Session Handoff - {project_context.project_name}
+          **Project ID**: {project_context.project_id}
+          **Last Updated**: {project_context.last_updated}
+          **Status**: {current_state.status}
+          **Progress**: {project_context.progress_percent}%
+
+          ---
+
+          ## What We've Done
+
+          ### Completed Phases
+          {format_completed_phases(progress_analysis.completed_phases)}
+
+          ### Artifacts Created
+          - Total: {progress_analysis.artifacts_created} artifacts
+          - Key artifacts: {list_key_artifact_names(key_artifacts)}
+
+          ### Recent Activity (Last 10 Events)
+          {format_recent_events(progress_analysis.recent_events)}
+
+          ---
+
+          ## Current State
+
+          ### Phase
+          Currently in: **Phase {current_state.current_phase}** - {get_phase_name(current_state.current_phase)}
+
+          ### Orchestration State
+          {format_orchestration_state(orchestration_state) if orchestration_state else "No orchestration state"}
+
+          ### Blockers
+          {format_blockers(progress_analysis.blockers) if len(progress_analysis.blockers) > 0 else "No blockers"}
+
+          ---
+
+          ## Key Decisions Made
+          {format_decisions(decision_summary)}
+
+          ---
+
+          ## Project Summary
+
+          ### Requirements ({len(key_artifacts.requirements.functional_requirements) if 'requirements' in key_artifacts else 0} functional)
+          {format_requirements_summary(key_artifacts.requirements) if 'requirements' in key_artifacts else "Not yet defined"}
+
+          ### Architecture
+          {format_architecture_summary(key_artifacts.architecture) if 'architecture' in key_artifacts else "Not yet designed"}
+
+          ### Implementation
+          {format_implementation_summary(key_artifacts.implementation_log) if 'implementation-log' in key_artifacts else "Not yet implemented"}
+
+          ### Tests
+          {format_test_summary(key_artifacts.test_results) if 'test-results' in key_artifacts else "Not yet run"}
+
+          ---
+
+          ## What's Next
+
+          ### Recommended Actions
+          {format_next_actions(next_actions)}
+
+          ### Estimated Time to Completion
+          {estimate_time_to_completion(progress_analysis)}
+
+          ---
+
+          ## Quick Commands
+
+          To resume work:
+          - "Continue from where we left off"
+          - "What's the next step?"
+          - "Show me the latest code"
+
+          To modify:
+          - "I want to change the requirements"
+          - "Update the architecture"
+          - "Fix the failing tests"
+
+          ---
+
+          **Context Loaded**: {now()}
+          **Session Ready**: ✓
+          '''
+
+          save_markdown(handoff_doc, f"artifacts/{project_id}/session-handoff.md")
+
+      step_2_display_to_claude:
+        description: "Display concise summary to Claude (in Claude's context)"
+        action: |
+          # This is what Claude "sees" upon session resumption
+
+          claude_summary = f'''
+          📋 **Project Resumed**: {project_context.project_name} ({project_context.project_id})
+
+          **Status**: {current_state.status} | **Progress**: {project_context.progress_percent}%
+
+          **Current Phase**: Phase {current_state.current_phase} - {get_phase_name(current_state.current_phase)}
+
+          **What's Done**:
+          {bullet_list(progress_analysis.completed_phases, lambda p: f"Phase {p}: {get_phase_name(p)}")}
+
+          **Next Actions**:
+          {bullet_list(next_actions)}
+
+          **Blockers**: {len(progress_analysis.blockers)} blocker(s)
+
+          Full context available in: artifacts/{project_id}/session-handoff.md
+          '''
+
+          # This would be added to Claude's context automatically
+
+    outputs:
+      - session-handoff.md
+      - claude_summary (text)
+
+    gates:
+      - GATE_HANDOFF_DOCUMENT_CREATED
+
+  # ───────────────────────────────────────────────────────────
+  # PHASE 5: Session Activation
+  # ───────────────────────────────────────────────────────────
+
+  phase_5_session_activation:
+    description: "Activate session and prepare for continuation"
+    sequence: 5
+
+    steps:
+      step_1_update_session_tracking:
+        description: "Update session tracking in project context"
+        action: |
+          IF not project_context.sessions:
+            project_context.sessions = []
+
+          new_session = {
+            session_id: generate_session_id(),
+            started_at: now(),
+            resumed_from_state: current_state,
+            context_loaded_from: "event log + artifacts"
+          }
+
+          project_context.sessions.append(new_session)
+          project_context.current_session_id = new_session.session_id
+
+          save_yaml(project_context, f"artifacts/{project_id}/project-context.yaml")
+
+      step_2_emit_session_resumed_event:
+        description: "Emit SESSION_RESUMED event"
+        action: |
+          emit_event(
+            event_type: SESSION_RESUMED,
+            project_id: project_context.project_id,
+            payload: {
+              session_id: new_session.session_id,
+              resumed_from_phase: current_state.current_phase,
+              progress_percent: project_context.progress_percent
+            }
+          )
+
+      step_3_prepare_continuation:
+        description: "Prepare for process continuation"
+        action: |
+          continuation_context = {
+            project_id: project_context.project_id,
+            current_state: current_state,
+            next_actions: next_actions,
+            key_artifacts: key_artifacts,
+            session_id: new_session.session_id
+          }
+
+          # This context is now available for orchestrator or other processes
+
+    outputs:
+      - continuation_context (dict)
+
+    gates:
+      - GATE_SESSION_ACTIVATED
+
+# ═══════════════════════════════════════════════════════════════
+# OUTPUTS
+# ═══════════════════════════════════════════════════════════════
+
+outputs:
+  session-handoff:
+    type: "file"
+    format: "markdown"
+    path: "artifacts/{project_id}/session-handoff.md"
+    description: "Human-readable session handoff document"
+
+  continuation-context:
+    type: "dict"
+    description: "Context for resuming project execution"
+
+  claude-summary:
+    type: "text"
+    description: "Concise summary displayed to Claude"
+
+# ═══════════════════════════════════════════════════════════════
+# VALIDATION GATES
+# ═══════════════════════════════════════════════════════════════
+
+validation_gates:
+  GATE_PROJECT_IDENTIFIED:
+    description: "Target project identified and context loaded"
+    validation_rule: "target_project exists AND project_context loaded"
+
+  GATE_STATE_RECONSTRUCTED:
+    description: "State reconstructed from events and artifacts"
+    validation_rule: "current_state reconstructed AND consistency_checks passed"
+
+  GATE_CONTEXT_COMPILED:
+    description: "Comprehensive context compiled"
+    validation_rule: "key_artifacts loaded AND progress_analysis complete"
+
+  GATE_HANDOFF_DOCUMENT_CREATED:
+    description: "Session handoff document created"
+    validation_rule: "session-handoff.md exists"
+
+  GATE_SESSION_ACTIVATED:
+    description: "Session activated and ready for continuation"
+    validation_rule: "continuation_context prepared AND SESSION_RESUMED event emitted"
+
+# ═══════════════════════════════════════════════════════════════
+# HELPER FUNCTIONS
+# ═══════════════════════════════════════════════════════════════
+
+helper_functions:
+  apply_event:
+    description: "Apply event to state (event sourcing)"
+    logic: |
+      CASE event.event_type:
+        PROCESS_STARTED:
+          state.current_phase = event.payload.phase
+          state.status = "RUNNING"
+
+        PROCESS_COMPLETED:
+          state.completed_phases.append(event.payload.phase)
+          state.current_phase = event.payload.phase + 1
+
+        PROCESS_FAILED:
+          state.status = "FAILED"
+          state.error = event.payload.error
+
+        ARTIFACT_CREATED:
+          state.artifacts.append(event.payload.artifact_id)
+
+        # ... more event handlers
+
+      return state
+
+  get_phase_name:
+    mapping:
+      1: "Requirements Analysis"
+      2: "Architecture Design"
+      3: "Architecture Verification"
+      4: "Risk Analysis"
+      5: "Implementation"
+      6: "Testing"
+      7: "Code Validation"
+      8: "Deployment"
+
+  estimate_time_to_completion:
+    logic: |
+      remaining_phases = 8 - current_state.current_phase
+      estimated_time = remaining_phases * 15  # 15 min average per phase
+      return f"~{estimated_time} minutes"
+
+# ═══════════════════════════════════════════════════════════════
+# ERROR HANDLING
+# ═══════════════════════════════════════════════════════════════
+
+error_handlers:
+  project_not_found:
+    trigger: "Cannot find project to resume"
+    action: |
+      1. List all available projects
+      2. Ask user to select or provide project ID
+      3. If no projects exist, suggest starting new project
+
+  corrupted_state:
+    trigger: "Event chain broken or artifacts missing"
+    action: |
+      1. Log corruption details
+      2. Attempt recovery from latest valid checkpoint
+      3. If cannot recover: notify user, request manual fix
+
+  inconsistent_state:
+    trigger: "Reconstructed state doesn't match artifacts"
+    action: |
+      1. Log inconsistency
+      2. Use artifact state as source of truth
+      3. Create checkpoint with corrected state
+
+# ═══════════════════════════════════════════════════════════════
+# COMPLIANCE
+# ═══════════════════════════════════════════════════════════════
+
+compliance_13_zasady:
+  zasada_1_self_contained:
+    status: COMPLIANT
+    evidence: "Process includes discovery, reconstruction, compilation, activation logic"
+
+  zasada_3_sequential_execution:
+    status: COMPLIANT
+    evidence: "Phases execute 1→2→3→4→5, discovery before reconstruction"
+
+  zasada_9_traceable_decisions:
+    status: COMPLIANT
+    evidence: "All session resumptions logged, state reconstructions tracked"
+
+---
+# END context-manager.yaml
