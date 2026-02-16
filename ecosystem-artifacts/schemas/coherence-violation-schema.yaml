@@ -1,0 +1,70 @@
+---
+# Coherence Violation Schema v1.0
+# Coherence validation pipeline output
+# ARCHITECT-TASK.yaml task_07 deliverable (NEW #5)
+---
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/coherence-violation-schema.v1.yaml"
+
+title: "Coherence Violation Report"
+description: "Report of coherence violation detected in validation pipeline"
+
+allOf:
+  - $ref: "categories/system-integration.schema.yaml"
+  - type: object
+    required: [violation_type, severity, validation_stage]
+    properties:
+      violation_type:
+        type: string
+        enum: [SYNTAX_ERROR, SCHEMA_VIOLATION, SEMANTIC_INCONSISTENCY, COHERENCE_BREAK]
+
+      severity:
+        type: string
+        enum: [CRITICAL, IMPORTANT, MINOR, WARNING]
+
+      validation_stage:
+        type: string
+        enum: [SYNTAX, SCHEMA, SEMANTIC, COHERENCE]
+        description: "Which stage detected violation"
+
+      affected_artifacts:
+        type: array
+        items: {type: string}
+        description: "DP IDs of affected artifacts"
+
+      violation_details:
+        type: object
+        properties:
+          field: {type: string}
+          expected: {}
+          actual: {}
+          error_message: {type: string}
+
+      remediation_required:
+        type: boolean
+
+      remediation_steps:
+        type: array
+        items: {type: string}
+
+examples:
+  - dp_id: "VIOLATION-001"
+    artifact_type: "COHERENCE_VIOLATION"
+    version: "1.0.0"
+    created_at: "2026-02-16T10:45:00Z"
+    created_by: "system:coherence-validator"
+    schema_ref: "https://deep-process.org/schemas/coherence-violation-schema.v1.yaml"
+    compliance_flags: {self_contained: true, has_counter_checks: true, binding_gates_enforced: true}
+    source_process: "deep-coherence"
+    violation_type: "SEMANTIC_INCONSISTENCY"
+    severity: "IMPORTANT"
+    validation_stage: "SEMANTIC"
+    affected_artifacts: ["ARCH-001", "RISK-001"]
+    violation_details:
+      field: "risk_score"
+      expected: {minimum: 0, maximum: 100}
+      actual: 150
+      error_message: "Risk score exceeds maximum bound"
+    remediation_required: true
+    remediation_steps: ["Recalculate risk score", "Update RISK-001"]

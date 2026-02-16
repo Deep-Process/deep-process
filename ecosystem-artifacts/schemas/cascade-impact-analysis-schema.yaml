@@ -1,0 +1,45 @@
+---
+# Cascade Impact Analysis Schema v1.0 (NEW #7)
+---
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/cascade-impact-analysis-schema.v1.yaml"
+title: "Cascade Impact Analysis"
+description: "Analysis of change impact across ecosystem (STALE propagation)"
+
+allOf:
+  - $ref: "categories/system-integration.schema.yaml"
+  - type: object
+    required: [change_artifact_id, impacted_artifacts, priority_order]
+    properties:
+      change_artifact_id: {type: string}
+      impacted_artifacts:
+        type: array
+        items:
+          type: object
+          properties:
+            artifact_id: {type: string}
+            impact_severity: {type: string, enum: [HIGH, MEDIUM, LOW]}
+            requires_update: {type: boolean}
+      priority_order:
+        type: array
+        items: {type: string}
+        description: "Update order (dependency-aware)"
+
+examples:
+  - dp_id: "CASCADE-001"
+    artifact_type: "CASCADE_IMPACT"
+    version: "1.0.0"
+    created_at: "2026-02-16T11:05:00Z"
+    created_by: "system:cascade-analyzer"
+    schema_ref: "https://deep-process.org/schemas/cascade-impact-analysis-schema.v1.yaml"
+    compliance_flags: {self_contained: true, has_counter_checks: true, binding_gates_enforced: true}
+    source_process: "deep-cascade"
+    change_artifact_id: "ARCH-MODEL-001"
+    impacted_artifacts:
+      - artifact_id: "RISK-001"
+        impact_severity: "HIGH"
+        requires_update: true
+      - artifact_id: "DOC-001"
+        impact_severity: "MEDIUM"
+        requires_update: true
+    priority_order: ["RISK-001", "DOC-001"]

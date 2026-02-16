@@ -1,0 +1,37 @@
+---
+# Lineage Provenance Schema v1.0 (NEW #6)
+---
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/lineage-provenance-schema.v1.yaml"
+title: "Lineage Provenance Record"
+description: "Provenance chain for artifact lineage tracking"
+
+allOf:
+  - $ref: "categories/system-integration.schema.yaml"
+  - type: object
+    required: [artifact_id, derivation_chain]
+    properties:
+      artifact_id: {type: string}
+      derivation_chain:
+        type: array
+        items:
+          type: object
+          properties:
+            source_artifact: {type: string}
+            derivation_method: {type: string}
+            transformation_applied: {type: string}
+
+examples:
+  - dp_id: "LINEAGE-001"
+    artifact_type: "LINEAGE_PROVENANCE"
+    version: "1.0.0"
+    created_at: "2026-02-16T11:00:00Z"
+    created_by: "system:lineage-tracker"
+    schema_ref: "https://deep-process.org/schemas/lineage-provenance-schema.v1.yaml"
+    compliance_flags: {self_contained: true, has_counter_checks: true, binding_gates_enforced: true}
+    source_process: "deep-verify"
+    artifact_id: "VERIFY-REPORT-001"
+    derivation_chain:
+      - source_artifact: "ARCH-MODEL-001"
+        derivation_method: "deep-verify 6-phase"
+        transformation_applied: "verification_analysis"

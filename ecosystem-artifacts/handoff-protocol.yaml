@@ -1,0 +1,529 @@
+---
+# Handoff Protocol v1.0
+# ARCHITECT-TASK.yaml task_03 deliverable
+# Date: 2026-02-16
+#
+# PURPOSE: Define handoff protocol between processes
+# COMPLIANCE: 13 zasady - binding gates, counter-checks, visible reasoning
+---
+
+protocol_version: "1.0.0"
+created: "2026-02-16"
+compliance_target: "13_zasady"
+
+# ═══════════════════════════════════════════════════════════════
+# OVERVIEW
+# ═══════════════════════════════════════════════════════════════
+
+overview:
+  description: |
+    Handoff protocol for coordinating transitions between deep-* processes.
+    Ensures clean handoffs with validation before and after.
+
+  key_principles:
+    - "Binding gates: Pre-validation MUST pass before handoff"
+    - "Atomic handoff: Either complete or rollback (no partial state)"
+    - "Counter-checks: Post-verification confirms handoff success"
+    - "Visible reasoning: All validation decisions logged"
+    - "Failure handling: Explicit recovery strategies"
+
+  handoff_types:
+    SEQUENTIAL: "Process A completes → Process B starts"
+    PARALLEL_FORK: "Process A → Process B + C (parallel)"
+    PARALLEL_JOIN: "Process B + C → Process D (join/merge)"
+    CONDITIONAL: "Process A → B OR C (based on condition)"
+
+# ═══════════════════════════════════════════════════════════════
+# HANDOFF LIFECYCLE
+# ═══════════════════════════════════════════════════════════════
+
+handoff_lifecycle:
+  phases: 4
+
+  phase_1_initiation:
+    trigger: "Source process reaches handoff point"
+    actions:
+      - "Source process emits HANDOFF_INITIATED event"
+      - "Create handoff checkpoint artifact"
+      - "Lock source instance (prevent concurrent handoffs)"
+
+  phase_2_pre_validation:
+    trigger: "Handoff checkpoint created"
+    actions:
+      - "Execute Method #348 pre-handoff validation"
+      - "Run validation checklist (see handoff-validation-rules.md)"
+      - "IF all pass: proceed to phase 3"
+      - "IF any fail: HALT and require remediation"
+
+  phase_3_handoff_execution:
+    trigger: "Pre-validation passed"
+    actions:
+      - "Package handoff payload (artifacts + context)"
+      - "Create target process instance"
+      - "Transfer artifacts to target"
+      - "Initialize target with context"
+
+  phase_4_post_verification:
+    trigger: "Target process started"
+    actions:
+      - "Target process runs post-handoff verification"
+      - "Verify artifacts accessible"
+      - "Verify context loaded correctly"
+      - "Emit HANDOFF_COMPLETED or HANDOFF_FAILED event"
+      - "Unlock source instance"
+
+# ═══════════════════════════════════════════════════════════════
+# PRE-HANDOFF VALIDATION (Method #348)
+# ═══════════════════════════════════════════════════════════════
+
+pre_handoff_validation:
+  method: "Method #348: Pre-Handoff Validation"
+  binding_gate: "GATE_HANDOFF_PRE"
+  description: |
+    Validates that source process is in valid state for handoff.
+    All validation items MUST pass (binding gate).
+
+  validation_checklist:
+    item_1_process_complete:
+      rule: "Source process status = COMPLETED"
+      validation: "IF status != COMPLETED THEN FAIL"
+      rationale: "Cannot handoff incomplete work"
+      severity: "CRITICAL"
+
+    item_2_required_artifacts_exist:
+      rule: "All required artifacts for handoff present"
+      validation: |
+        required_artifacts = get_handoff_requirements(target_process)
+        FOR artifact IN required_artifacts:
+          IF NOT exists(artifact) THEN FAIL
+      rationale: "Target process needs inputs"
+      severity: "CRITICAL"
+
+    item_3_artifacts_valid:
+      rule: "All handoff artifacts pass schema validation"
+      validation: |
+        FOR artifact IN handoff_payload.artifacts:
+          IF NOT validate_schema(artifact) THEN FAIL
+      rationale: "Invalid artifacts will break target process"
+      severity: "CRITICAL"
+
+    item_4_no_blocking_gates:
+      rule: "No failed gates in source process"
+      validation: "IF any_gate_failed() THEN FAIL"
+      rationale: "Failed gates indicate incomplete work"
+      severity: "CRITICAL"
+
+    item_5_no_critical_warnings:
+      rule: "No unresolved CRITICAL warnings/errors"
+      validation: |
+        warnings = get_warnings(source_instance)
+        critical = filter(warnings, severity=CRITICAL)
+        IF len(critical) > 0 THEN FAIL
+      rationale: "Critical issues must be resolved before handoff"
+      severity: "CRITICAL"
+
+    item_6_context_complete:
+      rule: "All required context fields populated"
+      validation: |
+        required_context = get_context_requirements(target_process)
+        FOR field IN required_context:
+          IF field NOT IN handoff_payload.context THEN FAIL
+      rationale: "Target process needs context to operate"
+      severity: "IMPORTANT"
+
+    item_7_dependencies_resolved:
+      rule: "All artifact dependencies resolved"
+      validation: |
+        FOR artifact IN handoff_payload.artifacts:
+          dependencies = get_dependencies(artifact)
+          FOR dep IN dependencies:
+            IF dep.status = STALE OR dep.status = BLOCKED THEN FAIL
+      rationale: "Stale dependencies will propagate to target"
+      severity: "IMPORTANT"
+
+  validation_result:
+    PASS: "All items passed → proceed to handoff"
+    FAIL: "Any CRITICAL item failed → HALT and remediate"
+    WARNINGS: "IMPORTANT items failed → proceed with warnings logged"
+
+  counter_check:
+    description: "Verify validation was executed correctly"
+    rule: |
+      Post-validation counter-check:
+      - Validation log exists
+      - All checklist items have status (PASS/FAIL/SKIP)
+      - Validation timestamp recorded
+      - Validator identity recorded
+
+# ═══════════════════════════════════════════════════════════════
+# HANDOFF CHECKPOINT CREATION
+# ═══════════════════════════════════════════════════════════════
+
+checkpoint_creation:
+  description: "Create handoff checkpoint artifact for audit trail"
+
+  checkpoint_structure:
+    artifact_type: "HANDOFF_CHECKPOINT"
+    schema: "handoff-checkpoint-schema.yaml"
+    required_fields:
+      - handoff_id
+      - source_instance_id
+      - target_process
+      - handoff_payload
+      - pre_validation_status
+      - pre_validation_checklist
+
+  checkpoint_lifecycle:
+    created: "When HANDOFF_INITIATED event emitted"
+    updated: "After pre-validation, after post-verification"
+    finalized: "When handoff complete (success or failure)"
+    archived: "After 90 days (audit retention)"
+
+  checkpoint_location:
+    path: ".deep-process/handoffs/handoff-{handoff_id}.yaml"
+    backup: "S3 backup for audit compliance"
+
+# ═══════════════════════════════════════════════════════════════
+# HANDOFF PAYLOAD PACKAGING
+# ═══════════════════════════════════════════════════════════════
+
+payload_packaging:
+  description: "Package artifacts and context for target process"
+
+  payload_structure:
+    artifacts:
+      description: "List of artifacts being handed off"
+      format: |
+        artifacts:
+          - dp_id: "VERIFY-REPORT-001"
+            artifact_type: "VERIFICATION_REPORT"
+            file_path: "verify-artifacts/TSK-005-VERIFICATION-REPORT.md"
+            file_size_bytes: 15234
+            checksum_sha256: "abc123..."
+
+    context:
+      description: "Context inherited by target process"
+      format: |
+        context:
+          source_process: "deep-verify"
+          source_instance_id: "deep-verify-042"
+          verification_score: 51.2
+          verdict: "REJECT"
+          critical_findings: 3
+
+    requirements:
+      description: "Requirements for target process"
+      format: |
+        requirements:
+          expected_output: "remediation-plan"
+          deadline: "2026-02-20T00:00:00Z"
+
+  packaging_validation:
+    rule_1_checksums:
+      description: "All artifacts have SHA-256 checksums"
+      validation: "Compute checksum for each artifact file"
+
+    rule_2_file_accessibility:
+      description: "All artifact files readable by target"
+      validation: "Verify file permissions allow target read access"
+
+    rule_3_size_limits:
+      description: "Total payload size < 100MB"
+      validation: "IF total_size > 100MB THEN FAIL"
+      rationale: "Prevent excessive memory usage"
+
+# ═══════════════════════════════════════════════════════════════
+# POST-HANDOFF VERIFICATION
+# ═══════════════════════════════════════════════════════════════
+
+post_handoff_verification:
+  binding_gate: "GATE_HANDOFF_POST"
+  description: |
+    Target process verifies handoff was successful.
+    Counter-check to pre-handoff validation.
+
+  verification_checklist:
+    item_1_instance_created:
+      rule: "Target instance created successfully"
+      validation: "IF target_instance_id = null THEN FAIL"
+      severity: "CRITICAL"
+
+    item_2_artifacts_accessible:
+      rule: "All handoff artifacts readable by target"
+      validation: |
+        FOR artifact IN handoff_payload.artifacts:
+          IF NOT can_read_file(artifact.file_path) THEN FAIL
+      severity: "CRITICAL"
+
+    item_3_checksums_match:
+      rule: "Artifact checksums match handoff payload"
+      validation: |
+        FOR artifact IN handoff_payload.artifacts:
+          actual_checksum = compute_sha256(artifact.file_path)
+          IF actual_checksum != artifact.checksum_sha256 THEN FAIL
+      rationale: "Detect corruption during transfer"
+      severity: "CRITICAL"
+
+    item_4_context_loaded:
+      rule: "Context loaded into target instance state"
+      validation: |
+        target_state = get_instance_state(target_instance_id)
+        FOR key IN handoff_payload.context:
+          IF key NOT IN target_state.context THEN FAIL
+      severity: "IMPORTANT"
+
+    item_5_dependencies_available:
+      rule: "All artifact dependencies accessible"
+      validation: |
+        FOR artifact IN handoff_payload.artifacts:
+          dependencies = get_dependencies(artifact)
+          FOR dep IN dependencies:
+            IF NOT can_access(dep) THEN FAIL
+      severity: "IMPORTANT"
+
+  verification_result:
+    PASS: "Emit HANDOFF_COMPLETED event"
+    FAIL: "Emit HANDOFF_FAILED event, trigger rollback"
+
+  counter_check:
+    description: "Verify verification was executed correctly"
+    rule: "Verification log exists with all checklist items"
+
+# ═══════════════════════════════════════════════════════════════
+# FAILURE HANDLING
+# ═══════════════════════════════════════════════════════════════
+
+failure_handling:
+  failure_points: 3
+
+  failure_point_1_pre_validation_failed:
+    description: "Pre-handoff validation failed"
+    detection: "pre_validation_status = FAILED"
+    recovery_strategy: "HALT"
+    actions:
+      - "Log failure reason"
+      - "Notify operator"
+      - "Lock source instance (prevent concurrent handoffs)"
+      - "Require remediation before retry"
+    retry_policy: "Manual retry after fixing validation failures"
+
+  failure_point_2_handoff_execution_failed:
+    description: "Error during handoff execution (target creation failed)"
+    detection: "Exception during target instance creation"
+    recovery_strategy: "ROLLBACK"
+    actions:
+      - "Delete partial target instance (if created)"
+      - "Unlock source instance"
+      - "Log error details"
+      - "Retry with exponential backoff (3 attempts)"
+    retry_policy:
+      max_retries: 3
+      backoff: "1s, 2s, 4s"
+      give_up_after: "3 failures → ESCALATE to operator"
+
+  failure_point_3_post_verification_failed:
+    description: "Post-handoff verification failed"
+    detection: "post_verification_status = FAILED"
+    recovery_strategy: "ROLLBACK"
+    actions:
+      - "Delete target instance"
+      - "Mark handoff checkpoint as FAILED"
+      - "Emit HANDOFF_FAILED event"
+      - "Investigate root cause (corruption? permission issue?)"
+    retry_policy: "Retry after fixing root cause"
+
+  rollback_procedure:
+    description: "Rollback failed handoff to restore consistent state"
+    steps:
+      step_1: "Stop target instance (if running)"
+      step_2: "Delete target instance artifacts"
+      step_3: "Remove target instance from registry"
+      step_4: "Unlock source instance"
+      step_5: "Mark handoff checkpoint as ROLLED_BACK"
+      step_6: "Emit HANDOFF_ROLLBACK event"
+
+  escalation_triggers:
+    trigger_1: "3 consecutive handoff failures for same source→target"
+    trigger_2: "Rollback fails (cannot restore consistent state)"
+    trigger_3: "Critical validation failures (data corruption detected)"
+    action: "Notify operator, provide diagnostic info"
+
+# ═══════════════════════════════════════════════════════════════
+# HANDOFF TYPES: SPECIFIC PROTOCOLS
+# ═══════════════════════════════════════════════════════════════
+
+handoff_type_protocols:
+
+  # ─────────────────────────────────────────────────────────────
+  # SEQUENTIAL HANDOFF
+  # ─────────────────────────────────────────────────────────────
+
+  SEQUENTIAL:
+    description: "Process A completes → Process B starts"
+    example: "deep-verify completes → deep-document starts"
+
+    workflow:
+      step_1: "Source process reaches COMPLETED state"
+      step_2: "Emit HANDOFF_INITIATED event"
+      step_3: "Run pre-handoff validation (Method #348)"
+      step_4: "IF validation passes: create target instance"
+      step_5: "Transfer artifacts and context"
+      step_6: "Target runs post-verification"
+      step_7: "Emit HANDOFF_COMPLETED event"
+
+    timing: "Synchronous - source waits for handoff completion"
+
+    failure_behavior: "Source remains in COMPLETED state, retry handoff"
+
+  # ─────────────────────────────────────────────────────────────
+  # PARALLEL FORK
+  # ─────────────────────────────────────────────────────────────
+
+  PARALLEL_FORK:
+    description: "Process A → Process B + C (parallel)"
+    example: "deep-architect → deep-verify + deep-risk (parallel)"
+
+    workflow:
+      step_1: "Source process reaches fork point"
+      step_2: "Emit HANDOFF_INITIATED event (for each target)"
+      step_3: "Run pre-handoff validation (once, shared)"
+      step_4: "Create target instances B and C in parallel"
+      step_5: "Transfer artifacts to both targets"
+      step_6: "Both targets run post-verification independently"
+      step_7: "Emit HANDOFF_COMPLETED (for each target)"
+
+    timing: "Asynchronous - targets run independently"
+
+    failure_behavior:
+      partial_failure: "If B succeeds but C fails, B continues, C retries"
+      total_failure: "If both fail, rollback and retry"
+
+  # ─────────────────────────────────────────────────────────────
+  # PARALLEL JOIN
+  # ─────────────────────────────────────────────────────────────
+
+  PARALLEL_JOIN:
+    description: "Process B + C → Process D (join/merge)"
+    example: "deep-verify + deep-risk → deep-aggregate"
+
+    workflow:
+      step_1: "Wait for ALL source processes to reach COMPLETED"
+      step_2: "Emit HANDOFF_INITIATED event (from orchestrator)"
+      step_3: "Run pre-handoff validation (on all source outputs)"
+      step_4: "Merge artifacts from B and C into single payload"
+      step_5: "Create target instance D"
+      step_6: "Transfer merged artifacts"
+      step_7: "Target runs post-verification"
+      step_8: "Emit HANDOFF_COMPLETED event"
+
+    timing: "Synchronous - wait for all sources"
+
+    failure_behavior:
+      timeout: "If any source doesn't complete in 24h, ESCALATE"
+      validation_failure: "If any source output invalid, HALT all"
+
+  # ─────────────────────────────────────────────────────────────
+  # CONDITIONAL HANDOFF
+  # ─────────────────────────────────────────────────────────────
+
+  CONDITIONAL:
+    description: "Process A → B OR C (based on condition)"
+    example: "deep-verify → IF verdict=REJECT THEN deep-document ELSE END"
+
+    workflow:
+      step_1: "Source process reaches decision point"
+      step_2: "Evaluate condition (e.g., verdict = REJECT)"
+      step_3: "Select target process based on condition"
+      step_4: "Execute handoff to selected target (sequential protocol)"
+
+    timing: "Synchronous"
+
+    failure_behavior: "If condition evaluation fails, HALT and ESCALATE"
+
+# ═══════════════════════════════════════════════════════════════
+# COMPLIANCE & VALIDATION
+# ═══════════════════════════════════════════════════════════════
+
+compliance_13_zasady:
+  zasada_0_self_contained:
+    status: "COMPLIANT"
+    evidence: "Handoff protocol self-contained, no external deps"
+
+  zasada_2_binding_gates:
+    status: "COMPLIANT"
+    evidence: "GATE_HANDOFF_PRE and GATE_HANDOFF_POST are binding gates"
+
+  zasada_3_mechanism_based:
+    status: "COMPLIANT"
+    evidence: "All rules are IF/THEN mechanisms"
+
+  zasada_7_counter_checks:
+    status: "COMPLIANT"
+    evidence: "Post-verification is counter-check to pre-validation"
+
+  zasada_9_visible_reasoning:
+    status: "COMPLIANT"
+    evidence: "All validation decisions logged with rationale"
+
+validation_rules:
+  rule_1_pre_validation_binding:
+    description: "Pre-validation MUST pass before handoff"
+    enforcement: "Binding gate - cannot proceed if failed"
+    severity: "CRITICAL"
+
+  rule_2_post_verification_required:
+    description: "Post-verification MUST complete"
+    enforcement: "Handoff not complete until verification done"
+    severity: "CRITICAL"
+
+  rule_3_atomic_handoff:
+    description: "Handoff is atomic - complete or rollback"
+    enforcement: "Rollback procedure on failure"
+    severity: "CRITICAL"
+
+  rule_4_audit_trail:
+    description: "All handoffs logged in checkpoint artifacts"
+    enforcement: "Checkpoint created for every handoff"
+    severity: "IMPORTANT"
+
+# ═══════════════════════════════════════════════════════════════
+# OPERATIONAL METRICS
+# ═══════════════════════════════════════════════════════════════
+
+operational_metrics:
+  handoff_success_rate:
+    metric: "successful_handoffs / total_handoffs"
+    target: ">95%"
+    alert: "IF success_rate < 90% THEN investigate"
+
+  handoff_latency:
+    metric: "Time from HANDOFF_INITIATED to HANDOFF_COMPLETED"
+    target_p95: "<5 seconds"
+    alert: "IF p95 > 10s THEN investigate"
+
+  validation_failure_rate:
+    metric: "validation_failures / total_validations"
+    target: "<5%"
+    alert: "IF failure_rate > 10% THEN investigate root causes"
+
+  rollback_count:
+    metric: "Number of rollbacks per day"
+    target: "<3 per day"
+    alert: "IF rollbacks > 5 per day THEN escalate"
+
+# ═══════════════════════════════════════════════════════════════
+# NEXT STEPS
+# ═══════════════════════════════════════════════════════════════
+
+next_steps:
+  task_03_completion:
+    - "✓ handoff-protocol.yaml (THIS FILE)"
+    - "✓ handoff-checkpoint-schema.yaml (created in task_01)"
+    - "⬜ handoff-validation-rules.md (detailed validation rules)"
+
+  proceed_to:
+    next_deliverable: "handoff-validation-rules.md"
+    then_task: "task_04_temporal_branching_strategy"
+
+---
+# END handoff-protocol.yaml

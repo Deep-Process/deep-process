@@ -1,0 +1,36 @@
+---
+# Transformation Rule Schema v1.0 (NEW #11)
+---
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/transformation-rule-schema.v1.yaml"
+title: "Transformation Rule"
+description: "Rule for UPS → SRE-Convergent transformation"
+
+allOf:
+  - $ref: "categories/configuration-governance.schema.yaml"
+  - type: object
+    required: [rule_id, source_pattern, target_template]
+    properties:
+      rule_id: {type: string}
+      source_pattern:
+        type: object
+        description: "Pattern to match in UPS (source system)"
+      target_template:
+        type: object
+        description: "How to transform to SRE-Convergent"
+      transformation_function: {type: string}
+      validation_check: {type: string}
+
+examples:
+  - dp_id: "TRANSFORM-RULE-001"
+    artifact_type: "TRANSFORMATION_RULE"
+    version: "1.0.0"
+    created_at: "2026-02-16T08:30:00Z"
+    created_by: "user:architect"
+    schema_ref: "https://deep-process.org/schemas/transformation-rule-schema.v1.yaml"
+    compliance_flags: {self_contained: true, has_counter_checks: true, binding_gates_enforced: true}
+    config_scope: "global"
+    rule_id: "BPMN_TASK_TO_STEP"
+    source_pattern: {element_type: "bpmn:Task"}
+    target_template: {step_type: "EXECUTABLE_STEP"}
+    transformation_function: "transform_bpmn_task"

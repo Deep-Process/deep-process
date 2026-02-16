@@ -1,0 +1,56 @@
+---
+# Temporal Branching Strategy v1.0
+# ARCHITECT-TASK.yaml task_04 deliverable
+---
+
+strategy_version: "1.0.0"
+created: "2026-02-16"
+
+# Git branching for temporal versioning
+branch_types:
+  main:
+    description: "Current active version"
+    activation: "Always active"
+    merge_from: ["planned/*"]
+
+  planned:
+    pattern: "planned/{identifier}"
+    description: "Future versions (effective_from in future)"
+    activation: "IF current_date >= effective_from THEN merge to main"
+    examples: ["planned/q1-2026", "planned/feature-x"]
+
+  historical:
+    pattern: "historical/{year}"
+    description: "Past versions (archived)"
+    activation: "Read-only, never activated"
+    examples: ["historical/2025", "historical/2024"]
+
+activation_rules:
+  rule_1_time_based:
+    trigger: "Daily cron job checks effective_from dates"
+    action: |
+      FOR branch IN planned/*:
+        IF now() >= branch.effective_from THEN
+          merge_to_main(branch)
+          archive_to_historical(branch)
+
+  rule_2_manual:
+    trigger: "Operator request"
+    action: "Manual merge with approval"
+
+merge_protocol:
+  pre_merge_validation:
+    - "All artifacts schema-valid"
+    - "No merge conflicts"
+    - "Tests pass"
+  conflict_resolution: "MANUAL (require operator decision)"
+
+effective_from_rules:
+  format: "ISO 8601 datetime"
+  example: "2026-03-01T00:00:00Z"
+  validation: |
+    IF effective_from <= now() THEN
+      FAIL "Cannot create planned branch in past"
+
+---
+# END temporal-branching-strategy.yaml

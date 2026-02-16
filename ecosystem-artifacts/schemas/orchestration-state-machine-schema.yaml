@@ -1,0 +1,97 @@
+---
+# Orchestration State Machine Schema v1.0
+# State machine for deep-process orchestrator
+# ARCHITECT-TASK.yaml task_06 deliverable (NEW #10)
+---
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/orchestration-state-machine-schema.v1.yaml"
+
+title: "Orchestration State Machine"
+description: |
+  State machine defining orchestrator behavior.
+  States, transitions, triggers, error handling.
+
+allOf:
+  - $ref: "categories/configuration-governance.schema.yaml"
+  - type: object
+    required: [states, transitions, initial_state, terminal_states]
+    properties:
+      states:
+        type: array
+        items:
+          type: object
+          required: [state_id, state_name]
+          properties:
+            state_id: {type: string}
+            state_name: {type: string}
+            on_entry: {type: array, items: {type: string}}
+            on_exit: {type: array, items: {type: string}}
+            is_terminal: {type: boolean, default: false}
+
+      transitions:
+        type: array
+        items:
+          type: object
+          required: [from_state, to_state, trigger]
+          properties:
+            transition_id: {type: string}
+            from_state: {type: string}
+            to_state: {type: string}
+            trigger: {type: string}
+            guard_condition: {type: string}
+            action: {type: string}
+
+      initial_state:
+        type: string
+        description: "Starting state"
+
+      terminal_states:
+        type: array
+        items: {type: string}
+        description: "End states (COMPLETED, FAILED, etc.)"
+
+      error_handlers:
+        type: array
+        items:
+          type: object
+          properties:
+            error_type: {type: string}
+            recovery_transition: {type: string}
+
+examples:
+  - dp_id: "OSM-001"
+    artifact_type: "ORCHESTRATION_STATE_MACHINE"
+    version: "1.0.0"
+    created_at: "2026-02-16T08:00:00Z"
+    created_by: "user:architect"
+    schema_ref: "https://deep-process.org/schemas/orchestration-state-machine-schema.v1.yaml"
+    compliance_flags: {self_contained: true, has_counter_checks: true, binding_gates_enforced: true}
+    config_scope: "global"
+    states:
+      - state_id: "IDLE"
+        state_name: "Idle - Awaiting Request"
+        on_entry: ["log_idle_state"]
+        is_terminal: false
+      - state_id: "PLANNING"
+        state_name: "Planning Execution"
+        on_entry: ["load_process_definition", "validate_inputs"]
+      - state_id: "EXECUTING"
+        state_name: "Executing Process"
+        on_entry: ["start_execution", "emit_PROCESS_STARTED_event"]
+      - state_id: "COMPLETED"
+        state_name: "Completed Successfully"
+        is_terminal: true
+    transitions:
+      - transition_id: "T001"
+        from_state: "IDLE"
+        to_state: "PLANNING"
+        trigger: "REQUEST_RECEIVED"
+        action: "create_instance"
+      - transition_id: "T002"
+        from_state: "PLANNING"
+        to_state: "EXECUTING"
+        trigger: "PLAN_APPROVED"
+        guard_condition: "IF inputs_valid = true"
+    initial_state: "IDLE"
+    terminal_states: ["COMPLETED", "FAILED", "CANCELLED"]

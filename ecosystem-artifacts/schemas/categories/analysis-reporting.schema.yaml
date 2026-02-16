@@ -1,0 +1,64 @@
+---
+# Analysis & Reporting Category Schema v1.0
+# Category for artifacts from ANALYSIS processes
+# Inherits from: base-artifact.schema.yaml
+---
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/categories/analysis-reporting.v1.yaml"
+
+title: "Analysis & Reporting Artifact"
+description: |
+  Artifacts from ANALYSIS processes:
+  Verification reports, risk assessments, architecture models
+
+allOf:
+  - $ref: "../base-artifact.schema.yaml"
+  - type: object
+    required: [analysis_method, confidence_level]
+    properties:
+      analysis_method:
+        type: string
+        description: "Which method used (e.g., Method #71 First Principles)"
+        examples:
+          - "Method #71 First Principles Analysis"
+          - "Method #85 Grounding Check"
+          - "deep-verify 6-phase process"
+
+      confidence_level:
+        type: string
+        enum: [HIGH, MEDIUM, LOW]
+        description: "Confidence in analysis results"
+
+      findings_count:
+        type: integer
+        minimum: 0
+        description: "Number of findings"
+
+      severity_summary:
+        type: object
+        properties:
+          CRITICAL: {type: integer, minimum: 0}
+          IMPORTANT: {type: integer, minimum: 0}
+          MINOR: {type: integer, minimum: 0}
+
+concrete_types:
+  - VERIFICATION_REPORT
+  - ARCHITECTURE_MODEL
+  - RISK_ASSESSMENT
+  - DOCUMENTATION
+  - TRADEOFF_ANALYSIS
+  - ADVERSARY_FINDINGS
+
+examples:
+  - dp_id: "VERIFY-REPORT-001"
+    artifact_type: "VERIFICATION_REPORT"
+    version: "1.0.0"
+    created_at: "2026-02-16T10:30:00Z"
+    created_by: "claude-sonnet-4.5"
+    schema_ref: "https://deep-process.org/schemas/verification-report.schema.yaml"
+    compliance_flags: {self_contained: true, has_counter_checks: true, binding_gates_enforced: true}
+    analysis_method: "deep-verify 6-phase process"
+    confidence_level: "HIGH"
+    findings_count: 9
+    severity_summary: {CRITICAL: 3, IMPORTANT: 2, MINOR: 4}

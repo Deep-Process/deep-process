@@ -1,0 +1,173 @@
+---
+# Coherence Validation Pipeline Architecture v1.0
+# ARCHITECT-TASK.yaml task_07 deliverable (FINAL)
+---
+
+pipeline_version: "1.0.0"
+created: "2026-02-16"
+
+# ═══════════════════════════════════════════════════════════════
+# VALIDATION STAGES (Sequential)
+# ═══════════════════════════════════════════════════════════════
+
+validation_stages:
+  total_stages: 4
+  execution: "Sequential (stage N must pass before stage N+1)"
+
+  stage_1_syntax:
+    description: "Validate YAML/JSON syntax"
+    methods: ["YAML parser", "JSON parser"]
+    output: "PASS (well-formed) | FAIL (syntax error)"
+    severity_if_fail: "ERROR"
+    action_on_fail: "HALT pipeline, emit syntax error"
+
+  stage_2_schema:
+    description: "Validate against JSON Schema"
+    methods: ["JSON Schema validator"]
+    validates:
+      - "Required fields present"
+      - "Field types correct"
+      - "Enum values valid"
+      - "Pattern constraints met"
+    output: "PASS (schema-valid) | FAIL (schema violation)"
+    severity_if_fail: "ERROR"
+    action_on_fail: "HALT pipeline, emit schema violation"
+
+  stage_3_semantic:
+    description: "Validate semantic consistency"
+    methods: ["Method #100 Vocabulary Consistency", "Cross-reference checker"]
+    validates:
+      - "References resolve (no broken links)"
+      - "Vocabulary consistent (no homonyms)"
+      - "Logical consistency (no contradictions)"
+      - "Data integrity (checksums, dependencies)"
+    output: "PASS | FAIL | WARNINGS"
+    severity_if_fail: "WARNING or ERROR (configurable)"
+    action_on_fail: "Emit semantic violation, continue with warnings"
+
+  stage_4_coherence:
+    description: "Validate cross-artifact coherence"
+    methods: ["Method #93-100 coherence methods"]
+    validates:
+      - "Artifact hierarchy consistency"
+      - "State synchronization across processes"
+      - "Temporal consistency (effective_from ordering)"
+      - "Dependency graph acyclic"
+    output: "PASS | FAIL | WARNINGS"
+    severity_if_fail: "WARNING"
+    action_on_fail: "Emit coherence violation, require remediation"
+
+# ═══════════════════════════════════════════════════════════════
+# METHOD APPLICATION
+# ═══════════════════════════════════════════════════════════════
+
+method_application:
+  when_to_use_methods:
+    method_93_cross_reference: "Stage 3 (semantic) - validate references"
+    method_100_vocabulary: "Stage 3 (semantic) - check vocabulary"
+    method_94_temporal_consistency: "Stage 4 (coherence) - check effective_from"
+    method_95_dependency_graph: "Stage 4 (coherence) - check dependencies"
+
+# ═══════════════════════════════════════════════════════════════
+# VIOLATION CATEGORIZATION
+# ═══════════════════════════════════════════════════════════════
+
+violation_categories:
+  SYNTAX_ERROR:
+    stage: 1
+    severity: "ERROR"
+    examples: ["Invalid YAML", "Unclosed bracket", "Invalid UTF-8"]
+    remediation: "Fix syntax manually"
+
+  SCHEMA_VIOLATION:
+    stage: 2
+    severity: "ERROR"
+    examples: ["Missing required field", "Type mismatch", "Invalid enum"]
+    remediation: "Update artifact to match schema"
+
+  SEMANTIC_INCONSISTENCY:
+    stage: 3
+    severity: "WARNING or ERROR"
+    examples: ["Broken reference", "Undefined term", "Contradiction"]
+    remediation: "Fix reference, define term, resolve contradiction"
+
+  COHERENCE_BREAK:
+    stage: 4
+    severity: "WARNING"
+    examples: ["Cycle in dependency graph", "Temporal paradox", "State mismatch"]
+    remediation: "Restructure dependencies, fix temporal ordering"
+
+# ═══════════════════════════════════════════════════════════════
+# REMEDIATION TRIGGERING
+# ═══════════════════════════════════════════════════════════════
+
+remediation_triggering:
+  trigger_on_error:
+    condition: "severity = ERROR"
+    action: "HALT process, require manual fix before proceeding"
+
+  trigger_on_critical_warning:
+    condition: "severity = WARNING AND count > 3"
+    action: "Emit alert, recommend remediation"
+
+  automatic_remediation:
+    scenario_1_broken_reference:
+      detection: "Reference to non-existent artifact"
+      auto_fix: "Remove reference OR mark artifact STALE"
+
+    scenario_2_vocabulary_drift:
+      detection: "Term used with inconsistent meaning"
+      auto_fix: "Suggest canonical definition"
+
+# ═══════════════════════════════════════════════════════════════
+# PIPELINE EXECUTION
+# ═══════════════════════════════════════════════════════════════
+
+pipeline_execution:
+  trigger: "On artifact creation/update"
+  frequency: "Real-time (every artifact change)"
+  timeout: "30 seconds per artifact"
+
+  execution_flow: |
+    FOR artifact IN changed_artifacts:
+      result_1 = run_stage_1_syntax(artifact)
+      IF result_1.status = FAIL THEN
+        emit_violation(artifact, SYNTAX_ERROR)
+        HALT
+
+      result_2 = run_stage_2_schema(artifact)
+      IF result_2.status = FAIL THEN
+        emit_violation(artifact, SCHEMA_VIOLATION)
+        HALT
+
+      result_3 = run_stage_3_semantic(artifact)
+      IF result_3.severity = ERROR THEN
+        emit_violation(artifact, SEMANTIC_INCONSISTENCY)
+        # Continue with warnings
+
+      result_4 = run_stage_4_coherence(artifact)
+      IF result_4.severity = WARNING THEN
+        emit_violation(artifact, COHERENCE_BREAK)
+        # Log but continue
+
+      mark_artifact_validated(artifact)
+
+# ═══════════════════════════════════════════════════════════════
+# COMPLIANCE
+# ═══════════════════════════════════════════════════════════════
+
+compliance_13_zasady:
+  zasada_2_binding_gates:
+    status: "COMPLIANT"
+    evidence: "Stage failures HALT pipeline (binding)"
+
+  zasada_3_sequential:
+    status: "COMPLIANT"
+    evidence: "Stages execute in order, cannot skip"
+
+  zasada_7_counter_checks:
+    status: "COMPLIANT"
+    evidence: "Each stage validates output of previous"
+
+---
+# END coherence-pipeline-architecture.yaml

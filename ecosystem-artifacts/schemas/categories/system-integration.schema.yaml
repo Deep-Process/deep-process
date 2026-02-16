@@ -1,0 +1,59 @@
+---
+# System Integration Category Schema v1.0
+# Category for artifacts coordinating BETWEEN processes
+# Inherits from: base-artifact.schema.yaml
+---
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/categories/system-integration.v1.yaml"
+
+title: "System Integration Artifact"
+description: |
+  Artifacts for COORDINATION between processes:
+  Events, state sync, handoffs, coherence validation
+
+allOf:
+  - $ref: "../base-artifact.schema.yaml"
+  - type: object
+    required: [source_process]
+    properties:
+      source_process:
+        type: string
+        description: "Originating process"
+        examples: ["deep-risk", "deep-verify"]
+
+      target_process:
+        type: string
+        description: "Destination process (if applicable)"
+
+      event_sequence:
+        type: integer
+        minimum: 0
+        description: "For event ordering (monotonically increasing)"
+
+      correlation_id:
+        type: string
+        format: uuid
+        description: "For request/response pairing"
+
+concrete_types:
+  - EVENT
+  - HANDOFF_CHECKPOINT
+  - STATE_SYNC
+  - COHERENCE_VIOLATION
+  - LINEAGE_PROVENANCE
+  - CASCADE_IMPACT
+  - CONSISTENCY_REPORT
+  - DRIFT_DETECTION
+
+examples:
+  - dp_id: "EVENT-001"
+    artifact_type: "EVENT"
+    version: "1.0.0"
+    created_at: "2026-02-16T10:30:00Z"
+    created_by: "system:orchestrator"
+    schema_ref: "https://deep-process.org/schemas/event-log-schema.v1.yaml"
+    compliance_flags: {self_contained: true, has_counter_checks: true, binding_gates_enforced: true}
+    source_process: "deep-verify"
+    event_sequence: 42
+    correlation_id: "550e8400-e29b-41d4-a716-446655440000"

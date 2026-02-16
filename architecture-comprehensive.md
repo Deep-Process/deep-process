@@ -29,8 +29,8 @@ This document presents the comprehensive enterprise architecture for the **Deep-
    - Cost-efficient: 100 tenants on single DB instance ($600/month vs $50K for separate DBs)
    - Row-Level Security as defense-in-depth
 
-4. **MCP-First Integration Strategy** (Scenario 4 from technical report)
-   - Model Context Protocol for IDE integration (Claude Code, GitHub Copilot)
+4. **MCP-First Integration Strategy** (Model Context Protocol - Scenario 4 from technical report)
+   - MCP enables IDE integration (Claude Code, GitHub Copilot)
    - REST API + Webhooks for programmatic access
    - CI/CD plugins for pipeline integration (GitHub Actions, Azure DevOps)
 
@@ -45,7 +45,7 @@ This document presents the comprehensive enterprise architecture for the **Deep-
 |------|-----------|--------|-----------|
 | 1 | **Reliability** | 99.9% uptime, no data loss | Enterprise compliance processes for regulatory audits |
 | 2 | **Security** | SOC 2 Type II, GDPR/HIPAA compliance | Required for enterprise sales, protects customer data |
-| 3 | **Performance** | Job submission P95 <500ms, 100 concurrent jobs | Developer CI/CD integration, multi-tenant usage |
+| 3 | **Performance** | Job submission target: P95 <500ms (async enqueue), 100 concurrent jobs | Developer CI/CD integration, multi-tenant usage. Requires latency budget validation during implementation. |
 | 4 | **Scalability** | Horizontal scaling to 1000+ jobs | MVP (10 customers) → Enterprise (200 customers) growth |
 | 5 | **Maintainability** | Onboard new process <1 day, zero-downtime deployment | Brownfield constraint, frequent process updates |
 
@@ -207,7 +207,7 @@ External system integrations:
 **Decision:** Each tenant gets dedicated PostgreSQL schema (tenant_{uuid}) for data isolation
 **Status:** Accepted
 **Rationale:**
-- Stronger isolation than shared-schema (tenant_ID column): PostgreSQL enforces schema boundaries at kernel level
+- Stronger isolation than shared-schema (tenant_ID column): PostgreSQL enforces schema boundaries at database engine level
 - GDPR compliance: DROP SCHEMA CASCADE for atomic tenant data deletion
 - Cost-efficient: 100 tenants on single db.r6g.2xlarge ($600/month) vs 100 separate DBs ($50K/month)
 - Performance: Indexes scoped to tenant schema (smaller, faster)
@@ -215,6 +215,9 @@ External system integrations:
 **Security Layers:**
 1. Application sets `search_path = tenant_{tenant_id}` per request
 2. Row-Level Security (RLS) as defense-in-depth (even if search_path wrong, RLS blocks access)
+   - **CRITICAL REQUIREMENT:** Application MUST use a non-SUPERUSER PostgreSQL role
+   - **VERIFICATION:** `SELECT usesuper FROM pg_user WHERE usename = current_user;` must return `false`
+   - **RATIONALE:** SUPERUSER role bypasses ALL RLS policies, completely defeating multi-tenant isolation
 3. Audit logging for schema access
 
 **Rejected Alternatives:**
@@ -538,7 +541,8 @@ Developer in Claude Code IDE invokes deep-explore:
 **Mitigations (Priority Order):**
 1. **Database Row-Level Security (RLS)** - $20K-$40K
    - Mandatory second layer of tenant isolation
-   - Reduces probability 30% → 10% (defense-in-depth)
+   - Estimated to significantly reduce bypass probability (defense-in-depth layer)
+   - Note: Effectiveness depends on proper RLS policy configuration and role management
 
 2. **Automated SAST for SQL Injection** - $10K-$15K
    - CI/CD pipeline with build-blocking failures
@@ -546,7 +550,8 @@ Developer in Claude Code IDE invokes deep-explore:
 
 3. **Real-Time Tenant Isolation Anomaly Detection** - $30K-$50K
    - Alert on cross-tenant query patterns within 1 minute
-   - Improves detectability 25% → 60%
+   - Estimated to significantly improve breach detectability from baseline
+   - Effectiveness requires tuning based on baseline metrics and false positive rate
 
 4. **Quarterly Penetration Testing** - $40K/year
    - External security firm simulates attacker

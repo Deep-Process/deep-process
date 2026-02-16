@@ -1,0 +1,240 @@
+---
+# Handoff Checkpoint Schema v1.0
+# Checkpoint at process handoff boundary
+# ARCHITECT-TASK.yaml task_03 deliverable (NEW #3)
+# Inherits from: system-integration category
+---
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/handoff-checkpoint-schema.v1.yaml"
+
+title: "Handoff Checkpoint"
+description: |
+  Checkpoint created at process handoff boundary.
+  Enforces pre-handoff validation, post-handoff verification.
+
+allOf:
+  - $ref: "categories/system-integration.schema.yaml"
+  - type: object
+    required:
+      - handoff_type
+      - source_instance_id
+      - target_process
+      - pre_validation_status
+      - post_verification_status
+
+    properties:
+      # ═══════════════════════════════════════════════════════════════
+      # HANDOFF IDENTITY
+      # ═══════════════════════════════════════════════════════════════
+
+      handoff_type:
+        type: string
+        enum:
+          - SEQUENTIAL        # Process A completes → Process B starts
+          - PARALLEL_FORK     # Process A → Process B + C (parallel)
+          - PARALLEL_JOIN     # Process B + C → Process D (join)
+          - CONDITIONAL       # Process A → B OR C (based on condition)
+        description: "Type of handoff"
+
+      source_instance_id:
+        type: string
+        description: "Source process instance ID"
+        examples: ["deep-verify-042"]
+
+      target_process:
+        type: string
+        description: "Target process name"
+        examples: ["deep-document", "deep-architect"]
+
+      target_instance_id:
+        type: string
+        description: "Target process instance ID (if already created)"
+
+      # ═══════════════════════════════════════════════════════════════
+      # PRE-HANDOFF VALIDATION (Method #348)
+      # ═══════════════════════════════════════════════════════════════
+
+      pre_validation_status:
+        type: string
+        enum:
+          - NOT_STARTED
+          - IN_PROGRESS
+          - PASSED
+          - FAILED
+        description: "Status of pre-handoff validation"
+
+      pre_validation_method:
+        type: string
+        default: "Method #348"
+        description: "Validation method used"
+
+      pre_validation_checklist:
+        type: array
+        items:
+          type: object
+          required: [item, status]
+          properties:
+            item: {type: string}
+            status: {type: string, enum: [PASS, FAIL, SKIP]}
+            evidence: {type: string}
+        description: "Pre-handoff validation checklist"
+
+      pre_validation_failures:
+        type: array
+        items:
+          type: string
+        description: "List of validation failures (if any)"
+
+      # ═══════════════════════════════════════════════════════════════
+      # HANDOFF PAYLOAD
+      # ═══════════════════════════════════════════════════════════════
+
+      handoff_payload:
+        type: object
+        required: [artifacts, context]
+        properties:
+          artifacts:
+            type: array
+            items:
+              type: object
+              properties:
+                dp_id: {type: string}
+                artifact_type: {type: string}
+                file_path: {type: string}
+            description: "Artifacts being handed off"
+
+          context:
+            type: object
+            additionalProperties: true
+            description: "Context inherited by target process"
+
+          requirements:
+            type: object
+            description: "Requirements for target process"
+
+      # ═══════════════════════════════════════════════════════════════
+      # POST-HANDOFF VERIFICATION
+      # ═══════════════════════════════════════════════════════════════
+
+      post_verification_status:
+        type: string
+        enum:
+          - NOT_STARTED
+          - IN_PROGRESS
+          - PASSED
+          - FAILED
+        description: "Status of post-handoff verification"
+
+      post_verification_checklist:
+        type: array
+        items:
+          type: object
+          required: [item, status]
+          properties:
+            item: {type: string}
+            status: {type: string, enum: [PASS, FAIL, SKIP]}
+            evidence: {type: string}
+
+      # ═══════════════════════════════════════════════════════════════
+      # FAILURE HANDLING
+      # ═══════════════════════════════════════════════════════════════
+
+      failure_handling:
+        type: object
+        properties:
+          on_pre_validation_failure:
+            type: string
+            enum: [HALT, RETRY, FALLBACK, ESCALATE]
+            default: "HALT"
+
+          on_post_verification_failure:
+            type: string
+            enum: [ROLLBACK, RETRY, CONTINUE_WITH_WARNING, ESCALATE]
+            default: "ROLLBACK"
+
+          max_retries: {type: integer, minimum: 0, default: 3}
+          retry_delay_ms: {type: integer, minimum: 0, default: 1000}
+
+      failure_log:
+        type: array
+        items:
+          type: object
+          properties:
+            timestamp: {type: string, format: date-time}
+            failure_type: {type: string}
+            error_message: {type: string}
+            recovery_action: {type: string}
+
+# ═══════════════════════════════════════════════════════════════
+# VALIDATION RULES
+# ═══════════════════════════════════════════════════════════════
+
+validation_rules:
+  - name: "pre_validation_required"
+    description: "Pre-validation MUST pass before handoff"
+    rule: "pre_validation_status = PASSED"
+    severity: "CRITICAL"
+
+  - name: "post_verification_required"
+    description: "Post-verification MUST complete"
+    rule: "post_verification_status IN [PASSED, FAILED]"
+    severity: "IMPORTANT"
+
+  - name: "artifacts_exist"
+    description: "All handoff_payload artifacts MUST exist"
+    severity: "CRITICAL"
+
+# ═══════════════════════════════════════════════════════════════
+# EXAMPLE
+# ═══════════════════════════════════════════════════════════════
+
+examples:
+  - dp_id: "HANDOFF-001"
+    artifact_type: "HANDOFF_CHECKPOINT"
+    version: "1.0.0"
+    created_at: "2026-02-16T10:35:00Z"
+    created_by: "system:orchestrator"
+    schema_ref: "https://deep-process.org/schemas/handoff-checkpoint-schema.v1.yaml"
+    compliance_flags: {self_contained: true, has_counter_checks: true, binding_gates_enforced: true}
+    source_process: "deep-verify"
+    handoff_type: "SEQUENTIAL"
+    source_instance_id: "deep-verify-042"
+    target_process: "deep-document"
+    target_instance_id: "deep-document-001"
+    pre_validation_status: "PASSED"
+    pre_validation_method: "Method #348"
+    pre_validation_checklist:
+      - item: "Verification report exists"
+        status: "PASS"
+        evidence: "VERIFY-REPORT-001 present"
+      - item: "Verdict is final"
+        status: "PASS"
+        evidence: "verdict: REJECT, confidence: HIGH"
+    pre_validation_failures: []
+    handoff_payload:
+      artifacts:
+        - dp_id: "VERIFY-REPORT-001"
+          artifact_type: "VERIFICATION_REPORT"
+          file_path: "verify-artifacts/TSK-005-VERIFICATION-REPORT.md"
+      context:
+        verification_score: 51.2
+        verdict: "REJECT"
+        critical_findings: 3
+      requirements:
+        document_type: "remediation-plan"
+    post_verification_status: "PASSED"
+    post_verification_checklist:
+      - item: "Target process started"
+        status: "PASS"
+        evidence: "deep-document-001 RUNNING"
+      - item: "Artifacts accessible"
+        status: "PASS"
+        evidence: "VERIFY-REPORT-001 readable"
+    failure_handling:
+      on_pre_validation_failure: "HALT"
+      on_post_verification_failure: "ROLLBACK"
+      max_retries: 3
+
+---
+# END handoff-checkpoint-schema.yaml

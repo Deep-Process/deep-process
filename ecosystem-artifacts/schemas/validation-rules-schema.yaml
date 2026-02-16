@@ -1,0 +1,44 @@
+---
+# Validation Rules Schema v1.0 (NEW #13 - bonus)
+---
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/validation-rules-schema.v1.yaml"
+title: "Validation Rule Set"
+description: "Validation rules for coherence pipeline (Syntax → Schema → Semantic → Coherence)"
+
+allOf:
+  - $ref: "categories/configuration-governance.schema.yaml"
+  - type: object
+    required: [validation_stage, rules]
+    properties:
+      validation_stage:
+        type: string
+        enum: [SYNTAX, SCHEMA, SEMANTIC, COHERENCE]
+      rules:
+        type: array
+        items:
+          type: object
+          required: [rule_id, rule_expression, severity]
+          properties:
+            rule_id: {type: string}
+            rule_name: {type: string}
+            rule_expression: {type: string}
+            severity: {type: string, enum: [CRITICAL, ERROR, WARNING]}
+            error_message_template: {type: string}
+
+examples:
+  - dp_id: "VALIDATION-RULES-001"
+    artifact_type: "VALIDATION_RULES"
+    version: "1.0.0"
+    created_at: "2026-02-16T08:45:00Z"
+    created_by: "user:architect"
+    schema_ref: "https://deep-process.org/schemas/validation-rules-schema.v1.yaml"
+    compliance_flags: {self_contained: true, has_counter_checks: true, binding_gates_enforced: true}
+    config_scope: "global"
+    validation_stage: "SEMANTIC"
+    rules:
+      - rule_id: "SEM-001"
+        rule_name: "Risk score bounds"
+        rule_expression: "risk_score >= 0 AND risk_score <= 100"
+        severity: "ERROR"
+        error_message_template: "Risk score {{value}} outside bounds [0, 100]"

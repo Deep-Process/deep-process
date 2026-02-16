@@ -1,0 +1,218 @@
+---
+# Event Log Schema v1.0
+# Event sourcing - append-only immutable log
+# ARCHITECT-TASK.yaml task_02 deliverable (NEW #2)
+# Inherits from: system-integration category
+---
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://deep-process.org/schemas/event-log-schema.v1.yaml"
+
+title: "Event Log Entry"
+description: |
+  Event in event-sourcing log (append-only, immutable).
+  Used for: state reconstruction, audit trail, cross-process communication.
+
+allOf:
+  - $ref: "categories/system-integration.schema.yaml"
+  - type: object
+    required:
+      - event_type
+      - event_payload
+      - event_hash
+      - previous_event_hash
+
+    properties:
+      # ═══════════════════════════════════════════════════════════════
+      # EVENT IDENTITY
+      # ═══════════════════════════════════════════════════════════════
+
+      event_type:
+        type: string
+        enum:
+          - PROCESS_STARTED
+          - PROCESS_COMPLETED
+          - PROCESS_FAILED
+          - ARTIFACT_CREATED
+          - ARTIFACT_UPDATED
+          - ARTIFACT_DELETED
+          - HANDOFF_INITIATED
+          - HANDOFF_COMPLETED
+          - HANDOFF_FAILED
+          - VALIDATION_PASSED
+          - VALIDATION_FAILED
+          - STATE_SYNCHRONIZED
+          - COHERENCE_VIOLATION_DETECTED
+          - GATE_PASSED
+          - GATE_FAILED
+          - DECISION_MADE
+          - SNAPSHOT_CREATED
+        description: "Type of event (extensible enum)"
+
+      event_payload:
+        type: object
+        description: "Event-specific data (schema depends on event_type)"
+        additionalProperties: true
+        examples:
+          - process_id: "deep-verify-001"
+            status: "COMPLETED"
+            final_score: 51.2
+          - artifact_id: "RISK-001"
+            artifact_type: "RISK_ASSESSMENT"
+            action: "CREATED"
+
+      # ═══════════════════════════════════════════════════════════════
+      # IMMUTABILITY & HASH CHAIN
+      # ═══════════════════════════════════════════════════════════════
+
+      event_hash:
+        type: string
+        pattern: "^[a-f0-9]{64}$"
+        description: "SHA-256 hash of this event (for integrity)"
+        examples:
+          - "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2"
+
+      previous_event_hash:
+        type: string
+        pattern: "^([a-f0-9]{64}|null)$"
+        description: "Hash of previous event (null for first event) - forms hash chain"
+
+      hash_algorithm:
+        type: string
+        enum: [SHA-256]
+        default: "SHA-256"
+        description: "Hash algorithm used"
+
+      # ═══════════════════════════════════════════════════════════════
+      # EVENT METADATA
+      # ═══════════════════════════════════════════════════════════════
+
+      timestamp:
+        type: string
+        format: date-time
+        description: "When event occurred (high precision)"
+
+      process_instance_id:
+        type: string
+        description: "Which process instance generated this event"
+        examples:
+          - "deep-verify-042"
+          - "deep-risk-001"
+
+      causation_event_id:
+        type: string
+        description: "Event that caused this event (for causal chains)"
+
+      # ═══════════════════════════════════════════════════════════════
+      # SNAPSHOT SUPPORT (every N events)
+      # ═══════════════════════════════════════════════════════════════
+
+      is_snapshot_marker:
+        type: boolean
+        default: false
+        description: "True if this marks a snapshot point"
+
+      snapshot_sequence:
+        type: integer
+        minimum: 0
+        description: "Snapshot number (if is_snapshot_marker = true)"
+
+      snapshot_state_ref:
+        type: string
+        description: "Reference to snapshot file (if snapshot marker)"
+
+      # ═══════════════════════════════════════════════════════════════
+      # REPLAY & RECOVERY
+      # ═══════════════════════════════════════════════════════════════
+
+      replayable:
+        type: boolean
+        default: true
+        description: "Can this event be replayed for state reconstruction?"
+
+      replay_handler:
+        type: string
+        description: "Function/method to replay this event"
+        examples:
+          - "handle_process_started"
+          - "handle_artifact_created"
+
+# ═══════════════════════════════════════════════════════════════
+# VALIDATION RULES
+# ═══════════════════════════════════════════════════════════════
+
+validation_rules:
+  - name: "hash_chain_integrity"
+    description: "Event hash must chain to previous event"
+    rule: "event_hash = SHA256(event_data + previous_event_hash)"
+    severity: "CRITICAL"
+
+  - name: "append_only"
+    description: "Events cannot be modified or deleted (only appended)"
+    enforcement: "File system write-once or immutable storage"
+    severity: "CRITICAL"
+
+  - name: "monotonic_sequence"
+    description: "event_sequence must be strictly increasing"
+    severity: "ERROR"
+
+# ═══════════════════════════════════════════════════════════════
+# EVENT SOURCING MECHANISM
+# ═══════════════════════════════════════════════════════════════
+
+event_sourcing_rules:
+  append_only:
+    rule: "Events are NEVER modified or deleted after creation"
+    enforcement: "Immutable storage (S3 Object Lock, append-only file)"
+
+  hash_chain:
+    rule: "Each event links to previous via hash (blockchain-style)"
+    benefit: "Detect tampering, ensure ordering"
+
+  snapshot_strategy:
+    trigger: "Every 100 events OR every 24 hours"
+    format: "Full state snapshot saved separately"
+    benefit: "Fast state reconstruction (don't replay all events)"
+
+  replay_algorithm:
+    steps:
+      - "Load most recent snapshot (if exists)"
+      - "Replay events from snapshot_sequence + 1 to latest"
+      - "Reconstruct current state"
+
+# ═══════════════════════════════════════════════════════════════
+# EXAMPLE
+# ═══════════════════════════════════════════════════════════════
+
+examples:
+  - dp_id: "EVENT-042"
+    artifact_type: "EVENT"
+    version: "1.0.0"
+    created_at: "2026-02-16T10:30:15.123Z"
+    created_by: "system:orchestrator"
+    schema_ref: "https://deep-process.org/schemas/event-log-schema.v1.yaml"
+    compliance_flags:
+      self_contained: true
+      has_counter_checks: true
+      binding_gates_enforced: true
+    source_process: "deep-verify"
+    event_sequence: 42
+    event_type: "GATE_PASSED"
+    event_payload:
+      gate_id: "GATE_3"
+      gate_name: "Adversarial → Verdict"
+      instance_id: "deep-verify-042"
+      checklist_items: 9
+      all_passed: true
+    event_hash: "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2"
+    previous_event_hash: "f2e1d0c9b8a7z6y5x4w3v2u1t0s9r8q7p6o5n4m3l2k1j0i9h8g7f6e5d4c3b2a1"
+    hash_algorithm: "SHA-256"
+    timestamp: "2026-02-16T10:30:15.123Z"
+    process_instance_id: "deep-verify-042"
+    causation_event_id: "EVENT-041"
+    is_snapshot_marker: false
+    replayable: true
+    replay_handler: "handle_gate_passed"
+
+---
+# END event-log-schema.yaml
