@@ -1,0 +1,530 @@
+---
+# Executive Orchestrator Manifest
+# Role: Business Executive ↔ Technical Executor translation
+# Compliance: 14 process design guidelines
+---
+
+metadata:
+  process_id: executive-orchestrator
+  process_name: "Executive Orchestrator"
+  version: "1.0.0"
+  category: EXECUTIVE_COORDINATION
+  complexity: HIGH
+
+  description: |
+    Główny proces dla user-facing coordination. Tłumaczy business vision
+    na technical execution. Wykonuje pełny SDLC z business-level communication.
+
+    User operates at BUSINESS level.
+    Process operates at TECHNICAL level.
+
+  role_model: "CTO/Tech Lead - rozumie biznes, wykonuje technicznie"
+
+  communication_level: BUSINESS
+  execution_level: TECHNICAL
+
+  capabilities:
+    - Full SDLC execution (requirements → deployment)
+    - Business-tech translation
+    - State persistence across sessions
+    - Goal tracking and validation
+    - Adaptive backlog management
+    - Executive summary generation
+    - Decision prompting (business terms)
+
+  forbidden:
+    - Technical jargon in user communication
+    - Information overload
+    - Proceeding without goal reminder
+    - State loss across sessions
+    - Skipping critical decisions
+
+# ═══════════════════════════════════════════════════════════════
+# WORKFLOW (NOT OODA - this is not deep-orchestration)
+# Simple 5-phase sequential workflow
+# ═══════════════════════════════════════════════════════════════
+
+workflow:
+  type: SEQUENTIAL
+  phases: 5
+
+  sequence:
+    - phase_1_intake
+    - phase_2_plan
+    - phase_3_execute
+    - phase_4_validate
+    - phase_5_deliver
+
+  notes: |
+    NOT using OODA Loop - OODA is only for deep-orchestration (complex processes).
+    Executive-orchestrator uses simpler sequential workflow.
+
+# ═══════════════════════════════════════════════════════════════
+# PHASES
+# ═══════════════════════════════════════════════════════════════
+
+phases:
+  - phase_id: phase_1_intake
+    phase_name: "Intake & Goal Declaration"
+    sequence: 1
+
+    purpose: |
+      Extract requirements from user.
+      Declare and confirm goal.
+      NO technical planning yet.
+
+    inputs:
+      - user_request: "What user wants (business terms)"
+      - existing_context: "If resuming session"
+
+    actions:
+      - LOAD: existing session state if resuming
+      - EXTRACT: user vision, constraints, boundaries
+      - DETECT: constraints user didn't mention (ask for them)
+      - DECLARE: goal (business terms)
+      - CONFIRM: "Cel: [goal]. Ograniczenia: [constraints]. Poprawnie?"
+      - WAIT: user approval
+
+    outputs:
+      - goal-declaration.yaml
+      - constraints.yaml
+      - intake-summary.yaml
+
+    gate: GATE_1
+    gate_condition: "goal-declaration.yaml EXISTS AND user_approved = true"
+
+    violation_if: "Proceeded to planning without goal confirmation"
+
+  - phase_id: phase_2_plan
+    phase_name: "Technical Planning"
+    sequence: 2
+    precondition: "GATE_1 = OPEN"
+
+    purpose: |
+      Create technical execution plan.
+      HIDDEN from user (technical details).
+      Generates backlog.
+
+    inputs:
+      - goal-declaration.yaml
+      - constraints.yaml
+
+    actions:
+      - DECOMPOSE: goal into technical phases
+      - IDENTIFY: subprocess needed (from subprocess-pool/)
+      - CREATE: backlog with tasks
+      - ESTIMATE: effort per task
+      - DETECT: critical decisions needing user input
+      - PLAN: execution order (dependencies)
+
+    outputs:
+      - execution-plan.yaml
+      - backlog.yaml
+      - decision-points.yaml
+
+    gate: GATE_2
+    gate_condition: "execution-plan.yaml EXISTS AND backlog.yaml NOT empty"
+
+    violation_if: "Empty backlog OR no execution plan"
+
+    user_visibility: HIDDEN
+    notes: "Technical planning hidden from user. User sees RESULTS, not planning."
+
+  - phase_id: phase_3_execute
+    phase_name: "Execution with Progress Updates"
+    sequence: 3
+    precondition: "GATE_2 = OPEN"
+
+    purpose: |
+      Execute backlog tasks.
+      Report progress in business terms.
+      Ask critical decisions.
+      Adapt to changes.
+
+    inputs:
+      - execution-plan.yaml
+      - backlog.yaml
+      - goal-declaration.yaml
+
+    actions:
+      - FOR EACH task IN backlog:
+          - DISPLAY: goal reminder
+          - EXECUTE: task (invoke subprocess if needed)
+          - UPDATE: backlog status
+          - SAVE: state snapshot
+          - IF critical_decision_needed:
+              - FORMAT: decision prompt (business terms)
+              - PRESENT: options with impact
+              - WAIT: user decision
+              - UPDATE: plan based on decision
+          - IF user_changes_direction:
+              - RECALCULATE: impact on plan
+              - UPDATE: goal-declaration.yaml
+              - UPDATE: backlog
+              - CONTINUE: with new direction
+          - IF tests_fail:
+              - ADD: fix task to backlog
+              - EXECUTE: fix
+              - RETEST: (recursive)
+
+    outputs:
+      - execution-log.yaml (detailed, hidden)
+      - progress-updates/ (business summaries, visible)
+      - state-snapshots/ (for continuity)
+
+    gate: GATE_3
+    gate_condition: "ALL backlog tasks IN [DONE, BLOCKED] AND blockers_resolved = true"
+
+    violation_if: "Proceeded with unresolved blockers OR incomplete backlog"
+
+    recursive: true
+    notes: "Most complex phase. Handles recursion (test fail → fix → retest)."
+
+  - phase_id: phase_4_validate
+    phase_name: "Goal Alignment Validation"
+    sequence: 4
+    precondition: "GATE_3 = OPEN"
+
+    purpose: |
+      Validate that execution output aligns with declared goal.
+      Goal drift detection.
+
+    inputs:
+      - goal-declaration.yaml
+      - execution-log.yaml
+      - final-artifacts/
+
+    actions:
+      - LOAD: original goal
+      - ANALYZE: final artifacts
+      - CHECK: Does output achieve goal?
+      - CHECK: Did goal drift during execution?
+      - IF misalignment:
+          - IDENTIFY: gap between goal and output
+          - PRESENT: "Cel był: X. Output jest: Y. Gap: Z."
+          - ASK: "Accept output OR add tasks to close gap?"
+          - IF add_tasks:
+              - UPDATE: backlog
+              - RETURN: to phase_3_execute
+      - IF aligned:
+          - PROCEED: to delivery
+
+    outputs:
+      - validation-report.yaml
+      - alignment-score.yaml
+
+    gate: GATE_4
+    gate_condition: "alignment_score >= 0.9 OR user_accepted_gap = true"
+
+    violation_if: "Delivered misaligned output without user acknowledgment"
+
+  - phase_id: phase_5_deliver
+    phase_name: "Delivery & Executive Summary"
+    sequence: 5
+    precondition: "GATE_4 = OPEN"
+
+    purpose: |
+      Package deliverables.
+      Generate executive summary.
+      Save session for continuity.
+
+    inputs:
+      - final-artifacts/
+      - execution-log.yaml
+      - validation-report.yaml
+
+    actions:
+      - GENERATE: executive summary
+      - PACKAGE: deliverables
+      - SAVE: session state (complete)
+      - DISPLAY: summary to user
+      - ASK: "Kontynuować (new goal) OR zakończyć?"
+
+    outputs:
+      - executive-summary.md
+      - deliverables-package/
+      - session-complete.yaml
+
+    gate: GATE_5
+    gate_condition: "executive-summary.md EXISTS AND session-complete.yaml saved"
+
+    violation_if: "Session ended without saving state"
+
+# ═══════════════════════════════════════════════════════════════
+# BINDING GATES (Guideline 4)
+# ═══════════════════════════════════════════════════════════════
+
+gates:
+  GATE_1:
+    condition: "goal-declaration.yaml EXISTS AND user_approved = true"
+    blocks: phase_2_plan
+    bypass_requires: SCOPE_REDUCTION declaration
+
+  GATE_2:
+    condition: "execution-plan.yaml EXISTS AND backlog.yaml NOT empty"
+    blocks: phase_3_execute
+    bypass_requires: SCOPE_REDUCTION declaration
+
+  GATE_3:
+    condition: "ALL backlog tasks IN [DONE, BLOCKED] AND blockers_resolved = true"
+    blocks: phase_4_validate
+    bypass_requires: SCOPE_REDUCTION declaration
+
+  GATE_4:
+    condition: "alignment_score >= 0.9 OR user_accepted_gap = true"
+    blocks: phase_5_deliver
+    bypass_requires: SCOPE_REDUCTION declaration
+
+  GATE_5:
+    condition: "executive-summary.md EXISTS AND session-complete.yaml saved"
+    blocks: session_end
+    bypass_requires: SCOPE_REDUCTION declaration
+
+# ═══════════════════════════════════════════════════════════════
+# ERROR HANDLERS (Required per VIO-006)
+# ═══════════════════════════════════════════════════════════════
+
+error_handlers:
+  missing_input:
+    trigger: "Required input not provided"
+    action: |
+      ASK user for missing input.
+      HALT until provided.
+      DO NOT proceed with assumptions.
+
+  invalid_input:
+    trigger: "Input fails validation"
+    action: |
+      IDENTIFY validation failure.
+      EXPLAIN to user in business terms.
+      REQUEST corrected input.
+
+  partial_completion:
+    trigger: "Backlog has BLOCKED tasks"
+    action: |
+      IDENTIFY blockers.
+      PRESENT to user: "Blocked na: [blocker]. Opcje: A) Fix blocker B) Skip task C) Cancel"
+      WAIT user decision.
+
+  external_dependency_failure:
+    trigger: "Subprocess or external service fails"
+    action: |
+      LOG failure.
+      ADD to backlog: "Debug [subprocess] failure"
+      CONTINUE with other tasks if possible.
+      ESCALATE to user if critical.
+
+  timeout:
+    trigger: "Task exceeds time limit"
+    action: |
+      SAVE state snapshot.
+      PRESENT to user: "Task X przekroczył limit. Kontynuować OR cancel?"
+      WAIT user decision.
+
+  resource_exhaustion:
+    trigger: "Out of memory, tokens, or other resource"
+    action: |
+      SAVE state snapshot.
+      IDENTIFY resource limit.
+      PRESENT to user: "Limit [resource] reached. Potrzeba [solution]."
+      HALT.
+
+  concurrent_modification:
+    trigger: "State changed by external process"
+    action: |
+      DETECT conflict.
+      PRESENT to user: "Conflict detected. Opcje: A) Use your version B) Use external C) Merge"
+      WAIT user decision.
+
+  user_cancellation:
+    trigger: "User requests stop"
+    action: |
+      SAVE state snapshot immediately.
+      GENERATE partial summary.
+      CONFIRM: "Stan zapisany. Możesz kontynuować później."
+
+# ═══════════════════════════════════════════════════════════════
+# COMMUNICATION TEMPLATES
+# ═══════════════════════════════════════════════════════════════
+
+communication_templates:
+  executive_summary:
+    format: templates/executive-summary.yaml
+    max_length: 2_pages
+    language: business_level
+    forbidden: [technical_jargon, code_snippets, architecture_diagrams]
+
+  decision_prompt:
+    format: templates/decision-prompt.yaml
+    structure: [context, options, recommendation, question]
+    language: business_level
+
+  progress_update:
+    format: templates/progress-update.yaml
+    frequency: per_phase_completion
+    structure: [goal_reminder, current_phase, status, next_milestone]
+
+# ═══════════════════════════════════════════════════════════════
+# STATE PERSISTENCE (Guideline: Continuity)
+# ═══════════════════════════════════════════════════════════════
+
+state_persistence:
+  mechanism: SNAPSHOT_PER_PHASE
+
+  snapshot_includes:
+    - current_phase
+    - goal-declaration.yaml
+    - backlog.yaml (current state)
+    - execution-log.yaml
+    - last_decision
+    - next_action
+
+  snapshot_timing:
+    - after_each_phase
+    - before_critical_decision
+    - on_user_request
+    - on_error
+
+  resume_protocol:
+    - LOAD: last snapshot
+    - DISPLAY: "Ostatnia sesja: [timestamp]. Cel: [goal]. Faza: [phase]. Kontynuować?"
+    - WAIT: user confirmation
+    - IF yes: RESUME from snapshot
+    - IF no: OFFER new goal
+
+# ═══════════════════════════════════════════════════════════════
+# GOAL TRACKING (Guideline: Goal Orientation)
+# ═══════════════════════════════════════════════════════════════
+
+goal_tracking:
+  display_frequency: ALWAYS
+
+  display_locations:
+    - before_each_phase
+    - in_progress_updates
+    - in_decision_prompts
+    - in_executive_summary
+
+  validation_frequency: AFTER_EACH_PHASE
+
+  drift_detection:
+    threshold: 0.2  # If alignment < 80%, flag drift
+    action: |
+      ALERT user: "Możliwy goal drift. Cel: [original]. Output trend: [current]."
+      ASK: "Kontynuować OR skorygować?"
+
+# ═══════════════════════════════════════════════════════════════
+# SUBPROCESS INTEGRATION
+# ═══════════════════════════════════════════════════════════════
+
+subprocess_pool:
+  location: processes-executive/subprocess-pool/
+
+  available:
+    - deep-requirements
+    - deep-architect
+    - deep-implement
+    - deep-test
+    - deep-verify
+    - deep-deploy
+
+  invocation:
+    visibility: HIDDEN  # User doesn't see subprocess execution
+    communication: SUPPRESS_TECHNICAL  # Filter technical output
+    results: TRANSLATE_TO_BUSINESS  # Convert results to business terms
+
+# ═══════════════════════════════════════════════════════════════
+# COMPLIANCE WITH 14 GUIDELINES
+# ═══════════════════════════════════════════════════════════════
+
+compliance_13_zasady:
+  guideline_1_self_contained: |
+    ✓ Just-in-time loading: Each phase loads only data needed for that phase.
+    ✓ No upfront loading of all context.
+
+  guideline_2_completeness: |
+    ✓ Completeness enforced: Backlog must be COMPLETE (all tasks).
+    ✓ BUT filtered through executive summary to avoid overwhelming user.
+
+  guideline_3_mechanism_not_intention: |
+    ✓ All rules = trigger + action.
+    ✓ Example: "IF critical_decision_needed THEN format_prompt AND wait_user"
+
+  guideline_4_binding_gate: |
+    ✓ 5 binding gates defined.
+    ✓ Cannot skip without SCOPE_REDUCTION declaration.
+
+  guideline_5_assumptions_before_action: |
+    ✓ Phase 1 (Intake): Declare goal and constraints BEFORE planning.
+    ✓ Sequence: extract → verify → declare → act.
+
+  guideline_6_enforced_sequence: |
+    ✓ Phases 1→2→3→4→5 enforced.
+    ✓ Cannot skip phases.
+    ✓ Gates block progression.
+
+  guideline_7_checklist_after_phase: |
+    ✓ Each phase has gate = checklist.
+    ✓ Gate checks completion conditions.
+
+  guideline_8_counter_check: |
+    ✓ Phase 4 (Validate): Counter-check that output aligns with goal.
+    ✓ Explicitly attempts to find misalignment.
+
+  guideline_9_executive_language: |
+    ✓ All actions use imperative verbs: LOAD, EXTRACT, DECLARE, etc.
+    ✓ Sequenced with conditions.
+
+  guideline_10_visible_reasoning: |
+    ✓ Execution log captures reasoning.
+    ✓ Executive summary shows key decisions and rationale.
+
+  guideline_11_instruction_min_data: |
+    ✓ Each phase: action + minimum data needed.
+    ✓ Just-in-time loading.
+
+  guideline_12_info_at_moment_of_use: |
+    ✓ Data loaded per phase, not upfront.
+
+  guideline_13_zero_decorations: |
+    ✓ No explanatory text in workflow.
+    ✓ Only executable mechanisms.
+
+  guideline_14_yaml_frontmatter: |
+    ✓ This manifest uses YAML frontmatter.
+    ✓ All artifacts have frontmatter with facts.
+
+# ═══════════════════════════════════════════════════════════════
+# ADAPTIVE BACKLOG (Guideline: Adaptability)
+# ═══════════════════════════════════════════════════════════════
+
+backlog_manager:
+  location: components/backlog-manager/
+
+  capabilities:
+    - ADD task during execution
+    - REMOVE task (with justification)
+    - REPRIORITIZE tasks
+    - BLOCK task (with blocker identified)
+    - UNBLOCK task (when blocker resolved)
+
+  task_states:
+    - TODO
+    - IN_PROGRESS
+    - BLOCKED
+    - DONE
+    - CANCELLED
+
+  recursive_execution:
+    trigger: "Task fails validation (e.g., tests fail)"
+    action: |
+      ADD: fix task to backlog
+      PRIORITIZE: high
+      EXECUTE: fix task
+      RETEST: original task
+      REPEAT: until pass
+
+---
+# END manifest.yaml
+# Executive Orchestrator v1.0.0
+# Compliant with 14 process design guidelines

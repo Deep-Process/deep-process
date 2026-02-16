@@ -1,0 +1,137 @@
+---
+# Schema for goal-declaration.yaml (Phase 1 output)
+schema_id: goal-declaration
+version: 1.0.0
+purpose: Enforce structure for declared goals with user approval
+
+required_fields:
+  - goal
+  - declared_at
+  - user_approved
+  - vision
+  - constraints
+  - metadata
+
+structure:
+  goal:
+    type: string
+    min_length: 10
+    max_length: 500
+    description: "Goal statement in business terms"
+    validation:
+      - not_empty
+      - no_technical_jargon
+      - measurable
+
+  declared_at:
+    type: timestamp
+    format: ISO8601
+    description: "When goal was declared"
+
+  user_approved:
+    type: boolean
+    required: true
+    description: "Must be true to pass GATE_1"
+    validation:
+      - must_be_true
+
+  vision:
+    type: object
+    required_fields:
+      - what
+      - target
+    optional_fields:
+      - why
+      - scope
+    structure:
+      what:
+        type: string
+        description: "What user wants to create/achieve"
+      target:
+        type: string
+        description: "Target audience or environment"
+      why:
+        type: string
+        description: "Purpose or motivation"
+      scope:
+        type: string
+        description: "Rough scope if mentioned"
+
+  constraints:
+    type: object
+    required_fields:
+      - budget
+      - timeline
+      - compliance
+      - technology
+    structure:
+      budget:
+        type: string
+        allowed_values:
+          - "nieokreślony"
+          - "minimal"
+          - "reasonable"
+          - "flexible"
+          - specific_amount
+        description: "Budget constraint"
+      timeline:
+        type: string
+        description: "Timeline constraint or 'nieokreślony'"
+      compliance:
+        type: string
+        description: "Compliance requirements or 'brak'"
+      technology:
+        type: string
+        description: "Technology preferences or 'wybór techniczny'"
+
+  metadata:
+    type: object
+    required_fields:
+      - session_id
+      - session_type
+    structure:
+      session_id:
+        type: uuid
+        description: "Unique session identifier"
+      session_type:
+        type: enum
+        allowed_values:
+          - NEW
+          - RESUME
+          - MODIFIED
+        description: "Type of session"
+
+validation_rules:
+  - rule: user_approved_must_be_true
+    check: user_approved == true
+    error: "Cannot save goal-declaration without user approval"
+
+  - rule: goal_aligns_with_vision
+    check: goal contains vision.what
+    error: "Goal must align with vision.what"
+
+  - rule: metadata_complete
+    check: metadata.session_id NOT null AND metadata.session_type NOT null
+    error: "Metadata incomplete"
+
+gate_requirement:
+  gate: GATE_1
+  condition: "goal-declaration.yaml EXISTS AND user_approved == true"
+
+example:
+  goal: "Stworzyć system CRM dla małej firmy z ograniczeniami: timeline 3 miesiące, GDPR compliance, cel biznesowy: zarządzanie relacjami z klientami"
+  declared_at: "2025-01-15T10:30:00Z"
+  user_approved: true
+  vision:
+    what: "system CRM"
+    target: "mała firma"
+    why: "zarządzanie relacjami z klientami"
+    scope: "NOT_SPECIFIED"
+  constraints:
+    budget: "reasonable"
+    timeline: "3 miesiące"
+    compliance: "GDPR"
+    technology: "wybór techniczny"
+  metadata:
+    session_id: "550e8400-e29b-41d4-a716-446655440000"
+    session_type: "NEW"

@@ -1,0 +1,53 @@
+---
+# Progress Update Template
+# Brief status report - business level
+---
+
+progress_update:
+  goal_reminder:
+    goal: "[Original goal - always displayed]"
+
+  current_status:
+    phase: "[Current phase X/5]"
+    phase_name: "[Phase name]"
+    phase_purpose: "[Why this phase serves goal]"
+    completion: "[X%] complete"
+    status: "[on_track | delayed | blocked | at_risk]"
+
+  recent_work:
+    completed:
+      - "[What was just finished - business impact]"
+      # Max 3 items
+
+    in_progress:
+      - task: "[Current task]"
+        purpose: "[Why this task serves goal]"
+        estimated_completion: "[Time estimate]"
+
+  next_milestone:
+    name: "[Next significant achievement]"
+    impact: "[What this milestone means for goal]"
+    eta: "[Estimated time]"
+
+  blockers:
+    # Only if status = blocked
+    - blocker: "[What's blocking]"
+      impact: "[Effect on progress]"
+      action_needed: "[What's needed to unblock]"
+
+  changes_from_plan:
+    # Only if deviations occurred
+    - change: "[What changed]"
+      reason: "[Why it changed]"
+      impact: "[Effect on goal/timeline]"
+
+  confidence:
+    level: "[HIGH | MEDIUM | LOW]"
+    reason: "[Why this confidence level]"
+    # Only if not HIGH
+
+# This template is BRIEF - max half page
+# User should be able to read in 30 seconds
+
+---
+# END progress-update.yaml

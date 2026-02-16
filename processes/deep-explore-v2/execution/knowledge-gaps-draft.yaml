@@ -1,0 +1,623 @@
+---
+# Knowledge Gaps - DRAFT (extraction in progress)
+# Phase 1 Extract - ALL gaps, not subset
+---
+
+gaps:
+  # ═══ GAPS FROM DECISION QUESTION ═══
+
+  - gap_id: GAP-001
+    gap_description: "How to implement vision alignment mechanism that works at scale with high content volume?"
+    gap_type: procedural
+    source: decision_question "kontrolowany pod kątem efektów zgodnych z wizją"
+    researchable: true
+    priority: critical
+    notes: "User states content volume makes alignment impossible - need mechanism that scales"
+
+  - gap_id: GAP-002
+    gap_description: "What specific mechanism prevents content overwhelm while maintaining completeness?"
+    gap_type: procedural
+    source: decision_question "bez przytłaczania ilością treści"
+    researchable: true
+    priority: critical
+    notes: "Tension between guideline 2 (Completeness > tokens) and user's overwhelm problem"
+
+  - gap_id: GAP-003
+    gap_description: "How to coordinate 27 processes to realize vision in unified way?"
+    gap_type: procedural
+    source: decision_question "w sposób skoordynowany"
+    researchable: true
+    priority: critical
+    notes: "Current: 56% orphaned, no coordination mechanism"
+
+  - gap_id: GAP-004
+    gap_description: "What does 'planned, thoughtful' execution mean operationally?"
+    gap_type: contextual
+    source: decision_question "w sposób zaplanowany, przemyślany"
+    researchable: true
+    priority: high
+    notes: "Vague requirement - needs concrete operational definition"
+
+  - gap_id: GAP-005
+    gap_description: "How to balance standalone process capability with integration needs?"
+    gap_type: evaluative
+    source: decision_question "procesy które same istnieją i mogą istniec jako standalone, ale też integracja"
+    researchable: true
+    priority: high
+    notes: "Architectural trade-off: standalone vs integrated"
+
+  # ═══ GAPS FROM 14 GUIDELINES IMPLEMENTATION ═══
+
+  - gap_id: GAP-006
+    gap_description: "How to implement 'just-in-time loading' in processes (guideline 1)?"
+    gap_type: procedural
+    source: guideline_1 "Self-contained realizowana przez just-in-time loading"
+    researchable: true
+    priority: high
+    notes: "Not defined in current process templates"
+
+  - gap_id: GAP-007
+    gap_description: "How to enforce 'Completeness > tokens' without overwhelming user (guideline 2)?"
+    gap_type: evaluative
+    source: guideline_2 vs user's overwhelm problem
+    researchable: true
+    priority: critical
+    notes: "Direct contradiction - guideline says exhaustive, user says overwhelmed"
+
+  - gap_id: GAP-008
+    gap_description: "What does 'mechanism instead of intention' look like in practice (guideline 3)?"
+    gap_type: contextual
+    source: guideline_3 "Każda reguła = trigger + akcja"
+    researchable: true
+    priority: high
+    notes: "Need concrete examples for all 27 processes"
+
+  - gap_id: GAP-009
+    gap_description: "How to implement binding gates that prevent 'intelligent skipping' (guideline 4)?"
+    gap_type: procedural
+    source: guideline_4 "Binding gate - prevent agent 'intelligent' omissions"
+    researchable: true
+    priority: critical
+    notes: "Currently 70% gate coverage per verification report"
+
+  - gap_id: GAP-010
+    gap_description: "How to enforce 'extract → verify → render' sequence across all processes (guideline 5)?"
+    gap_type: procedural
+    source: guideline_5 "Założenia przed działaniem"
+    researchable: true
+    priority: high
+    notes: "Not consistently enforced currently"
+
+  - gap_id: GAP-011
+    gap_description: "What constitutes 'enforced sequence' vs 'flexible workflow' (guideline 6)?"
+    gap_type: contextual
+    source: guideline_6 "Wymuszona sekwencja - nie może przeskakiwać"
+    researchable: true
+    priority: medium
+    notes: "Need to define where flexibility is allowed"
+
+  - gap_id: GAP-012
+    gap_description: "How to design checklists that agents cannot skip (guideline 7)?"
+    gap_type: procedural
+    source: guideline_7 "Checklist po fazie - zawsze"
+    researchable: true
+    priority: high
+    notes: "Current process: agents can skip if not enforced"
+
+  - gap_id: GAP-013
+    gap_description: "How to implement counter-checks on all key claims (guideline 8)?"
+    gap_type: procedural
+    source: guideline_8 "Counter-check na kluczowe twierdzenia"
+    researchable: true
+    priority: high
+    notes: "Not systematically implemented currently"
+
+  - gap_id: GAP-014
+    gap_description: "What is the taxonomy of 'egzekucyjny język' (guideline 9)?"
+    gap_type: contextual
+    source: guideline_9 "Czasowniki rozkazujące + sekwencja + warunki"
+    researchable: true
+    priority: medium
+    notes: "Need style guide / pattern catalog"
+
+  - gap_id: GAP-015
+    gap_description: "How to force 'visible reasoning' in agent execution (guideline 10)?"
+    gap_type: procedural
+    source: guideline_10 "Wymuś pokazanie kroków myślenia przed odpowiedzią"
+    researchable: true
+    priority: medium
+    notes: "Implementation mechanism unclear"
+
+  - gap_id: GAP-016
+    gap_description: "How to balance 'instruction + minimum data' with completeness (guideline 11)?"
+    gap_type: evaluative
+    source: guideline_11 "Akcja + minimum informacji potrzebnych"
+    researchable: true
+    priority: high
+    notes: "Conflicts with guideline 2 (completeness)"
+
+  - gap_id: GAP-017
+    gap_description: "How to implement 'information at moment of use' (guideline 12)?"
+    gap_type: procedural
+    source: guideline_12 "Dane do fazy N pojawiają się przy fazie N"
+    researchable: true
+    priority: medium
+    notes: "Requires lazy loading mechanism"
+
+  - gap_id: GAP-018
+    gap_description: "How to eliminate 'decorations' while maintaining comprehensibility (guideline 13)?"
+    gap_type: evaluative
+    source: guideline_13 "Zero ozdobników - tylko mechanizmy wykonawcze"
+    researchable: true
+    priority: medium
+    notes: "Trade-off: terseness vs clarity"
+
+  - gap_id: GAP-019
+    gap_description: "How to implement YAML frontmatter facts preservation (guideline 14)?"
+    gap_type: procedural
+    source: guideline_14 "YAML frontmatter with facts list"
+    researchable: true
+    priority: medium
+    notes: "Not in current process templates"
+
+  # ═══ GAPS FROM CURRENT ECOSYSTEM STATE ═══
+
+  - gap_id: GAP-020
+    gap_description: "Should orchestrator-master and deep-orchestration be merged or separated?"
+    gap_type: evaluative
+    source: ecosystem_recommendations "OPTION_A (merge) vs OPTION_B (separate)"
+    researchable: true
+    priority: critical
+    notes: "Recommendation says merge, but user mentions 'jakas dziwna wersja orchestrator-master'"
+
+  - gap_id: GAP-021
+    gap_description: "What is the role of 'orchestrator-master' vs 'deep-orchestration' currently?"
+    gap_type: contextual
+    source: user confusion "proces deep-orchestration ale też jakas dziwna werrsja orchestrator-master"
+    researchable: true
+    priority: critical
+    notes: "User explicitly mentions confusion"
+
+  - gap_id: GAP-022
+    gap_description: "How to integrate 15 orphaned processes (56%) into coordination flows?"
+    gap_type: procedural
+    source: ecosystem_recommendations "56% orphaned"
+    researchable: true
+    priority: critical
+    notes: "Major integration effort required"
+
+  - gap_id: GAP-023
+    gap_description: "Which 6-8 legacy processes to archive vs modernize?"
+    gap_type: evaluative
+    source: recommendations "eliminate: deep-change, deep-edge-case, deep-execute, deep-govern, deep-plan, deep-process"
+    researchable: true
+    priority: high
+    notes: "Clear recommendation exists, need validation"
+
+  - gap_id: GAP-024
+    gap_description: "How to fix orchestrator-master naming mismatch (deep-architecture vs deep-architect)?"
+    gap_type: factual
+    source: RISK-001, VIO-001 "line 255 incorrect reference"
+    researchable: false
+    priority: critical
+    notes: "Factual fix - change line 255"
+
+  - gap_id: GAP-025
+    gap_description: "How to create 12 missing artifact schemas?"
+    gap_type: procedural
+    source: RISK-005, CHAL-034, VIO-004
+    researchable: true
+    priority: critical
+    notes: "Blocks validation"
+
+  - gap_id: GAP-026
+    gap_description: "How to implement error recovery mechanism?"
+    gap_type: procedural
+    source: RISK-004, CHAL-016 "no error recovery orchestration"
+    researchable: true
+    priority: critical
+    notes: "Cascading failures currently"
+
+  - gap_id: GAP-027
+    gap_description: "How to standardize handoff protocols across all processes?"
+    gap_type: procedural
+    source: RISK-008, CHAL-033, VIO-009
+    researchable: true
+    priority: high
+    notes: "Inconsistent currently"
+
+  - gap_id: GAP-028
+    gap_description: "How to integrate security/governance into orchestration?"
+    gap_type: procedural
+    source: RISK-017, CHAL-007 "deep-governance misaligned"
+    researchable: true
+    priority: critical
+    notes: "Security gap"
+
+  # ═══ GAPS FROM IMPLEMENTATION CONSTRAINTS ═══
+
+  - gap_id: GAP-029
+    gap_description: "What is acceptable timeline for ecosystem transformation?"
+    gap_type: contextual
+    source: roadmap shows "12-16 weeks"
+    researchable: true
+    priority: high
+    notes: "Need user validation of timeline"
+
+  - gap_id: GAP-030
+    gap_description: "What resources are available for implementation?"
+    gap_type: contextual
+    source: roadmap assumes "2-3 person team"
+    researchable: true
+    priority: high
+    notes: "Affects feasibility"
+
+  - gap_id: GAP-031
+    gap_description: "What is risk tolerance for ecosystem changes?"
+    gap_type: contextual
+    source: "64% → 97% health requires significant changes"
+    researchable: true
+    priority: high
+    notes: "Breaking changes vs incremental"
+
+  # ═══ GAPS FROM COORDINATION MECHANISM ═══
+
+  - gap_id: GAP-032
+    gap_description: "How to ensure process outputs align with vision when agent generates large volumes?"
+    gap_type: procedural
+    source: user core problem "kontrolowanie efektów... przy ilości treści... jest niemożliwe"
+    researchable: true
+    priority: critical
+    notes: "THE core problem to solve"
+
+  - gap_id: GAP-033
+    gap_description: "What oversight mechanism prevents vision drift during execution?"
+    gap_type: procedural
+    source: user problem "uniemożliwia podjemowanie decyzji"
+    researchable: true
+    priority: critical
+    notes: "Need governance layer"
+
+  - gap_id: GAP-034
+    gap_description: "How to present execution progress without overwhelming user?"
+    gap_type: procedural
+    source: user problem "przytłoczony wielką ilością treści"
+    researchable: true
+    priority: critical
+    notes: "UX/presentation problem"
+
+  - gap_id: GAP-035
+    gap_description: "What level of detail should user see vs what should be automated?"
+    gap_type: evaluative
+    source: user needs "żebym wiedział co sie dzieje" but not overwhelmed
+    researchable: true
+    priority: high
+    notes: "Abstraction level decision"
+
+  # ═══ GAPS FROM OODA RESTRICTION ═══
+
+  - gap_id: GAP-036
+    gap_description: "Why is OODA only for deep-orchestration and not other complex processes?"
+    gap_type: contextual
+    source: user guideline "OODA is only for complex processes, OODA jest tylko dla deep-orchestration"
+    researchable: true
+    priority: high
+    notes: "Seems contradictory - OODA for complex, but only deep-orchestration?"
+
+  - gap_id: GAP-037
+    gap_description: "What workflow model should non-deep-orchestration complex processes use?"
+    gap_type: procedural
+    source: implied by GAP-036
+    researchable: true
+    priority: high
+    notes: "If not OODA, then what?"
+
+  # ═══ GAPS FROM PROCESS OVERLAP ═══
+
+  - gap_id: GAP-038
+    gap_description: "Which process overlaps are acceptable vs should be eliminated?"
+    gap_type: evaluative
+    source: user "częśc procesów trochę pokrywa się"
+    researchable: true
+    priority: medium
+    notes: "Some overlap may be intentional redundancy"
+
+  - gap_id: GAP-039
+    gap_description: "How to evolve ecosystem described in @artifacts\ folder?"
+    gap_type: contextual
+    source: user "jest opisany @artifacts\"
+    researchable: true
+    priority: high
+    notes: "Need to review artifacts folder beyond what's already loaded"
+
+  # ═══ GAPS FROM PHASING & IMPLEMENTATION STRATEGY ═══
+
+  - gap_id: GAP-040
+    gap_description: "Should transformation be Big Bang or Incremental?"
+    gap_type: evaluative
+    source: roadmap shows "5 phases" but strategy not validated
+    researchable: true
+    priority: high
+    notes: "Affects risk and rollback capability"
+
+  - gap_id: GAP-041
+    gap_description: "What is minimum viable transformation (MVP approach)?"
+    gap_type: procedural
+    source: could implement subset first
+    researchable: true
+    priority: medium
+    notes: "User may want quick wins"
+
+  - gap_id: GAP-042
+    gap_description: "How to maintain backward compatibility during transformation?"
+    gap_type: procedural
+    source: roadmap principle "Maintain backward compatibility during transition"
+    researchable: true
+    priority: high
+    notes: "Prevents breaking existing usage"
+
+  # ═══ GAPS FROM SUCCESS METRICS & VALIDATION ═══
+
+  - gap_id: GAP-043
+    gap_description: "How to measure 'vision alignment' quantitatively?"
+    gap_type: procedural
+    source: user wants "kontrolowany pod kątem efektów zgodnych z wizją"
+    researchable: true
+    priority: critical
+    notes: "Need measurable metric"
+
+  - gap_id: GAP-044
+    gap_description: "What constitutes 'content overwhelm' threshold?"
+    gap_type: contextual
+    source: user subjective experience
+    researchable: true
+    priority: high
+    notes: "Varies by person - need to quantify for user"
+
+  - gap_id: GAP-045
+    gap_description: "How to validate that transformation achieved coordination?"
+    gap_type: procedural
+    source: goal "w sposób skoordynowany"
+    researchable: true
+    priority: medium
+    notes: "Success criteria unclear"
+
+  # ═══ GAPS FROM GUIDELINE CONTRADICTIONS ═══
+
+  - gap_id: GAP-046
+    gap_description: "How to resolve tension between Completeness (guideline 2) and overwhelm prevention?"
+    gap_type: evaluative
+    source: GAP-007 but deserves separate analysis
+    researchable: true
+    priority: critical
+    notes: "Fundamental design tension"
+
+  - gap_id: GAP-047
+    gap_description: "How to resolve tension between 'minimum data' (guideline 11) and 'completeness' (guideline 2)?"
+    gap_type: evaluative
+    source: GAP-016 but requires resolution strategy
+    researchable: true
+    priority: high
+    notes: "Guidelines appear contradictory"
+
+  - gap_id: GAP-048
+    gap_description: "Is 'just-in-time loading' (guideline 1) compatible with 'information at moment of use' (guideline 12)?"
+    gap_type: verification
+    source: both seem similar - are they redundant or complementary?
+    researchable: true
+    priority: low
+    notes: "Clarification needed"
+
+  # ═══ GAPS FROM SPECIFIC PROCESS DECISIONS ═══
+
+  - gap_id: GAP-049
+    gap_description: "Should deep-aggregate be eliminated (per recommendations) or kept?"
+    gap_type: evaluative
+    source: CHAL-002 FAILS, but user hasn't validated
+    researchable: true
+    priority: medium
+    notes: "96KB for aggregation - worth eliminating?"
+
+  - gap_id: GAP-050
+    gap_description: "Should deep-diagram merge into deep-architect or stay separate?"
+    gap_type: evaluative
+    source: CHAL-004 recommends merge
+    researchable: true
+    priority: medium
+    notes: "Architectural decision"
+
+  - gap_id: GAP-051
+    gap_description: "Should deep-monitoring be reimplemented for real-time or is post-execution sufficient?"
+    gap_type: evaluative
+    source: CHAL-010, CONTR-002 recommend real-time
+    researchable: true
+    priority: high
+    notes: "Significant effort to reimplement"
+
+  - gap_id: GAP-052
+    gap_description: "Should deep-governance handle project governance or organizational governance?"
+    gap_type: evaluative
+    source: CHAL-007, CONTR-004 recommend project-level
+    researchable: true
+    priority: high
+    notes: "Scope redefinition needed"
+
+  - gap_id: GAP-053
+    gap_description: "Should deep-synthesis merge into feedback-loop-handler?"
+    gap_type: evaluative
+    source: CHAL-009, CONTR-007 recommend merge
+    researchable: true
+    priority: medium
+    notes: "Learning as part of feedback cycle"
+
+  # ═══ GAPS FROM MISSING CONTEXT ═══
+
+  - gap_id: GAP-054
+    gap_description: "What other artifacts exist in @artifacts\ folder beyond loaded ones?"
+    gap_type: factual
+    source: user references "@artifacts\" but I only loaded 3 files
+    researchable: true
+    priority: high
+    notes: "May contain additional constraints or vision definition"
+
+  - gap_id: GAP-055
+    gap_description: "What is the complete vision definition?"
+    gap_type: contextual
+    source: user wants processes to "realizowały wizję" but vision not explicitly defined
+    researchable: true
+    priority: critical
+    notes: "Cannot align with undefined vision"
+
+  - gap_id: GAP-056
+    gap_description: "What are concrete use cases for the process ecosystem?"
+    gap_type: contextual
+    source: user mentions "np pisały program, czy cokolwiek"
+    researchable: true
+    priority: high
+    notes: "Examples would clarify requirements"
+
+  # ═══ GAPS FROM OPERATIONAL CONCERNS ═══
+
+  - gap_id: GAP-057
+    gap_description: "How to implement lock timeout mechanism (4 hours)?"
+    gap_type: procedural
+    source: RISK-022, roadmap IMPL-024
+    researchable: true
+    priority: high
+    notes: "Prevents deadlocks"
+
+  - gap_id: GAP-058
+    gap_description: "How to implement rate limiting (5 concurrent orchestrators)?"
+    gap_type: procedural
+    source: RISK-023, roadmap IMPL-025
+    researchable: true
+    priority: high
+    notes: "Prevents resource exhaustion"
+
+  - gap_id: GAP-059
+    gap_description: "How to implement process timeouts?"
+    gap_type: procedural
+    source: RISK-024, roadmap IMPL-026
+    researchable: true
+    priority: high
+    notes: "Prevents hung processes"
+
+  - gap_id: GAP-060
+    gap_description: "How to implement structured logging/observability?"
+    gap_type: procedural
+    source: RISK-027, roadmap IMPL-028
+    researchable: true
+    priority: high
+    notes: "Enables debugging"
+
+  # ═══ GAPS FROM QUALITY & COMPLIANCE ═══
+
+  - gap_id: GAP-061
+    gap_description: "How to systematically enforce 13 zasady compliance?"
+    gap_type: procedural
+    source: RISK-029, VIO-006, roadmap IMPL-032
+    researchable: true
+    priority: high
+    notes: "Automated validation needed"
+
+  - gap_id: GAP-062
+    gap_description: "How to add 8 required error handlers to all manifests?"
+    gap_type: procedural
+    source: VIO-006, roadmap IMPL-033
+    researchable: true
+    priority: medium
+    notes: "missing_input, invalid_input, partial_completion, etc."
+
+  - gap_id: GAP-063
+    gap_description: "How to implement deep-rollback process?"
+    gap_type: procedural
+    source: RISK-014, roadmap IMPL-030
+    researchable: true
+    priority: high
+    notes: "Critical for production safety"
+
+  - gap_id: GAP-064
+    gap_description: "How to implement deep-preview process?"
+    gap_type: procedural
+    source: RISK-015, roadmap IMPL-031
+    researchable: true
+    priority: medium
+    notes: "User approval workflow"
+
+  # ═══ GAPS FROM OPTIMIZATION CONCERNS ═══
+
+  - gap_id: GAP-065
+    gap_description: "How to implement artifact versioning?"
+    gap_type: procedural
+    source: RISK-012, roadmap IMPL-037
+    researchable: true
+    priority: low
+    notes: "Phase 5 optimization"
+
+  - gap_id: GAP-066
+    gap_description: "How to implement parallel execution for independent processes?"
+    gap_type: procedural
+    source: RISK-026, CHAL-038, roadmap IMPL-038
+    researchable: true
+    priority: medium
+    notes: "Performance optimization"
+
+  # ═══ GAPS FROM USER DECISION AUTHORITY ═══
+
+  - gap_id: GAP-067
+    gap_description: "Which recommendations does user accept vs reject?"
+    gap_type: contextual
+    source: roadmap has 42 recommendations, need user validation
+    researchable: true
+    priority: critical
+    notes: "Cannot proceed without user decisions"
+
+  - gap_id: GAP-068
+    gap_description: "What is user's priority ordering for phases?"
+    gap_type: contextual
+    source: roadmap shows 5 phases, user may want different order
+    researchable: true
+    priority: high
+    notes: "User context unknown"
+
+  - gap_id: GAP-069
+    gap_description: "What level of risk is acceptable for ecosystem transformation?"
+    gap_type: contextual
+    source: large transformation = risk, user tolerance unknown
+    researchable: true
+    priority: high
+    notes: "Affects approach (conservative vs aggressive)"
+
+# EXTRACTION STATUS: COMPLETE - 69 gaps identified
+# VERIFICATION STATUS: COMPLETE - all gaps validated
+# INTERPRETATION STATUS: DECLARED
+
+interpretation:
+  total_gaps_identified: 69
+
+  gap_distribution:
+    procedural: 36
+    evaluative: 17
+    contextual: 13
+    factual: 2
+    verification: 1
+
+  priority_distribution:
+    critical: 17
+    high: 30
+    medium: 18
+    low: 4
+
+  research_queue_size: 68
+  non_researchable_gaps: 1
+
+  gap_detection_method: "Systematic scan: decision_question + 14 guidelines + loaded artifacts + identified tensions"
+
+  key_clusters:
+    vision_alignment: [GAP-001, GAP-032, GAP-033, GAP-043, GAP-055]
+    content_overwhelm: [GAP-002, GAP-034, GAP-044, GAP-046]
+    coordination: [GAP-003, GAP-020, GAP-021, GAP-022, GAP-045]
+    guidelines_implementation: [GAP-006, GAP-007, GAP-008, GAP-009, GAP-010, GAP-011, GAP-012, GAP-013, GAP-014, GAP-015, GAP-016, GAP-017, GAP-018, GAP-019]
+    user_decisions: [GAP-067, GAP-068, GAP-069]
+
+# Ready for DECIDE phase

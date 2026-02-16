@@ -1,0 +1,115 @@
+---
+# Schema for constraints.yaml (Phase 1 output)
+schema_id: constraints
+version: 1.0.0
+purpose: Enforce structure for project constraints
+
+required_fields:
+  - budget
+  - timeline
+  - compliance
+  - technology
+
+structure:
+  budget:
+    type: object
+    required_fields:
+      - value
+      - type
+    structure:
+      value:
+        type: string
+        description: "Budget constraint value"
+      type:
+        type: enum
+        allowed_values:
+          - HARD
+          - SOFT
+          - NONE
+        description: "Constraint type"
+
+  timeline:
+    type: object
+    required_fields:
+      - value
+      - type
+    structure:
+      value:
+        type: string
+        description: "Timeline constraint value"
+      type:
+        type: enum
+        allowed_values:
+          - HARD
+          - SOFT
+          - NONE
+
+  compliance:
+    type: object
+    required_fields:
+      - requirements
+      - critical
+    structure:
+      requirements:
+        type: array
+        item_type: string
+        description: "List of compliance requirements (e.g., GDPR, HIPAA)"
+      critical:
+        type: boolean
+        description: "Are compliance requirements critical?"
+
+  technology:
+    type: object
+    required_fields:
+      - preferences
+      - mandatory
+    structure:
+      preferences:
+        type: array
+        item_type: string
+        description: "Technology preferences"
+      mandatory:
+        type: boolean
+        description: "Are preferences mandatory?"
+
+validation_rules:
+  - rule: at_least_one_constraint
+    check: |
+      budget.type != NONE OR
+      timeline.type != NONE OR
+      LENGTH(compliance.requirements) > 0 OR
+      LENGTH(technology.preferences) > 0
+    error: "At least one constraint must be specified"
+
+  - rule: critical_compliance_needs_requirements
+    check: |
+      IF compliance.critical == true
+      THEN LENGTH(compliance.requirements) > 0
+    error: "Critical compliance must have requirements specified"
+
+  - rule: mandatory_tech_needs_preferences
+    check: |
+      IF technology.mandatory == true
+      THEN LENGTH(technology.preferences) > 0
+    error: "Mandatory technology must have preferences specified"
+
+gate_requirement:
+  gate: GATE_1
+  condition: "constraints.yaml EXISTS"
+
+example:
+  budget:
+    value: "reasonable"
+    type: SOFT
+  timeline:
+    value: "3 miesiące"
+    type: HARD
+  compliance:
+    requirements:
+      - "GDPR"
+    critical: true
+  technology:
+    preferences:
+      - "PostgreSQL"
+      - "React"
+    mandatory: false

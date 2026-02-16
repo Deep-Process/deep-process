@@ -1,0 +1,116 @@
+---
+# Subprocess Adapter: deep-deploy
+# Wraps processes/deep-deploy for Executive Orchestrator
+
+subprocess_id: deep-deploy
+subprocess_name: "Deployment"
+version: 1.0.0
+
+purpose: "Deploy system to target environment"
+
+# Reference to original process
+original_process:
+  location: ../../../processes/deep-deploy
+  process_file: process.yaml
+
+# Executive Orchestrator metadata
+inputs_required:
+  - implementation_artifacts: "Tested, verified system"
+  - deployment_model: "From architecture (target environment)"
+  - deployment_scope: "What to deploy (staging, production, etc.)"
+  - constraints: "Deployment constraints from goal-declaration"
+
+outputs_produced:
+  - deployment_artifacts: "Deployment scripts, configs"
+  - deployment_log: "Deployment execution log"
+  - access_urls: "URLs to access deployed system"
+  - rollback_procedure: "How to rollback if needed"
+
+estimated_duration: "30-90 minutes"
+complexity: MEDIUM
+
+execution_pattern: |
+  When invoked by Executive Orchestrator:
+
+  1. CHECK constraints:
+     IF constraints.budget = "minimal":
+       SKIP automated deployment
+       CREATE manual deployment guide instead
+       DISPLAY: "Manual deployment - budget constraint"
+       RETURN: deployment_guide
+
+  2. LOAD inputs:
+     - implementation artifacts (verified, tested)
+     - deployment_model (from architecture.yaml)
+     - deployment_scope (from task definition)
+
+  3. DELEGATE to original deep-deploy process:
+     EXECUTE: ../../../processes/deep-deploy/
+     PROVIDE: artifacts, deployment model
+     CAPTURE: deployment results
+
+  4. MONITOR deployment:
+     TRACK: deployment progress
+     IF deployment fails:
+       ROLLBACK automatically
+       ESCALATE to user:
+         "Deployment failed: {reason}
+
+          Opcje:
+          A) Retry with fixes
+          B) Manual intervention
+          C) Skip deployment (deliver package only)"
+
+  5. TRANSLATE outputs to business terms:
+     "Deployed to AWS EC2 with Docker containers" →
+     "System deployed and ready for use"
+
+     "CI/CD pipeline configured" →
+     "Automated deployment process in place"
+
+  6. RETURN:
+     - deployment_artifacts (for delivery package)
+     - access_urls (for user)
+     - business_summary (for user display)
+
+business_value:
+  description: "Makes system available for use in target environment"
+  user_sees: "Deployment complete: System accessible at [URL]"
+  user_does_not_see: "Deployment scripts, infrastructure details"
+
+deployment_strategies:
+  - manual: "Step-by-step guide (budget constraint)"
+  - automated: "CI/CD pipeline (preferred)"
+  - containerized: "Docker/Kubernetes deployment"
+  - serverless: "Cloud functions deployment"
+
+critical_decision: |
+  IF deployment_target not specified in architecture:
+    ESCALATE to user:
+      "Deployment target?
+
+       Opcje:
+       A) Cloud (AWS/Azure/GCP)
+       B) On-premise server
+       C) Manual deployment (provide package)
+
+       Rekomendacja: Cloud (easier, scalable)"
+
+integration_notes: |
+  Deep-deploy may be SKIPPED if:
+  - Budget constraint = minimal
+  - User chooses manual deployment
+  - Deployment not in scope
+
+  If skipped:
+  - Create deployment guide instead
+  - Package all artifacts for manual deployment
+  - Provide instructions in executive summary
+
+error_handlers:
+  - missing_input
+  - deployment_failure
+  - rollback_failure
+  - timeout
+  - resource_exhaustion
+  - external_dependency_failure

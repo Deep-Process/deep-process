@@ -1,0 +1,7 @@
+id: deep-explore-v2
+name: "Deep Explore V2"
+version: "4.0.0"
+description: "13-zasady compliant decision exploration"
+workflowFile: "workflow.md"
+firstStepFile: "steps/step-00-ground.md"
+agentInstruction: "Execute workflow.md enforced sequence. Read ONE step at a time. NO upfront loading."

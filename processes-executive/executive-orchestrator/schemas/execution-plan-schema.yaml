@@ -1,0 +1,141 @@
+---
+# Schema for execution-plan.yaml (Phase 2 output)
+schema_id: execution-plan
+version: 1.0.0
+purpose: Enforce structure for technical execution plans
+
+required_fields:
+  - plan_id
+  - created_at
+  - goal
+  - phases
+  - total_phases
+  - estimated_duration
+  - critical_path
+  - subprocesses_needed
+  - dependency_graph
+
+structure:
+  plan_id:
+    type: uuid
+    description: "Unique plan identifier"
+
+  created_at:
+    type: timestamp
+    format: ISO8601
+    description: "When plan was created"
+
+  goal:
+    type: string
+    description: "Goal from goal-declaration.yaml"
+
+  phases:
+    type: array
+    min_items: 1
+    description: "Planned phases"
+    item_schema:
+      type: object
+      required_fields:
+        - phase_id
+        - phase_name
+        - subprocess
+        - inputs
+        - outputs
+        - duration_estimate
+        - dependencies
+      structure:
+        phase_id:
+          type: string
+          format: "phase_{number}_{name}"
+        phase_name:
+          type: string
+        subprocess:
+          type: string
+          description: "Subprocess to invoke"
+        inputs:
+          type: array
+          item_type: string
+          description: "Required inputs"
+        outputs:
+          type: array
+          item_type: string
+          description: "Expected outputs"
+        duration_estimate:
+          type: string
+          description: "Estimated duration"
+        dependencies:
+          type: array
+          item_type: string
+          description: "Phase IDs this phase depends on"
+
+  total_phases:
+    type: integer
+    min: 1
+    description: "Total number of phases"
+
+  estimated_duration:
+    type: string
+    description: "Total estimated duration"
+
+  critical_path:
+    type: string
+    description: "Critical path duration"
+
+  subprocesses_needed:
+    type: array
+    item_type: string
+    description: "List of subprocess names needed"
+
+  dependency_graph:
+    type: object
+    description: "Dependency relationships between phases"
+
+validation_rules:
+  - rule: total_phases_matches_array
+    check: total_phases == LENGTH(phases)
+    error: "total_phases doesn't match phases array length"
+
+  - rule: all_subprocesses_exist
+    check: FOR EACH subprocess IN subprocesses_needed → subprocess EXISTS in subprocess-pool/
+    error: "Referenced subprocess doesn't exist"
+
+  - rule: no_circular_dependencies
+    check: topological_sort(dependency_graph) succeeds
+    error: "Circular dependencies in execution plan"
+
+  - rule: all_dependencies_valid
+    check: FOR EACH phase.dependencies → phase_id EXISTS in phases
+    error: "Dependency references non-existent phase"
+
+gate_requirement:
+  gate: GATE_2
+  condition: "execution-plan.yaml EXISTS AND phases NOT empty"
+
+example:
+  plan_id: "990e8400-e29b-41d4-a716-446655440004"
+  created_at: "2025-01-15T10:45:00Z"
+  goal: "Stworzyć system CRM dla małej firmy"
+  phases:
+    - phase_id: "phase_1_requirements"
+      phase_name: "Requirements gathering"
+      subprocess: "deep-requirements"
+      inputs: []
+      outputs: ["requirements.yaml"]
+      duration_estimate: "2 hours"
+      dependencies: []
+    - phase_id: "phase_2_architecture"
+      phase_name: "Architecture design"
+      subprocess: "deep-architect"
+      inputs: ["requirements.yaml"]
+      outputs: ["architecture.yaml"]
+      duration_estimate: "3 hours"
+      dependencies: ["phase_1_requirements"]
+  total_phases: 2
+  estimated_duration: "5 hours"
+  critical_path: "5 hours"
+  subprocesses_needed:
+    - "deep-requirements"
+    - "deep-architect"
+  dependency_graph:
+    phase_1_requirements: []
+    phase_2_architecture: ["phase_1_requirements"]

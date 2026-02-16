@@ -1,0 +1,39 @@
+---
+# Research methods lookup table
+# NO explanations, only mechanisms
+---
+
+methods:
+  factual_gap:
+    primary: web_search
+    fallback: knowledge_base
+    verification: cross_reference
+
+  procedural_gap:
+    primary: documentation_search
+    fallback: example_analysis
+    verification: step_validation
+
+  contextual_gap:
+    primary: domain_research
+    fallback: analogy_mapping
+    verification: expert_review
+
+  evaluative_gap:
+    primary: criteria_definition
+    fallback: comparative_analysis
+    verification: consistency_check
+
+  verification_gap:
+    primary: source_validation
+    fallback: logic_check
+    verification: contradiction_test
+
+source_credibility:
+  primary: peer_reviewed
+  secondary: official_documentation
+  tertiary: expert_blog
+  avoid: unverified_forum
+
+min_sources_per_gap: 2
+max_research_depth: 3

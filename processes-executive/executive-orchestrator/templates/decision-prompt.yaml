@@ -1,0 +1,64 @@
+---
+# Decision Prompt Template
+# Present decisions in business terms
+---
+
+decision_prompt:
+  context:
+    current_phase: "[Where we are]"
+    goal_reminder: "[Current goal]"
+    why_decision_needed: "[Why this decision matters for goal]"
+
+  decision:
+    question: "[Clear question in business terms]"
+    criticality: "[LOW | MEDIUM | HIGH | CRITICAL]"
+
+    options:
+      option_a:
+        name: "[Short name]"
+        description: "[What this means - business level]"
+        pros:
+          - "[Advantage 1 - impact on goal]"
+          - "[Advantage 2 - impact on goal]"
+        cons:
+          - "[Disadvantage 1 - impact on goal]"
+          - "[Disadvantage 2 - impact on goal]"
+        risk: "[LOW | MEDIUM | HIGH]"
+        estimated_time: "[If significantly different]"
+
+      option_b:
+        name: "[Short name]"
+        description: "[What this means - business level]"
+        pros:
+          - "[Advantage 1 - impact on goal]"
+          - "[Advantage 2 - impact on goal]"
+        cons:
+          - "[Disadvantage 1 - impact on goal]"
+          - "[Disadvantage 2 - impact on goal]"
+        risk: "[LOW | MEDIUM | HIGH]"
+        estimated_time: "[If significantly different]"
+
+      # Add option_c, option_d if more than 2 options
+
+  recommendation:
+    preferred: "[option_a | option_b | none]"
+    rationale: "[Why this is recommended - business impact]"
+    # Only if there's a clear recommendation
+
+  impact_on_goal:
+    if_option_a: "[How this affects achieving goal]"
+    if_option_b: "[How this affects achieving goal]"
+
+  user_action:
+    prompt: "Którą opcję wybrać?"
+    format: "[Specify how user should respond]"
+    # Example: "Odpowiedz 'A' lub 'B'"
+
+# FORBIDDEN in this template:
+# - Technical implementation details
+# - Code examples
+# - Architecture specifics (unless critical to decision)
+# - More than 1 page
+
+---
+# END decision-prompt.yaml

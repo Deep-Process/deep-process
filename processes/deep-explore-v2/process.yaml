@@ -1,0 +1,504 @@
+---
+# Deep Explore V2 Process
+# Full 13 zasady implementation
+---
+
+process_name: deep-explore-v2
+version: "4.0.0"
+13_zasady_version: "1.0.0"
+
+# ═══════════════════════════════════════════════════════════════
+# METADATA (MINIMAL)
+# ═══════════════════════════════════════════════════════════════
+
+metadata:
+  category: DECISION_EXPLORATION
+  complexity: HIGH
+
+# ═══════════════════════════════════════════════════════════════
+# INPUTS (NO EXAMPLES)
+# ═══════════════════════════════════════════════════════════════
+
+inputs:
+  decision_question:
+    type: string
+    required: true
+    schema: "question_string"
+
+  context_artifacts:
+    type: array
+    required: false
+    schema: "[artifact_path, ...]"
+
+  depth:
+    type: enum
+    values: [quick, standard, comprehensive, critical]
+    required: true
+    schema: "depth_enum"
+
+# ═══════════════════════════════════════════════════════════════
+# PHASES (OODA MANDATORY)
+# ═══════════════════════════════════════════════════════════════
+
+phases:
+  phase_0_ground:
+    observe:
+      action: "LOAD decision_question"
+      gate: "GATE_0_OBSERVED"
+
+    orient:
+      action: "CLASSIFY question_type AS open|closed|exploratory"
+      assumptions_declared: "BEFORE orient → DECLARE interpretation_assumptions"
+      gate: "GATE_0_ORIENTED"
+
+    decide:
+      action: "IF question_type = exploratory THEN set_exploration_mode ELSE set_analysis_mode"
+      gate: "GATE_0_DECIDED"
+
+    act:
+      action: "CREATE ground-state.yaml WITH mode + assumptions"
+      gate: "GATE_0"
+
+    checklist:
+      - question: "decision_question loaded?"
+        expected: true
+        if_no: "HALT"
+      - question: "question_type classified?"
+        expected: true
+        if_no: "RETURN_TO_ORIENT"
+      - question: "assumptions_declared logged?"
+        expected: true
+        if_no: "HALT"
+      - question: "ground-state.yaml created?"
+        expected: true
+        if_no: "RETURN_TO_ACT"
+
+    counter_check:
+      claim: "question_type classification correct"
+      disproof_attempt: "CHECK IF question matches opposite type"
+      verdict_required: true
+
+  phase_1_extract:
+    observe:
+      action: "LOAD ground-state.yaml + context_artifacts"
+      gate: "GATE_1_OBSERVED"
+
+    orient:
+      action: "IDENTIFY ALL knowledge_gaps IN question"
+      assumptions_declared: "BEFORE orient → DECLARE gap_detection_criteria"
+      gate: "GATE_1_ORIENTED"
+
+    decide:
+      action: "FOR EACH gap IF researchable THEN queue ELSE mark_unknown"
+      gate: "GATE_1_DECIDED"
+
+    act:
+      action: "CREATE knowledge-gaps.yaml WITH EVERY identified gap"
+      gate: "GATE_1"
+
+    checklist:
+      - question: "ground-state.yaml loaded?"
+        expected: true
+        if_no: "HALT"
+      - question: "ALL knowledge gaps identified?"
+        expected: true
+        if_no: "RETURN_TO_ORIENT"
+      - question: "EVERY gap classified?"
+        expected: true
+        if_no: "RETURN_TO_DECIDE"
+      - question: "knowledge-gaps.yaml created?"
+        expected: true
+        if_no: "RETURN_TO_ACT"
+
+    counter_check:
+      claim: "ALL knowledge gaps identified"
+      disproof_attempt: "SEARCH FOR gaps missed"
+      verdict_required: true
+
+  phase_2_research:
+    observe:
+      action: "LOAD knowledge-gaps.yaml"
+      gate: "GATE_2_OBSERVED"
+
+    orient:
+      action: "EXTRACT research_methods FROM data/research-methods.yaml"
+      assumptions_declared: "BEFORE orient → DECLARE source_credibility_criteria"
+      gate: "GATE_2_ORIENTED"
+
+    decide:
+      action: "FOR EACH gap IN queue IF priority >= min THEN research ELSE skip"
+      gate: "GATE_2_DECIDED"
+
+    act:
+      action: "CREATE research-results.yaml WITH findings FOR EVERY researched gap"
+      gate: "GATE_2"
+
+    checklist:
+      - question: "knowledge-gaps.yaml loaded?"
+        expected: true
+        if_no: "HALT"
+      - question: "research_methods extracted?"
+        expected: true
+        if_no: "RETURN_TO_ORIENT"
+      - question: "EVERY queued gap researched?"
+        expected: true
+        if_no: "SCOPE_REDUCTION OR HALT"
+      - question: "research-results.yaml created?"
+        expected: true
+        if_no: "RETURN_TO_ACT"
+
+    counter_check:
+      claim: "research findings credible"
+      disproof_attempt: "CHECK FOR contradicting sources"
+      verdict_required: true
+
+  phase_3_map:
+    observe:
+      action: "LOAD research-results.yaml"
+      gate: "GATE_3_OBSERVED"
+
+    orient:
+      action: "EXTRACT ALL viable options FROM research"
+      assumptions_declared: "BEFORE orient → DECLARE option_viability_criteria"
+      gate: "GATE_3_ORIENTED"
+
+    decide:
+      action: "FOR EACH option IF meets_criteria THEN include ELSE reject"
+      gate: "GATE_3_DECIDED"
+
+    act:
+      action: "CREATE option-map.yaml WITH EVERY viable option"
+      gate: "GATE_3"
+
+    checklist:
+      - question: "research-results.yaml loaded?"
+        expected: true
+        if_no: "HALT"
+      - question: "ALL options extracted?"
+        expected: true
+        if_no: "RETURN_TO_ORIENT"
+      - question: "EVERY option evaluated?"
+        expected: true
+        if_no: "RETURN_TO_DECIDE"
+      - question: "option-map.yaml created?"
+        expected: true
+        if_no: "RETURN_TO_ACT"
+
+    counter_check:
+      claim: "option set complete"
+      disproof_attempt: "SEARCH FOR missing options"
+      verdict_required: true
+
+  phase_4_deepen:
+    observe:
+      action: "LOAD option-map.yaml"
+      gate: "GATE_4_OBSERVED"
+
+    orient:
+      action: "ANALYZE consequences FOR EACH option"
+      assumptions_declared: "BEFORE orient → DECLARE consequence_horizon + impact_criteria"
+      gate: "GATE_4_ORIENTED"
+
+    decide:
+      action: "FOR EACH option IF reversibility < threshold THEN flag_critical ELSE flag_normal"
+      gate: "GATE_4_DECIDED"
+
+    act:
+      action: "CREATE consequence-map.yaml WITH consequences FOR EVERY option"
+      gate: "GATE_4"
+
+    checklist:
+      - question: "option-map.yaml loaded?"
+        expected: true
+        if_no: "HALT"
+      - question: "consequences analyzed FOR EACH option?"
+        expected: true
+        if_no: "RETURN_TO_ORIENT"
+      - question: "EVERY option flagged?"
+        expected: true
+        if_no: "RETURN_TO_DECIDE"
+      - question: "consequence-map.yaml created?"
+        expected: true
+        if_no: "RETURN_TO_ACT"
+
+    counter_check:
+      claim: "consequences complete"
+      disproof_attempt: "SEARCH FOR unconsidered consequences"
+      verdict_required: true
+
+  phase_5_challenge:
+    observe:
+      action: "LOAD option-map.yaml + consequence-map.yaml"
+      gate: "GATE_5_OBSERVED"
+
+    orient:
+      action: "IDENTIFY assumptions requiring validation"
+      assumptions_declared: "BEFORE orient → DECLARE challenge_intensity_level"
+      gate: "GATE_5_ORIENTED"
+
+    decide:
+      action: "FOR EACH assumption IF critical THEN counter_check ELSE accept"
+      gate: "GATE_5_DECIDED"
+
+    act:
+      action: "CREATE challenge-results.yaml WITH counter_check FOR EVERY critical assumption"
+      gate: "GATE_5"
+
+    checklist:
+      - question: "artifacts loaded?"
+        expected: true
+        if_no: "HALT"
+      - question: "assumptions identified?"
+        expected: true
+        if_no: "RETURN_TO_ORIENT"
+      - question: "EVERY critical assumption counter-checked?"
+        expected: true
+        if_no: "RETURN_TO_DECIDE"
+      - question: "challenge-results.yaml created?"
+        expected: true
+        if_no: "RETURN_TO_ACT"
+
+    counter_check:
+      claim: "assumptions validated"
+      disproof_attempt: "ATTEMPT TO falsify accepted assumptions"
+      verdict_required: true
+
+  phase_6_synthesize:
+    observe:
+      action: "LOAD ALL phase artifacts"
+      gate: "GATE_6_OBSERVED"
+
+    orient:
+      action: "CLUSTER options BY strategic_alignment"
+      assumptions_declared: "BEFORE orient → DECLARE clustering_criteria"
+      gate: "GATE_6_ORIENTED"
+
+    decide:
+      action: "IF clusters coherent THEN synthesize ELSE regroup"
+      gate: "GATE_6_DECIDED"
+
+    act:
+      action: "CREATE synthesis.yaml WITH decision_sequence + rationale"
+      gate: "GATE_6"
+
+    checklist:
+      - question: "ALL artifacts loaded?"
+        expected: true
+        if_no: "HALT"
+      - question: "options clustered?"
+        expected: true
+        if_no: "RETURN_TO_ORIENT"
+      - question: "coherence verified?"
+        expected: true
+        if_no: "RETURN_TO_DECIDE"
+      - question: "synthesis.yaml created?"
+        expected: true
+        if_no: "RETURN_TO_ACT"
+
+    counter_check:
+      claim: "synthesis coherent"
+      disproof_attempt: "CHECK FOR internal contradictions"
+      verdict_required: true
+
+  phase_7_render:
+    observe:
+      action: "LOAD synthesis.yaml + ALL artifacts"
+      gate: "GATE_7_OBSERVED"
+
+    orient:
+      action: "VALIDATE coverage_score AGAINST depth_target"
+      assumptions_declared: "BEFORE orient → DECLARE output_format_requirements"
+      gate: "GATE_7_ORIENTED"
+
+    decide:
+      action: "IF coverage >= target THEN proceed ELSE emit_warning"
+      gate: "GATE_7_DECIDED"
+
+    act:
+      action: "CREATE exploration-report.md WITH COMPLETE findings"
+      gate: "GATE_7"
+
+    checklist:
+      - question: "synthesis loaded?"
+        expected: true
+        if_no: "HALT"
+      - question: "coverage validated?"
+        expected: true
+        if_no: "RETURN_TO_ORIENT"
+      - question: "report format correct?"
+        expected: true
+        if_no: "RETURN_TO_DECIDE"
+      - question: "exploration-report.md created?"
+        expected: true
+        if_no: "RETURN_TO_ACT"
+
+    counter_check:
+      claim: "report complete"
+      disproof_attempt: "CHECK FOR missing sections"
+      verdict_required: true
+
+# ═══════════════════════════════════════════════════════════════
+# OUTPUTS (WITH SCHEMAS)
+# ═══════════════════════════════════════════════════════════════
+
+outputs:
+  ground-state:
+    schema: "{mode: enum, assumptions: array}"
+    phase: 0
+
+  knowledge-gaps:
+    schema: "{gaps: array, research_queue: array}"
+    phase: 1
+
+  research-results:
+    schema: "{findings: array, sources: array}"
+    phase: 2
+
+  option-map:
+    schema: "{options: array, viability: object}"
+    phase: 3
+
+  consequence-map:
+    schema: "{consequences: object, reversibility: object}"
+    phase: 4
+
+  challenge-results:
+    schema: "{validated: array, rejected: array}"
+    phase: 5
+
+  synthesis:
+    schema: "{clusters: array, sequence: array, rationale: string}"
+    phase: 6
+
+  exploration-report:
+    schema: "markdown_report"
+    phase: 7
+
+# ═══════════════════════════════════════════════════════════════
+# VALIDATION GATES (BINDING)
+# ═══════════════════════════════════════════════════════════════
+
+validation_gates:
+  GATE_0:
+    condition: "ground-state.yaml EXISTS AND assumptions_declared = true"
+    on_fail: "HALT"
+    scope_reduction_allowed: false
+
+  GATE_1:
+    condition: "knowledge-gaps.yaml EXISTS AND ALL gaps classified"
+    on_fail: "HALT OR SCOPE_REDUCTION"
+    scope_reduction_allowed: true
+
+  GATE_2:
+    condition: "research-results.yaml EXISTS AND EVERY queued gap addressed"
+    on_fail: "HALT OR SCOPE_REDUCTION"
+    scope_reduction_allowed: true
+
+  GATE_3:
+    condition: "option-map.yaml EXISTS AND options >= 2"
+    on_fail: "RETURN_TO_PHASE_2"
+    scope_reduction_allowed: false
+
+  GATE_4:
+    condition: "consequence-map.yaml EXISTS AND EVERY option analyzed"
+    on_fail: "HALT"
+    scope_reduction_allowed: false
+
+  GATE_5:
+    condition: "challenge-results.yaml EXISTS AND EVERY critical assumption validated"
+    on_fail: "HALT OR SCOPE_REDUCTION"
+    scope_reduction_allowed: true
+
+  GATE_6:
+    condition: "synthesis.yaml EXISTS AND coherence = true"
+    on_fail: "RETURN_TO_PHASE_5"
+    scope_reduction_allowed: false
+
+  GATE_7:
+    condition: "exploration-report.md EXISTS AND coverage >= target"
+    on_fail: "EMIT_WARNING + PROCEED"
+    scope_reduction_allowed: true
+
+# ═══════════════════════════════════════════════════════════════
+# ERROR HANDLERS (ALL EDGE CASES)
+# ═══════════════════════════════════════════════════════════════
+
+error_handlers:
+  missing_input:
+    trigger: "decision_question NOT PROVIDED"
+    severity: CRITICAL
+    action: "HALT WITH error_code_001"
+    recovery: "cannot_continue"
+    notification: "user"
+
+  invalid_input:
+    trigger: "decision_question schema FAILS validation"
+    severity: CRITICAL
+    action: "HALT WITH error_code_002"
+    recovery: "request_corrected_input"
+    notification: "user"
+
+  partial_completion:
+    trigger: "phase N reaches 70% AND interrupted"
+    severity: MEDIUM
+    action: "SAVE checkpoint.yaml + HALT"
+    recovery: "resume_from_checkpoint"
+    notification: "user"
+
+  external_dependency_failure:
+    trigger: "data/research-methods.yaml NOT ACCESSIBLE"
+    severity: MEDIUM
+    action: "USE fallback_methods + EMIT_WARNING"
+    recovery: "continue_degraded"
+    notification: "log"
+
+  timeout:
+    trigger: "phase_duration > max_duration"
+    severity: HIGH
+    action: "SAVE state + HALT WITH timeout_error"
+    recovery: "user_decision_required"
+    notification: "user"
+
+  resource_exhaustion:
+    trigger: "memory > 80%"
+    severity: HIGH
+    action: "REDUCE batch_size + GC + RETRY"
+    recovery: "continue_with_smaller_batches"
+    notification: "log"
+
+  concurrent_modification:
+    trigger: "artifact_hash CHANGED DURING phase"
+    severity: CRITICAL
+    action: "RELOAD artifact + RESTART phase"
+    recovery: "phase_reexecution"
+    notification: "log"
+
+  user_cancellation:
+    trigger: "user CANCELS execution"
+    severity: LOW
+    action: "SAVE checkpoint + CLEANUP temp"
+    recovery: "state_saved"
+    notification: "user"
+
+# ═══════════════════════════════════════════════════════════════
+# COMPLIANCE (13 ZASADY)
+# ═══════════════════════════════════════════════════════════════
+
+compliance_13_zasady:
+  zasada_0_ooda: "ENFORCED - 8 phases OODA mandatory"
+  zasada_1_self_contained: "ENFORCED - JIT step loading, no upfront"
+  zasada_2_completeness: "ENFORCED - ALL/EVERY/EACH required, no 'main'"
+  zasada_3_mechanisms: "ENFORCED - IF-THEN only, no 'should'"
+  zasada_4_binding_gates: "ENFORCED - 8 gates block without scope_reduction"
+  zasada_5_assumptions: "ENFORCED - DECLARE before EVERY orient"
+  zasada_6_evr: "ENFORCED - extract → verify → declare → render sequence"
+  zasada_7_checklists: "ENFORCED - checklist AFTER EVERY phase"
+  zasada_8_counter_checks: "ENFORCED - counter_check EVERY phase"
+  zasada_9_executable: "ENFORCED - LOAD/CREATE/IF only"
+  zasada_10_visible_reasoning: "ENFORCED - orient shows logic"
+  zasada_11_instruction_data: "ENFORCED - schemas included, no extra"
+  zasada_12_jit: "ENFORCED - load WHEN needed, not upfront"
+  zasada_13_zero_decoration: "ENFORCED - no explanations, only mechanisms"
+
+---
+# END deep-explore-v2 process.yaml

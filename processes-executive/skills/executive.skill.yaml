@@ -1,0 +1,210 @@
+---
+# Skill definition for /executive command
+# Entry point for Executive Orchestrator workflow
+
+skill_id: executive
+skill_name: "Executive Orchestrator"
+version: 1.0.0
+command: /executive
+
+description: |
+  Executive Orchestrator - The "CTO/Tech Lead" process that:
+  - Extracts user vision and declares goals
+  - Plans and executes complete SDLC workflows
+  - Reports progress in business terms (no technical overload)
+  - Tracks goal alignment constantly
+  - Adapts to direction changes mid-flight
+  - Supports session continuity (close/reopen VSC)
+  - Handles recursive execution (test fail → fix → retest)
+  - Makes critical decisions with user approval
+
+invocation:
+  command_pattern: /executive
+  args_optional: true
+  args_description: |
+    Optional: Provide initial vision
+    Example: /executive "Chcę stworzyć system CRM"
+
+    If no args: Process will ask for vision
+
+  entry_point: processes-executive/executive-orchestrator/workflow.md
+
+  behavior:
+    new_session: |
+      IF no args provided:
+        START at Phase 1 (INTAKE) section_new
+        ASK: "Opisz co chcesz stworzyć (1-2 zdania, business level):"
+
+      IF args provided (vision):
+        START at Phase 1 (INTAKE) section 2 (EXTRACT_VISION)
+        STORE: user_vision_raw = {args}
+        CONTINUE extraction
+
+    resume_session: |
+      IF state/current-session.yaml EXISTS:
+        START at Phase 1 (INTAKE) section_resume
+        LOAD: last snapshot
+        DISPLAY: "Witaj ponownie! Ostatnia sesja: ..."
+        ASK: "Kontynuować?"
+
+        IF user says YES:
+          RESUME from last_phase
+        IF user says NO:
+          OFFER: "Nowy cel OR modify obecny?"
+
+workflow_reference:
+  manifest: processes-executive/executive-orchestrator/manifest.yaml
+  workflow: processes-executive/executive-orchestrator/workflow.md
+
+  phases:
+    - phase: phase_1_intake
+      file: phases/phase-01-intake.md
+      gate: GATE_1
+    - phase: phase_2_plan
+      file: phases/phase-02-plan.md
+      gate: GATE_2
+      hidden_from_user: true
+    - phase: phase_3_execute
+      file: phases/phase-03-execute.md
+      gate: GATE_3
+    - phase: phase_4_validate
+      file: phases/phase-04-validate.md
+      gate: GATE_4
+    - phase: phase_5_deliver
+      file: phases/phase-05-deliver.md
+      gate: GATE_5
+
+  templates:
+    - executive-summary.yaml
+    - decision-prompt.yaml
+    - progress-update.yaml
+
+  schemas:
+    - goal-declaration-schema.yaml
+    - constraints-schema.yaml
+    - execution-plan-schema.yaml
+    - backlog-schema.yaml
+    - validation-report-schema.yaml
+    - session-complete-schema.yaml
+
+state_management:
+  state_directory: processes-executive/state/
+
+  artifacts:
+    - goal-declaration.yaml
+    - constraints.yaml
+    - execution-plan.yaml
+    - backlog.yaml
+    - execution-log.yaml
+    - validation-report.yaml
+    - session-complete.yaml
+
+  snapshots:
+    frequency: after_each_task
+    location: state/snapshots/
+    format: snapshot-{timestamp}.yaml
+
+  resume:
+    indicator_file: state/current-session.yaml
+    resume_protocol: phases/phase-01-intake.md#section_resume
+
+communication_protocol:
+  user_facing:
+    language: business_terms
+    max_length: 2_pages
+    format: executive_summaries
+    forbidden:
+      - technical_jargon
+      - implementation_details
+      - code_dumps
+      - subprocess_internals
+
+  goal_visibility:
+    frequency: ALWAYS
+    locations:
+      - progress_updates
+      - decision_prompts
+      - phase_transitions
+      - executive_summary
+
+  decision_approval:
+    required_for:
+      - critical_decisions_affecting_goal
+      - architecture_choices
+      - scope_reductions
+      - goal_modifications
+    not_required_for:
+      - implementation_details
+      - technical_choices_within_scope
+      - subprocess_execution
+
+subprocess_integration:
+  pool_directory: processes-executive/subprocess-pool/
+
+  available_subprocesses:
+    - deep-requirements
+    - deep-architect
+    - deep-implement
+    - deep-test
+    - deep-verify
+    - deep-deploy
+
+  invocation_pattern: |
+    INVOKE subprocess (hidden from user)
+    CAPTURE technical output
+    TRANSLATE to business terms
+    DISPLAY business summary only
+    LOG technical details (hidden)
+
+error_handlers:
+  - missing_input
+  - invalid_input
+  - partial_completion
+  - external_dependency_failure
+  - timeout
+  - resource_exhaustion
+  - concurrent_modification
+  - user_cancellation
+
+compliance:
+  guidelines: 14
+  checklist: manifest.yaml#compliance_with_14_guidelines
+
+  key_requirements:
+    - binding_gates: 5 gates enforcing sequence
+    - counter_check: Phase 4 validation includes counter-check
+    - mechanism_based: All rules = trigger + action
+    - executive_language: Imperative verbs throughout
+    - zero_decorations: Only executable mechanisms
+
+usage_examples:
+  - command: /executive
+    description: Start new session, will ask for vision
+    output: "Nowa sesja executive orchestration. Opisz co chcesz stworzyć..."
+
+  - command: /executive "Chcę stworzyć API dla e-commerce"
+    description: Start with vision provided
+    output: "Rozumiem: API dla e-commerce. Kilka pytań o ograniczenia..."
+
+  - command: /executive
+    context: state/current-session.yaml EXISTS
+    description: Resume previous session
+    output: "Witaj ponownie! Ostatnia sesja: 2 dni temu. Cel: ... Kontynuować?"
+
+integration_notes: |
+  This skill integrates the Executive Orchestrator process as a user-invocable
+  command. When invoked:
+
+  1. Entry point is always workflow.md which determines session type
+  2. State persistence enables continuity across VSC sessions
+  3. Goal tracking is enforced at every phase
+  4. Business-level communication is mandatory (technical details hidden)
+  5. User approvals required only for critical decisions
+  6. Subprocess execution is transparent to user
+
+  The skill acts as "CTO/Tech Lead" - handles all technical execution while
+  communicating at business level.
+
+author: deep-explore-v2 workflow
+created_at: 2025-01-15
+compliance_verified: true

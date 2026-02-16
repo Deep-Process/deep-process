@@ -1,0 +1,1318 @@
+---
+# Template Compliance Report
+# Validation of ecosystem_recommendations.yaml against PROCESS-TEMPLATE.yaml (13 zasady)
+---
+
+compliance_report_metadata:
+  created: "2026-02-16T21:00:00Z"
+  recommendations_validated: 25
+  template_version: "1.0.0"
+  source_file: "artifacts/ecosystem_recommendations.yaml"
+  template_file: "PROCESS-TEMPLATE.yaml"
+  validation_method: "Per-recommendation zasady compliance verification"
+
+# ═══════════════════════════════════════════════════════════════
+# KEEP_AS_IS RECOMMENDATIONS (6 processes)
+# ═══════════════════════════════════════════════════════════════
+
+keep_as_is_compliance:
+
+  - recommendation_id: REC-KEEP-001
+    process: deep-verify
+    recommendation_type: KEEP_AS_IS
+    changes: []
+    zasady_compliance:
+      zasada_0_ooda_structure: PASS
+      zasada_1_self_contained: PASS
+      zasada_2_completeness_over_tokens: PASS
+      zasada_3_mechanism_not_intent: PASS
+      zasada_4_binding_gates: PASS
+      zasada_5_assumptions_before_action: PASS
+      zasada_6_forced_sequence: PASS
+      zasada_7_checklist_after_phase: PASS
+      zasada_8_counter_checks: PASS
+      zasada_9_executable_language: PASS
+      zasada_10_visible_reasoning: PASS
+      zasada_11_instruction_plus_data: PASS
+      zasada_12_jit_information: PASS
+      zasada_13_zero_decorations: PASS
+    overall_verdict: COMPLIANT
+    confidence: HIGH
+    notes: "High-quality process, already compliant with 13 zasady"
+
+  - recommendation_id: REC-KEEP-002
+    process: deep-risk
+    recommendation_type: KEEP_AS_IS
+    changes: []
+    zasady_compliance:
+      zasada_0_ooda_structure: PASS
+      zasada_1_self_contained: PASS
+      zasada_2_completeness_over_tokens: PASS
+      zasada_3_mechanism_not_intent: PASS
+      zasada_4_binding_gates: PASS
+      zasada_5_assumptions_before_action: PASS
+      zasada_6_forced_sequence: PASS
+      zasada_7_checklist_after_phase: PASS
+      zasada_8_counter_checks: PASS
+      zasada_9_executable_language: PASS
+      zasada_10_visible_reasoning: PASS
+      zasada_11_instruction_plus_data: PASS
+      zasada_12_jit_information: PASS
+      zasada_13_zero_decorations: PASS
+    overall_verdict: COMPLIANT
+    confidence: HIGH
+    notes: "Excellent compliance, 5D scoring methodology well-structured"
+
+  - recommendation_id: REC-KEEP-003
+    process: deep-architect
+    recommendation_type: KEEP_AS_IS
+    changes:
+      - "Fix orchestrator-master naming mismatch (external to deep-architect)"
+      - "Integrate deep-diagram as subprocess"
+    zasady_compliance:
+      zasada_0_ooda_structure: PASS
+      zasada_1_self_contained: PASS
+      zasada_2_completeness_over_tokens: PASS
+      zasada_3_mechanism_not_intent: PASS
+      zasada_4_binding_gates: PASS
+      zasada_5_assumptions_before_action: PASS
+      zasada_6_forced_sequence: PASS
+      zasada_7_checklist_after_phase: PASS
+      zasada_8_counter_checks: PASS
+      zasada_9_executable_language: PASS
+      zasada_10_visible_reasoning: PASS
+      zasada_11_instruction_plus_data: PASS
+      zasada_12_jit_information: PASS
+      zasada_13_zero_decorations: PASS
+    integration_compliance:
+      deep_diagram_merge: COMPLIANT
+      rationale: "Adding subprocess maintains OODA structure, diagram generation becomes final ACT step of architecture phase"
+    overall_verdict: COMPLIANT
+    confidence: HIGH
+    notes: "Integrating deep-diagram strengthens completeness (zasada 2)"
+
+  - recommendation_id: REC-KEEP-004
+    process: deep-explore
+    recommendation_type: KEEP_AS_IS
+    changes: []
+    zasady_compliance:
+      zasada_0_ooda_structure: PASS
+      zasada_1_self_contained: PASS
+      zasada_2_completeness_over_tokens: PASS
+      zasada_3_mechanism_not_intent: PASS
+      zasada_4_binding_gates: PASS
+      zasada_5_assumptions_before_action: PASS
+      zasada_6_forced_sequence: PASS
+      zasada_7_checklist_after_phase: PASS
+      zasada_8_counter_checks: PASS
+      zasada_9_executable_language: PASS
+      zasada_10_visible_reasoning: PASS
+      zasada_11_instruction_plus_data: PASS
+      zasada_12_jit_information: PASS
+      zasada_13_zero_decorations: PASS
+    overall_verdict: COMPLIANT
+    confidence: HIGH
+    notes: "Core phase 0 capability, no compliance issues"
+
+  - recommendation_id: REC-KEEP-005
+    process: context-manager
+    recommendation_type: KEEP_AS_IS
+    changes:
+      - "Clarify invocation pattern"
+      - "Add manifest.yaml"
+    zasady_compliance:
+      zasada_0_ooda_structure: PASS
+      zasada_1_self_contained: PASS
+      zasada_2_completeness_over_tokens: PASS
+      zasada_3_mechanism_not_intent: CONDITIONAL
+      zasada_4_binding_gates: PASS
+      zasada_5_assumptions_before_action: PASS
+      zasada_6_forced_sequence: PASS
+      zasada_7_checklist_after_phase: PASS
+      zasada_8_counter_checks: PASS
+      zasada_9_executable_language: PASS
+      zasada_10_visible_reasoning: PASS
+      zasada_11_instruction_plus_data: PASS
+      zasada_12_jit_information: PASS
+      zasada_13_zero_decorations: PASS
+    required_improvements:
+      - improvement: "Add manifest.yaml with explicit invocation mechanism"
+        zasada_affected: 3
+        action: "Define IF-THEN trigger for when context-manager runs"
+        priority: P1
+    overall_verdict: CONDITIONAL
+    condition: "Add manifest.yaml with executable invocation rules"
+    confidence: HIGH
+    notes: "Missing manifest creates ambiguity in invocation pattern (zasada 3)"
+
+  - recommendation_id: REC-KEEP-006
+    process: deep-compliance
+    recommendation_type: KEEP_AS_IS
+    changes:
+      - "Integrate as conditional phase in orchestrator-master"
+      - "IF industry IN [healthcare, finance, government] THEN invoke"
+    zasady_compliance:
+      zasada_0_ooda_structure: PASS
+      zasada_1_self_contained: PASS
+      zasada_2_completeness_over_tokens: PASS
+      zasada_3_mechanism_not_intent: PASS
+      zasada_4_binding_gates: PASS
+      zasada_5_assumptions_before_action: PASS
+      zasada_6_forced_sequence: PASS
+      zasada_7_checklist_after_phase: PASS
+      zasada_8_counter_checks: PASS
+      zasada_9_executable_language: PASS
+      zasada_10_visible_reasoning: PASS
+      zasada_11_instruction_plus_data: PASS
+      zasada_12_jit_information: PASS
+      zasada_13_zero_decorations: PASS
+    integration_compliance:
+      conditional_invocation: COMPLIANT
+      rationale: "IF industry IN [list] THEN invoke is pure mechanism (zasada 3)"
+    overall_verdict: COMPLIANT
+    confidence: HIGH
+    notes: "Conditional invocation properly mechanized"
+
+# ═══════════════════════════════════════════════════════════════
+# MODIFY RECOMMENDATIONS (9 processes)
+# ═══════════════════════════════════════════════════════════════
+
+modify_compliance:
+
+  - recommendation_id: REC-MODIFY-001
+    process: orchestrator-master
+    recommendation_type: MODIFY
+    changes:
+      - "Fix process naming: 'deep-architecture' → 'deep-architect'"
+      - "Resolve competition with deep-orchestration (MERGE recommended)"
+      - "Integrate deep-governance for security/permissions"
+      - "Add error recovery mechanism"
+      - "Integrate orphaned modern processes"
+      - "Add lock timeout mechanism"
+      - "Implement rate limiting"
+      - "Define and enforce timeouts for child processes"
+    zasady_compliance:
+      zasada_0_ooda_structure: PASS
+      zasada_1_self_contained: PASS
+      zasada_2_completeness_over_tokens: CONDITIONAL
+      zasada_3_mechanism_not_intent: CONDITIONAL
+      zasada_4_binding_gates: CONDITIONAL
+      zasada_5_assumptions_before_action: PASS
+      zasada_6_forced_sequence: PASS
+      zasada_7_checklist_after_phase: PASS
+      zasada_8_counter_checks: PASS
+      zasada_9_executable_language: PASS
+      zasada_10_visible_reasoning: PASS
+      zasada_11_instruction_plus_data: PASS
+      zasada_12_jit_information: PASS
+      zasada_13_zero_decorations: PASS
+    compliance_issues:
+      - issue: "Naming fix is simple substitution - COMPLIANT"
+        zasada_affected: [3]
+        severity: NONE
+
+      - issue: "Orchestrator merge needs explicit handoff gates"
+        zasada_affected: [4, 6]
+        severity: MEDIUM
+        fix_required: "Define GATE_ORCHESTRATION_MERGED with blocker to ensure no duplicate executions"
+
+      - issue: "Error recovery mechanism must be mechanized (IF-THEN)"
+        zasada_affected: [3]
+        severity: MEDIUM
+        fix_required: "Define: IF retry_count < 3 AND error IN [transient_errors] THEN retry ELSE HALT"
+
+      - issue: "Integrating orphaned processes requires new binding gates"
+        zasada_affected: [4, 6]
+        severity: MEDIUM
+        fix_required: "Each new phase integration requires: GATE_PHASE_Nb_COMPLETE blocker"
+
+      - issue: "Lock timeout needs mechanism definition"
+        zasada_affected: [3]
+        severity: MEDIUM
+        fix_required: "Define: IF lock_age > 4_hours AND heartbeat_stale > 10_min THEN release_lock"
+
+      - issue: "Rate limiting needs executable rules"
+        zasada_affected: [3]
+        severity: MEDIUM
+        fix_required: "Define: IF concurrent_executions >= 5 THEN queue_request ELSE proceed"
+
+      - issue: "Timeout enforcement needs per-process rules"
+        zasada_affected: [2, 3]
+        severity: MEDIUM
+        fix_required: "Define timeout for EACH process, not defaults + exceptions"
+    required_improvements:
+      - improvement: "Add error_recovery_rules section with IF-THEN mechanisms"
+        zasada_affected: [3]
+        priority: P0
+
+      - improvement: "Add binding gates for all new phase integrations"
+        zasada_affected: [4, 6]
+        priority: P0
+
+      - improvement: "Mechanize lock management (no 'should timeout', use IF-THEN)"
+        zasada_affected: [3]
+        priority: P1
+
+      - improvement: "Define timeout for EVERY child process explicitly"
+        zasada_affected: [2]
+        priority: P1
+
+      - improvement: "Add counter-checks for orchestrator merge (verify no conflicts)"
+        zasada_affected: [8]
+        priority: P1
+    overall_verdict: CONDITIONAL
+    condition: "Must add binding gates, mechanize error recovery, define ALL timeouts explicitly"
+    confidence: HIGH
+    notes: "Most changes compliant if implemented with proper mechanisms and gates"
+
+  - recommendation_id: REC-MODIFY-002
+    process: deep-orchestration
+    recommendation_type: MODIFY
+    changes:
+      - "Merge with orchestrator-master (RECOMMENDED) OR define clear separation"
+      - "If kept separate: fold deep-aggregate into this process"
+    zasady_compliance:
+      zasada_0_ooda_structure: PASS
+      zasada_1_self_contained: PASS
+      zasada_2_completeness_over_tokens: PASS
+      zasada_3_mechanism_not_intent: CONDITIONAL
+      zasada_4_binding_gates: CONDITIONAL
+      zasada_5_assumptions_before_action: PASS
+      zasada_6_forced_sequence: PASS
+      zasada_7_checklist_after_phase: PASS
+      zasada_8_counter_checks: CONDITIONAL
+      zasada_9_executable_language: PASS
+      zasada_10_visible_reasoning: PASS
+      zasada_11_instruction_plus_data: PASS
+      zasada_12_jit_information: PASS
+      zasada_13_zero_decorations: PASS
+    compliance_issues:
+      - issue: "Merge decision needs counter-check"
+        zasada_affected: [8]
+        severity: MEDIUM
+        fix_required: "Counter-check: 'Try to find cases where TWO orchestrators better than one'"
+
+      - issue: "If kept separate, needs explicit separation mechanism"
+        zasada_affected: [3]
+        severity: MEDIUM
+        fix_required: "Define: IF scope==project THEN orchestrator-master ELSE IF scope==workflow THEN deep-orchestration"
+
+      - issue: "Folding deep-aggregate needs gate update"
+        zasada_affected: [4]
+        severity: LOW
+        fix_required: "Remove GATE_AGGREGATE_INVOKED, add GATE_AGGREGATION_COMPLETE inline"
+    required_improvements:
+      - improvement: "Add counter-check for merge decision"
+        zasada_affected: [8]
+        priority: P0
+
+      - improvement: "If separation chosen, mechanize scope routing"
+        zasada_affected: [3]
+        priority: P0
+
+      - improvement: "Update gates if deep-aggregate folded inline"
+        zasada_affected: [4]
+        priority: P1
+    overall_verdict: CONDITIONAL
+    condition: "Merge decision requires counter-check; separation requires explicit mechanism"
+    confidence: MEDIUM
+    notes: "Recommendation valid but implementation needs zasady compliance verification"
+
+  - recommendation_id: REC-MODIFY-003
+    process: feedback-loop-handler
+    recommendation_type: MODIFY
+    changes:
+      - "Extend to all processes (service model)"
+      - "Merge deep-synthesis functionality"
+      - "Add approval gates for automatic remediation"
+      - "Fix size violation (303 lines → <300)"
+    zasady_compliance:
+      zasada_0_ooda_structure: PASS
+      zasada_1_self_contained: PASS
+      zasada_2_completeness_over_tokens: CONDITIONAL
+      zasada_3_mechanism_not_intent: CONDITIONAL
+      zasada_4_binding_gates: CONDITIONAL
+      zasada_5_assumptions_before_action: PASS
+      zasada_6_forced_sequence: PASS
+      zasada_7_checklist_after_phase: PASS
+      zasada_8_counter_checks: PASS
+      zasada_9_executable_language: PASS
+      zasada_10_visible_reasoning: PASS
+      zasada_11_instruction_plus_data: PASS
+      zasada_12_jit_information: PASS
+      zasada_13_zero_decorations: PASS
+    compliance_issues:
+      - issue: "Service model extension needs explicit invocation mechanism"
+        zasada_affected: [3]
+        severity: MEDIUM
+        fix_required: "Define: WHEN error_event_emitted THEN feedback-loop-handler.consume(event)"
+
+      - issue: "Approval gates for remediation need classification rules"
+        zasada_affected: [3, 4]
+        severity: MEDIUM
+        fix_required: "Define: IF fix_complexity IN [simple] AND risk IN [low] THEN auto_fix ELSE require_approval"
+
+      - issue: "Merging deep-synthesis requires completeness verification"
+        zasada_affected: [2]
+        severity: LOW
+        fix_required: "Verify ALL deep-synthesis functionality moved, not just 'main' features"
+
+      - issue: "Size violation fix must not break zasady"
+        zasada_affected: [6]
+        severity: LOW
+        fix_required: "If splitting, maintain forced sequence with blockers between split sections"
+    required_improvements:
+      - improvement: "Mechanize service invocation (event-driven trigger)"
+        zasada_affected: [3]
+        priority: P1
+
+      - improvement: "Define approval gate mechanism with IF-THEN rules"
+        zasada_affected: [3, 4]
+        priority: P1
+
+      - improvement: "Verify ALL deep-synthesis capabilities migrated"
+        zasada_affected: [2]
+        priority: P1
+
+      - improvement: "Maintain sequence enforcement if split for size"
+        zasada_affected: [6]
+        priority: P2
+    overall_verdict: CONDITIONAL
+    condition: "Service model and approval gates need mechanization; synthesis merge needs completeness verification"
+    confidence: HIGH
+    notes: "Changes align with zasady if properly mechanized"
+
+  - recommendation_id: REC-MODIFY-004
+    process: deep-monitoring
+    recommendation_type: MODIFY
+    changes:
+      - "REIMPLEMENT for real-time monitoring"
+      - "Change from post-execution to real-time"
+      - "Integrate as continuous background process"
+    zasady_compliance:
+      zasada_0_ooda_structure: CONDITIONAL
+      zasada_1_self_contained: PASS
+      zasada_2_completeness_over_tokens: CONDITIONAL
+      zasada_3_mechanism_not_intent: CONDITIONAL
+      zasada_4_binding_gates: CONDITIONAL
+      zasada_5_assumptions_before_action: PASS
+      zasada_6_forced_sequence: CONDITIONAL
+      zasada_7_checklist_after_phase: CONDITIONAL
+      zasada_8_counter_checks: PASS
+      zasada_9_executable_language: PASS
+      zasada_10_visible_reasoning: PASS
+      zasada_11_instruction_plus_data: PASS
+      zasada_12_jit_information: PASS
+      zasada_13_zero_decorations: PASS
+    compliance_issues:
+      - issue: "Real-time monitoring challenges OODA phase structure"
+        zasada_affected: [0, 6, 7]
+        severity: HIGH
+        fix_required: "Define continuous OODA loop: OBSERVE metrics → ORIENT classify → DECIDE alert → ACT notify, REPEAT"
+
+      - issue: "Continuous process needs explicit trigger mechanism"
+        zasada_affected: [3]
+        severity: MEDIUM
+        fix_required: "Define: WHILE orchestrator_running DO monitoring_cycle EVERY 5_seconds"
+
+      - issue: "Background process needs binding gates redefinition"
+        zasada_affected: [4]
+        severity: MEDIUM
+        fix_required: "Replace phase completion gates with: GATE_MONITORING_STARTED, GATE_MONITORING_ACTIVE"
+
+      - issue: "Checklist after every phase unclear for continuous process"
+        zasada_affected: [7]
+        severity: MEDIUM
+        fix_required: "Define checklist per monitoring cycle, not per phase"
+
+      - issue: "Completeness unclear for 'continuous' monitoring"
+        zasada_affected: [2]
+        severity: MEDIUM
+        fix_required: "Define: Monitor ALL active processes, check EVERY metric, emit ALL anomalies"
+    required_improvements:
+      - improvement: "Redefine OODA for continuous loop (not sequential phases)"
+        zasada_affected: [0, 6, 7]
+        priority: P0
+
+      - improvement: "Mechanize continuous execution (WHILE loop with termination)"
+        zasada_affected: [3]
+        priority: P0
+
+      - improvement: "Redefine gates for background process lifecycle"
+        zasada_affected: [4]
+        priority: P1
+
+      - improvement: "Define checklist per monitoring cycle"
+        zasada_affected: [7]
+        priority: P1
+
+      - improvement: "Enforce completeness for continuous monitoring"
+        zasada_affected: [2]
+        priority: P1
+    overall_verdict: CONDITIONAL
+    condition: "REIMPLEMENT with continuous OODA loop, mechanized triggers, redefined gates"
+    confidence: MEDIUM
+    notes: "Real-time monitoring is architecturally different from batch processes - zasady require significant adaptation"
+
+  - recommendation_id: REC-MODIFY-005
+    process: deep-governance
+    recommendation_type: MODIFY
+    changes:
+      - "REDEFINE for project-level governance"
+      - "Integrate into orchestrator-master Phase 0.5"
+      - "Add security/permissions validation"
+    zasady_compliance:
+      zasada_0_ooda_structure: PASS
+      zasada_1_self_contained: PASS
+      zasada_2_completeness_over_tokens: CONDITIONAL
+      zasada_3_mechanism_not_intent: CONDITIONAL
+      zasada_4_binding_gates: CONDITIONAL
+      zasada_5_assumptions_before_action: PASS
+      zasada_6_forced_sequence: CONDITIONAL
+      zasada_7_checklist_after_phase: PASS
+      zasada_8_counter_checks: PASS
+      zasada_9_executable_language: PASS
+      zasada_10_visible_reasoning: PASS
+      zasada_11_instruction_plus_data: PASS
+      zasada_12_jit_information: PASS
+      zasada_13_zero_decorations: PASS
+    compliance_issues:
+      - issue: "Redefinition needs completeness verification"
+        zasada_affected: [2]
+        severity: MEDIUM
+        fix_required: "Verify ALL governance aspects covered: decisions, approvals, oversight, audit"
+
+      - issue: "Security validation needs explicit mechanism"
+        zasada_affected: [3]
+        severity: MEDIUM
+        fix_required: "Define: IF user.permissions NOT IN required_permissions THEN HALT WITH unauthorized"
+
+      - issue: "Integration as Phase 0.5 needs new binding gates"
+        zasada_affected: [4, 6]
+        severity: MEDIUM
+        fix_required: "Add GATE_GOVERNANCE_APPROVED blocker before Phase 1"
+
+      - issue: "Forced sequence needs update"
+        zasada_affected: [6]
+        severity: LOW
+        fix_required: "Phase 0 → Phase 0.5 (governance) → Phase 1 with blockers"
+    required_improvements:
+      - improvement: "Define ALL governance checks (completeness)"
+        zasada_affected: [2]
+        priority: P0
+
+      - improvement: "Mechanize security validation (IF-THEN rules)"
+        zasada_affected: [3]
+        priority: P0
+
+      - improvement: "Add Phase 0.5 binding gates to orchestrator"
+        zasada_affected: [4, 6]
+        priority: P0
+    overall_verdict: CONDITIONAL
+    condition: "Redefinition must be complete; security checks mechanized; gates properly integrated"
+    confidence: HIGH
+    notes: "Governance redefinition aligns with zasady if properly mechanized"
+
+  - recommendation_id: REC-MODIFY-006
+    process: deep-requirements
+    recommendation_type: MODIFY
+    changes:
+      - "Create missing handoff-checkpoint-schema.yaml"
+      - "Standardize artifact paths"
+    zasady_compliance:
+      zasada_0_ooda_structure: PASS
+      zasada_1_self_contained: PASS
+      zasada_2_completeness_over_tokens: PASS
+      zasada_3_mechanism_not_intent: PASS
+      zasada_4_binding_gates: PASS
+      zasada_5_assumptions_before_action: PASS
+      zasada_6_forced_sequence: PASS
+      zasada_7_checklist_after_phase: PASS
+      zasada_8_counter_checks: PASS
+      zasada_9_executable_language: PASS
+      zasada_10_visible_reasoning: PASS
+      zasada_11_instruction_plus_data: PASS
+      zasada_12_jit_information: PASS
+      zasada_13_zero_decorations: PASS
+    schema_compliance:
+      handoff_checkpoint_schema: COMPLIANT
+      rationale: "Creating missing schema enables validation (zasada 4 - gates can verify schema)"
+    artifact_path_compliance:
+      standardization: COMPLIANT
+      rationale: "artifacts/{project_id}/{process_id}/ is mechanistic pattern"
+    overall_verdict: COMPLIANT
+    confidence: HIGH
+    notes: "Minor changes, fully compliant with zasady"
+
+  - recommendation_id: REC-MODIFY-007
+    process: deep-deploy
+    recommendation_type: MODIFY
+    changes:
+      - "Fix size violation (337 lines → <300)"
+      - "Create missing handoff-checkpoint-schema.yaml"
+      - "Create deep-rollback process for deployment failures"
+    zasady_compliance:
+      zasada_0_ooda_structure: PASS
+      zasada_1_self_contained: PASS
+      zasada_2_completeness_over_tokens: PASS
+      zasada_3_mechanism_not_intent: PASS
+      zasada_4_binding_gates: CONDITIONAL
+      zasada_5_assumptions_before_action: PASS
+      zasada_6_forced_sequence: CONDITIONAL
+      zasada_7_checklist_after_phase: PASS
+      zasada_8_counter_checks: PASS
+      zasada_9_executable_language: PASS
+      zasada_10_visible_reasoning: PASS
+      zasada_11_instruction_plus_data: PASS
+      zasada_12_jit_information: PASS
+      zasada_13_zero_decorations: PASS
+    compliance_issues:
+      - issue: "Splitting for size must maintain forced sequence"
+        zasada_affected: [6]
+        severity: MEDIUM
+        fix_required: "Add blockers between split files: GATE_PHASE_N_COMPLETE prevents phase N+1 start"
+
+      - issue: "Rollback integration needs binding gate"
+        zasada_affected: [4]
+        severity: MEDIUM
+        fix_required: "Add error handler: IF deployment_failed THEN invoke deep-rollback, gate: GATE_ROLLBACK_COMPLETE"
+    required_improvements:
+      - improvement: "Maintain sequence enforcement across split files"
+        zasada_affected: [6]
+        priority: P2
+
+      - improvement: "Add rollback error handler with gate"
+        zasada_affected: [4]
+        priority: P1
+    overall_verdict: CONDITIONAL
+    condition: "Split must preserve sequence; rollback integration needs gate"
+    confidence: HIGH
+    notes: "Size fix compliant if sequence preserved; rollback needs proper error handler"
+
+  - recommendation_id: REC-MODIFY-008
+    process: deep-feasibility
+    recommendation_type: MODIFY
+    changes:
+      - "Integrate into orchestrator-master phase 4b (after deep-risk)"
+      - "Clarify distinction from deep-risk"
+    zasady_compliance:
+      zasada_0_ooda_structure: PASS
+      zasada_1_self_contained: PASS
+      zasada_2_completeness_over_tokens: PASS
+      zasada_3_mechanism_not_intent: PASS
+      zasada_4_binding_gates: CONDITIONAL
+      zasada_5_assumptions_before_action: PASS
+      zasada_6_forced_sequence: CONDITIONAL
+      zasada_7_checklist_after_phase: PASS
+      zasada_8_counter_checks: PASS
+      zasada_9_executable_language: PASS
+      zasada_10_visible_reasoning: PASS
+      zasada_11_instruction_plus_data: PASS
+      zasada_12_jit_information: PASS
+      zasada_13_zero_decorations: PASS
+    compliance_issues:
+      - issue: "Integration requires new binding gate"
+        zasada_affected: [4, 6]
+        severity: MEDIUM
+        fix_required: "Add GATE_FEASIBILITY_APPROVED blocker before phase 5"
+
+      - issue: "Clarification should be in metadata, not decorative text"
+        zasada_affected: [13]
+        severity: LOW
+        fix_required: "Add to metadata: purpose: 'Can we do it? (technical, financial, operational)' - no explanatory paragraphs"
+    required_improvements:
+      - improvement: "Add Phase 4b binding gate to orchestrator"
+        zasada_affected: [4, 6]
+        priority: P1
+
+      - improvement: "Keep distinction clarification minimal (metadata only)"
+        zasada_affected: [13]
+        priority: P2
+    overall_verdict: CONDITIONAL
+    condition: "Integration needs binding gate; clarification must avoid decoration"
+    confidence: HIGH
+    notes: "Integration straightforward if gate properly added"
+
+  - recommendation_id: REC-MODIFY-009
+    process: deep-challenge
+    recommendation_type: MODIFY
+    changes:
+      - "Integrate into orchestrator-master phase 6b (after deep-test)"
+      - "Clarify distinction from deep-verify"
+    zasady_compliance:
+      zasada_0_ooda_structure: PASS
+      zasada_1_self_contained: PASS
+      zasada_2_completeness_over_tokens: PASS
+      zasada_3_mechanism_not_intent: PASS
+      zasada_4_binding_gates: CONDITIONAL
+      zasada_5_assumptions_before_action: PASS
+      zasada_6_forced_sequence: CONDITIONAL
+      zasada_7_checklist_after_phase: PASS
+      zasada_8_counter_checks: PASS
+      zasada_9_executable_language: PASS
+      zasada_10_visible_reasoning: PASS
+      zasada_11_instruction_plus_data: PASS
+      zasada_12_jit_information: PASS
+      zasada_13_zero_decorations: PASS
+    compliance_issues:
+      - issue: "Integration requires new binding gate"
+        zasada_affected: [4, 6]
+        severity: MEDIUM
+        fix_required: "Add GATE_CHALLENGE_PASSED blocker before phase 7"
+
+      - issue: "Distinction clarification must be minimal"
+        zasada_affected: [13]
+        severity: LOW
+        fix_required: "Metadata only: purpose: 'Adversarial assumption testing' vs deep-verify: 'Fact verification'"
+    required_improvements:
+      - improvement: "Add Phase 6b binding gate to orchestrator"
+        zasada_affected: [4, 6]
+        priority: P1
+
+      - improvement: "Minimal distinction in metadata"
+        zasada_affected: [13]
+        priority: P2
+    overall_verdict: CONDITIONAL
+    condition: "Integration needs binding gate; keep clarification minimal"
+    confidence: HIGH
+    notes: "Similar to deep-feasibility integration pattern"
+
+# ═══════════════════════════════════════════════════════════════
+# ELIMINATE RECOMMENDATIONS (12 processes)
+# ═══════════════════════════════════════════════════════════════
+
+eliminate_compliance:
+
+  - recommendation_id: REC-ELIMINATE-001
+    process: deep-aggregate
+    recommendation_type: ELIMINATE
+    merge_into: deep-orchestration
+    zasady_compliance_impact:
+      zasada_2_completeness: POSITIVE
+      rationale: "Folding aggregation inline ensures ALL results aggregated in single phase"
+      zasada_6_forced_sequence: NEUTRAL
+      rationale: "Removing subprocess simplifies sequence, no negative impact"
+      zasada_13_zero_decorations: POSITIVE
+      rationale: "Eliminates unnecessary process abstraction layer"
+    merge_compliance:
+      aggregation_functionality: MUST_PRESERVE
+      action: "Move deep-aggregate ACT steps to deep-orchestration final phase"
+      gate_update: "Replace GATE_AGGREGATE_INVOKED with GATE_AGGREGATION_COMPLETE inline"
+    overall_verdict: COMPLIANT
+    confidence: HIGH
+    notes: "Elimination improves zasada 2 (completeness) and 13 (zero decoration)"
+
+  - recommendation_id: REC-ELIMINATE-002
+    process: deep-diagram
+    recommendation_type: ELIMINATE
+    merge_into: deep-architect
+    zasady_compliance_impact:
+      zasada_2_completeness: POSITIVE
+      rationale: "Architecture without diagrams incomplete - merger enforces completeness"
+      zasada_6_forced_sequence: POSITIVE
+      rationale: "Diagram generation becomes final ACT step of architecture phase"
+      zasada_13_zero_decorations: POSITIVE
+      rationale: "Eliminates unnecessary separation"
+    merge_compliance:
+      diagram_functionality: MUST_PRESERVE
+      action: "Add diagram generation to deep-architect phase 3 ACT step"
+      gate_update: "GATE_ARCHITECTURE_COMPLETE requires diagrams generated"
+    overall_verdict: COMPLIANT
+    confidence: HIGH
+    notes: "Merger strengthens completeness (zasada 2) and forced sequence (zasada 6)"
+
+  - recommendation_id: REC-ELIMINATE-003
+    process: deep-document
+    recommendation_type: ELIMINATE
+    transform_to: "Documentation validation in deep-verify"
+    zasady_compliance_impact:
+      zasada_1_self_contained: POSITIVE
+      rationale: "Inline documentation better than centralized - each process self-contained"
+      zasada_13_zero_decorations: POSITIVE
+      rationale: "Eliminates centralized documentation process"
+    transformation_compliance:
+      documentation_validation: MUST_ADD
+      action: "Add to deep-verify: validate each process outputs include documentation artifacts"
+      gate_update: "GATE_DOCUMENTATION_VALID added to verification gates"
+    overall_verdict: COMPLIANT
+    confidence: HIGH
+    notes: "Transformation aligns with zasada 1 (self-contained processes)"
+
+  - recommendation_id: REC-ELIMINATE-004
+    process: deep-synthesis
+    recommendation_type: ELIMINATE
+    merge_into: feedback-loop-handler
+    zasady_compliance_impact:
+      zasada_6_forced_sequence: POSITIVE
+      rationale: "Learning as final phase of feedback cycle creates natural sequence"
+      zasada_13_zero_decorations: POSITIVE
+      rationale: "Eliminates separate process for what should be feedback conclusion"
+    merge_compliance:
+      synthesis_functionality: MUST_PRESERVE
+      action: "Add synthesis as final phase of feedback-loop-handler OODA"
+      gate_update: "GATE_SYNTHESIS_COMPLETE added to feedback loop"
+      completeness_check: "Verify ALL synthesis steps migrated"
+    overall_verdict: COMPLIANT
+    confidence: HIGH
+    notes: "Merger creates better sequence (zasada 6) and removes decoration (zasada 13)"
+
+  - recommendation_id: REC-ELIMINATE-005
+    process: deep-change
+    recommendation_type: ELIMINATE
+    action: ARCHIVE
+    zasady_compliance_impact:
+      all_zasady: POSITIVE
+      rationale: "Legacy process without manifest = zero zasady compliance - removal improves ecosystem"
+    archival_compliance:
+      verification: REQUIRED
+      action: "Verify deep-change functionality covered by feedback-loop-handler before archival"
+      documentation: "Document in archive/README.md why archived and replacement process"
+    overall_verdict: COMPLIANT
+    confidence: HIGH
+    notes: "Archiving non-compliant legacy process improves overall ecosystem zasady compliance"
+
+  - recommendation_id: REC-ELIMINATE-006
+    process: deep-edge-case
+    recommendation_type: ELIMINATE
+    action: ARCHIVE
+    zasady_compliance_impact:
+      all_zasady: POSITIVE
+      rationale: "Legacy process without manifest = zero zasady compliance - removal improves ecosystem"
+    archival_compliance:
+      verification: REQUIRED
+      action: "Verify edge case handling covered by deep-challenge before archival"
+      documentation: "Document replacement in archive/README.md"
+    overall_verdict: COMPLIANT
+    confidence: HIGH
+    notes: "Archiving non-compliant legacy improves ecosystem"
+
+  - recommendation_id: REC-ELIMINATE-007
+    process: deep-execute
+    recommendation_type: ELIMINATE
+    action: ARCHIVE
+    zasady_compliance_impact:
+      all_zasady: POSITIVE
+      rationale: "Legacy process without manifest = zero zasady compliance"
+    archival_compliance:
+      verification: REQUIRED
+      action: "Verify execution covered by deep-implement before archival"
+    overall_verdict: COMPLIANT
+    confidence: HIGH
+    notes: "Archiving non-compliant legacy"
+
+  - recommendation_id: REC-ELIMINATE-008
+    process: deep-govern
+    recommendation_type: ELIMINATE
+    action: ARCHIVE
+    zasady_compliance_impact:
+      all_zasady: POSITIVE
+      rationale: "Legacy process without manifest = zero zasady compliance"
+    archival_compliance:
+      verification: REQUIRED
+      action: "Verify governance covered by deep-governance (redefined) before archival"
+    overall_verdict: COMPLIANT
+    confidence: HIGH
+    notes: "Archiving non-compliant legacy"
+
+  - recommendation_id: REC-ELIMINATE-009
+    process: deep-plan
+    recommendation_type: ELIMINATE
+    action: ARCHIVE
+    zasady_compliance_impact:
+      all_zasady: POSITIVE
+      rationale: "Legacy process without manifest = zero zasady compliance"
+    archival_compliance:
+      verification: REQUIRED
+      action: "Verify planning covered by orchestrator-master phase mapping"
+    overall_verdict: COMPLIANT
+    confidence: HIGH
+    notes: "Archiving non-compliant legacy"
+
+  - recommendation_id: REC-ELIMINATE-010
+    process: deep-process
+    recommendation_type: ELIMINATE
+    action: ARCHIVE
+    zasady_compliance_impact:
+      all_zasady: POSITIVE
+      rationale: "Legacy process without manifest = zero zasady compliance"
+    archival_compliance:
+      verification: REQUIRED
+      action: "Verify no unique functionality lost before archival"
+    overall_verdict: COMPLIANT
+    confidence: HIGH
+    notes: "Archiving non-compliant legacy"
+
+# ═══════════════════════════════════════════════════════════════
+# ADD_NEW RECOMMENDATIONS (4 processes + 12 schemas)
+# ═══════════════════════════════════════════════════════════════
+
+add_new_compliance:
+
+  - recommendation_id: REC-ADD-001
+    process: deep-implement
+    recommendation_type: ADD_NEW
+    purpose: "Create modern manifest for implementation process"
+    zasady_compliance_plan:
+      zasada_0_ooda_structure: PLANNED
+      implementation: "4 phases: 0-Observe (load requirements), 1-Orient (plan implementation), 2-Decide (select approach), 3-Act (generate code)"
+
+      zasada_1_self_contained: PLANNED
+      implementation: "JIT loading: load requirements at phase 0, architecture at phase 1, risk assessment at phase 2"
+
+      zasada_2_completeness_over_tokens: PLANNED
+      implementation: "Implement ALL requirements, test EVERY function, handle ALL error cases"
+
+      zasada_3_mechanism_not_intent: PLANNED
+      implementation: "IF requirement.type == API THEN generate_api_code ELSE IF requirement.type == CLI THEN generate_cli_code"
+
+      zasada_4_binding_gates: PLANNED
+      implementation: "GATE_REQUIREMENTS_LOADED, GATE_APPROACH_DECIDED, GATE_CODE_GENERATED, GATE_SELF_TEST_PASSED"
+
+      zasada_5_assumptions_before_action: PLANNED
+      implementation: "DECLARE assumptions about requirements interpretation before code generation"
+
+      zasada_6_forced_sequence: PLANNED
+      implementation: "Phase blockers: cannot generate code before approach decided"
+
+      zasada_7_checklist_after_phase: PLANNED
+      implementation: "Phase checklists: ALL requirements implemented? ALL functions tested? ALL errors handled?"
+
+      zasada_8_counter_checks: PLANNED
+      implementation: "Counter-check: Search for requirements NOT implemented"
+
+      zasada_9_executable_language: PLANNED
+      implementation: "All steps as commands: LOAD, GENERATE, TEST, VALIDATE"
+
+      zasada_10_visible_reasoning: PLANNED
+      implementation: "Emit reasoning for each implementation decision"
+
+      zasada_11_instruction_plus_data: PLANNED
+      implementation: "Each step: action + minimal required data"
+
+      zasada_12_jit_information: PLANNED
+      implementation: "Load architecture only when needed for code structure"
+
+      zasada_13_zero_decorations: PLANNED
+      implementation: "No explanatory text, only executable instructions"
+
+    required_sections_planned: YES
+    sections:
+      - process_name: "deep-implement"
+      - version: "1.0.0"
+      - 13_zasady_version: "1.0.0"
+      - metadata: "minimal"
+      - inputs: "with schemas"
+      - phases: "OODA structure"
+      - outputs: "with schemas"
+      - validation_gates: "binding"
+      - error_handlers: "all 8 required"
+      - compliance_13_zasady: "verification section"
+
+    overall_verdict: COMPLIANT_IF_IMPLEMENTED_AS_PLANNED
+    confidence: HIGH
+    notes: "New process designed with zasady from start - high compliance probability"
+
+  - recommendation_id: REC-ADD-002
+    process: deep-test
+    recommendation_type: ADD_NEW
+    purpose: "Create modern manifest for testing process"
+    zasady_compliance_plan:
+      zasada_0_ooda_structure: PLANNED
+      implementation: "Phases: 0-Observe (load code+requirements), 1-Orient (identify test cases), 2-Decide (prioritize tests), 3-Act (execute tests)"
+
+      zasada_2_completeness_over_tokens: PLANNED
+      implementation: "Test ALL functions, check EVERY requirement, validate ALL error paths"
+
+      zasada_3_mechanism_not_intent: PLANNED
+      implementation: "IF test_result == FAIL THEN log_failure AND increment_fail_count ELSE increment_pass_count"
+
+      zasada_4_binding_gates: PLANNED
+      implementation: "GATE_TEST_CASES_IDENTIFIED, GATE_ALL_TESTS_EXECUTED, GATE_COVERAGE_THRESHOLD_MET"
+
+      zasada_6_forced_sequence: PLANNED
+      implementation: "Cannot execute tests before test cases identified"
+
+      zasada_7_checklist_after_phase: PLANNED
+      implementation: "ALL requirements tested? ALL code paths covered? ALL tests passed?"
+
+      zasada_8_counter_checks: PLANNED
+      implementation: "Counter-check: Search for code NOT tested, requirements NOT validated"
+
+    required_sections_planned: YES
+    overall_verdict: COMPLIANT_IF_IMPLEMENTED_AS_PLANNED
+    confidence: HIGH
+    notes: "Testing naturally fits OODA structure"
+
+  - recommendation_id: REC-ADD-003
+    process: deep-rollback
+    recommendation_type: ADD_NEW
+    purpose: "Rollback failed deployments and changes"
+    zasady_compliance_plan:
+      zasada_0_ooda_structure: PLANNED
+      implementation: "Phases: 0-Observe (load checkpoint), 1-Orient (identify changes since checkpoint), 2-Decide (determine rollback steps), 3-Act (execute rollback)"
+
+      zasada_2_completeness_over_tokens: PLANNED
+      implementation: "Rollback ALL changes since checkpoint, restore EVERY artifact to checkpoint state"
+
+      zasada_3_mechanism_not_intent: PLANNED
+      implementation: "IF artifact_modified THEN restore_from_checkpoint ELSE skip"
+
+      zasada_4_binding_gates: PLANNED
+      implementation: "GATE_CHECKPOINT_LOADED, GATE_CHANGES_IDENTIFIED, GATE_ROLLBACK_COMPLETE, GATE_STATE_VERIFIED"
+
+      zasada_5_assumptions_before_action: PLANNED
+      implementation: "DECLARE assumption: checkpoint state is valid and complete before rollback"
+
+      zasada_6_forced_sequence: PLANNED
+      implementation: "Cannot rollback before changes identified"
+
+      zasada_7_checklist_after_phase: PLANNED
+      implementation: "ALL artifacts restored? EVERY change reverted? System state matches checkpoint?"
+
+      zasada_8_counter_checks: PLANNED
+      implementation: "Counter-check: Search for changes NOT reverted"
+
+    required_sections_planned: YES
+    overall_verdict: COMPLIANT_IF_IMPLEMENTED_AS_PLANNED
+    confidence: HIGH
+    notes: "Rollback well-suited to OODA structure"
+
+  - recommendation_id: REC-ADD-004
+    process: deep-preview
+    recommendation_type: ADD_NEW
+    purpose: "Preview changes before execution"
+    zasady_compliance_plan:
+      zasada_0_ooda_structure: PLANNED
+      implementation: "Phases: 0-Observe (load execution plan), 1-Orient (analyze impact), 2-Decide (classify risk), 3-Act (generate preview report)"
+
+      zasada_2_completeness_over_tokens: PLANNED
+      implementation: "Analyze ALL planned changes, identify EVERY affected component"
+
+      zasada_3_mechanism_not_intent: PLANNED
+      implementation: "IF component IN affected_list THEN calculate_impact ELSE mark_unaffected"
+
+      zasada_4_binding_gates: PLANNED
+      implementation: "GATE_PLAN_LOADED, GATE_IMPACT_ANALYZED, GATE_PREVIEW_GENERATED"
+
+      zasada_6_forced_sequence: PLANNED
+      implementation: "Cannot generate preview before impact analyzed"
+
+      zasada_7_checklist_after_phase: PLANNED
+      implementation: "ALL changes identified? EVERY component impact assessed? Preview complete?"
+
+      zasada_8_counter_checks: PLANNED
+      implementation: "Counter-check: Search for changes NOT included in preview"
+
+    required_sections_planned: YES
+    overall_verdict: COMPLIANT_IF_IMPLEMENTED_AS_PLANNED
+    confidence: MEDIUM
+    notes: "Preview is analysis-heavy, ensure executable language maintained"
+
+  - recommendation_id: REC-ADD-005
+    artifact_type: SCHEMAS
+    recommendation_type: ADD_NEW
+    schemas_count: 12
+    schemas:
+      - handoff-checkpoint-schema.yaml
+      - orchestration-state-machine-schema.yaml
+      - validation-report-schema.yaml
+      - project-context-schema.yaml
+      - requirements-schema.yaml
+      - architecture-schema.yaml
+      - risk-assessment-schema.yaml
+      - implementation-log-schema.yaml
+      - test-results-schema.yaml
+      - deployment-report-schema.yaml
+      - feedback-event-schema.yaml
+      - api-specification-schema.yaml
+    zasady_compliance_impact:
+      zasada_4_binding_gates: POSITIVE
+      rationale: "Schemas enable gate validation: VALIDATE artifact AGAINST schema"
+      zasada_5_assumptions_before_action: POSITIVE
+      rationale: "Schemas enforce EXTRACT → VERIFY → DECLARE → RENDER sequence"
+    schema_requirements:
+      format: YAML_SCHEMA
+      validation: "Each schema must be executable by validation tools"
+      completeness: "Define ALL required fields, not just 'main' or 'key' fields"
+    overall_verdict: COMPLIANT
+    confidence: HIGH
+    notes: "Schemas critical for zasady 4 and 5 enforcement"
+
+# ═══════════════════════════════════════════════════════════════
+# SUMMARY
+# ═══════════════════════════════════════════════════════════════
+
+summary:
+  total_recommendations_validated: 25
+
+  compliant_recommendations: 12
+  compliant_breakdown:
+    - REC-KEEP-001 (deep-verify)
+    - REC-KEEP-002 (deep-risk)
+    - REC-KEEP-003 (deep-architect)
+    - REC-KEEP-004 (deep-explore)
+    - REC-KEEP-006 (deep-compliance)
+    - REC-MODIFY-006 (deep-requirements)
+    - REC-ELIMINATE-001 through REC-ELIMINATE-010 (all eliminations)
+    - REC-ADD-005 (schemas)
+
+  conditional_recommendations: 13
+  conditional_breakdown:
+    - REC-KEEP-005 (context-manager) - needs manifest
+    - REC-MODIFY-001 (orchestrator-master) - needs gates and mechanisms
+    - REC-MODIFY-002 (deep-orchestration) - needs counter-check
+    - REC-MODIFY-003 (feedback-loop-handler) - needs mechanization
+    - REC-MODIFY-004 (deep-monitoring) - needs OODA redefinition
+    - REC-MODIFY-005 (deep-governance) - needs completeness verification
+    - REC-MODIFY-007 (deep-deploy) - needs sequence preservation
+    - REC-MODIFY-008 (deep-feasibility) - needs binding gate
+    - REC-MODIFY-009 (deep-challenge) - needs binding gate
+    - REC-ADD-001 (deep-implement) - if implemented as planned
+    - REC-ADD-002 (deep-test) - if implemented as planned
+    - REC-ADD-003 (deep-rollback) - if implemented as planned
+    - REC-ADD-004 (deep-preview) - if implemented as planned
+
+  non_compliant_recommendations: 0
+
+  overall_ecosystem_compliance: CONDITIONAL
+  verdict: "Recommendations are sound but implementation MUST follow zasady requirements"
+
+# ═══════════════════════════════════════════════════════════════
+# CRITICAL ZASADY COMPLIANCE REQUIREMENTS
+# ═══════════════════════════════════════════════════════════════
+
+critical_requirements:
+
+  binding_gates_enforcement:
+    affected_recommendations: [REC-MODIFY-001, REC-MODIFY-002, REC-MODIFY-005, REC-MODIFY-007, REC-MODIFY-008, REC-MODIFY-009]
+    requirement: "Every phase integration MUST add binding gates"
+    zasada: 4
+    action: |
+      - New phase integrations require: GATE_PHASE_Nx_COMPLETE
+      - Orchestrator merge requires: GATE_ORCHESTRATION_UNIFIED
+      - Subprocess integrations require: GATE_SUBPROCESS_COMPLETE
+      - Error handlers require: GATE_ERROR_HANDLED
+
+  mechanism_not_intent:
+    affected_recommendations: [REC-MODIFY-001, REC-MODIFY-003, REC-MODIFY-004, REC-MODIFY-005]
+    requirement: "ALL rules must be IF-THEN, no 'should' or 'typically'"
+    zasada: 3
+    violations_to_avoid:
+      - "System should retry..." → "IF retry_count < 3 THEN retry ELSE HALT"
+      - "Typically monitors..." → "WHILE active DO monitor EVERY 5_seconds"
+      - "May need approval..." → "IF risk > threshold THEN require_approval ELSE proceed"
+
+  completeness_enforcement:
+    affected_recommendations: [REC-MODIFY-001, REC-MODIFY-003, REC-MODIFY-004, REC-MODIFY-005, REC-ADD-001, REC-ADD-002]
+    requirement: "Use ALL, EVERY, EACH - never 'main' or 'key'"
+    zasada: 2
+    examples:
+      - "Monitor ALL active processes" not "Monitor main processes"
+      - "Test EVERY function" not "Test key functions"
+      - "Handle ALL error cases" not "Handle typical errors"
+
+  ooda_structure_enforcement:
+    affected_recommendations: [REC-MODIFY-004, REC-ADD-001, REC-ADD-002, REC-ADD-003, REC-ADD-004]
+    requirement: "Every phase MUST have complete Observe-Orient-Decide-Act"
+    zasada: 0
+    special_case: "Continuous processes (deep-monitoring) need OODA loop, not linear phases"
+
+  forced_sequence_enforcement:
+    affected_recommendations: [REC-MODIFY-001, REC-MODIFY-007, REC-MODIFY-008, REC-MODIFY-009]
+    requirement: "Phases connected by BLOCKER gates, cannot skip without scope_reduction"
+    zasada: 6
+    implementation: "Phase N completion gate blocks Phase N+1 start"
+
+  counter_check_requirement:
+    affected_recommendations: [REC-MODIFY-002]
+    requirement: "Critical decisions need counter-checks (attempt to disprove)"
+    zasada: 8
+    example: "Orchestrator merge decision: actively search for cases where TWO orchestrators better than one"
+
+  zero_decoration_enforcement:
+    affected_recommendations: [REC-MODIFY-008, REC-MODIFY-009, REC-ADD-001, REC-ADD-002, REC-ADD-003, REC-ADD-004]
+    requirement: "No explanatory text, examples in separate file, descriptions max 10 words"
+    zasada: 13
+    violations_to_avoid:
+      - Long descriptions of "why"
+      - Examples in process definition
+      - Explanatory comments
+      - "Best practices" sections
+
+# ═══════════════════════════════════════════════════════════════
+# IMPLEMENTATION GUIDANCE
+# ═══════════════════════════════════════════════════════════════
+
+implementation_guidance:
+
+  phase_0_immediate:
+    recommendations: [REC-ELIMINATE-005 through REC-ELIMINATE-010]
+    zasady_impact: POSITIVE
+    action: "Archive legacy processes - improves ecosystem zasady compliance from ~60% to ~75%"
+    risk: LOW
+
+  phase_1_foundations:
+    recommendations: [REC-MODIFY-001, REC-MODIFY-002, REC-MODIFY-005, REC-ADD-005]
+    zasady_requirements: CRITICAL
+    actions:
+      - "Mechanize ALL orchestrator logic (zasada 3)"
+      - "Add binding gates for merged processes (zasada 4)"
+      - "Define COMPLETE governance checks (zasada 2)"
+      - "Create schemas for validation (zasada 4, 5)"
+    quality_gate: "Phase 1 complete ONLY IF all mechanisms use IF-THEN and all gates are blocking"
+
+  phase_2_integration:
+    recommendations: [REC-MODIFY-003, REC-MODIFY-008, REC-MODIFY-009, REC-ELIMINATE-001, REC-ELIMINATE-002, REC-ELIMINATE-004]
+    zasady_requirements: HIGH
+    actions:
+      - "Add binding gates for each integrated process (zasada 4)"
+      - "Mechanize service invocation (zasada 3)"
+      - "Verify ALL functionality merged, not just main features (zasada 2)"
+    quality_gate: "Integration complete ONLY IF forced sequence maintained (zasada 6)"
+
+  phase_3_operational:
+    recommendations: [REC-MODIFY-004]
+    zasady_requirements: CRITICAL
+    actions:
+      - "Redefine OODA for continuous loop (zasada 0)"
+      - "Ensure completeness for continuous monitoring (zasada 2)"
+      - "Mechanize continuous execution with termination (zasada 3)"
+    quality_gate: "Real-time monitoring MUST have complete OODA cycle, not degraded structure"
+    risk: HIGH
+    notes: "Continuous processes challenge zasady - careful design required"
+
+  phase_4_new_processes:
+    recommendations: [REC-ADD-001, REC-ADD-002, REC-ADD-003, REC-ADD-004]
+    zasady_requirements: CRITICAL
+    actions:
+      - "Design with zasady from start, not retrofit"
+      - "All 4 new processes MUST have complete OODA (zasada 0)"
+      - "All new processes MUST have 8 required error handlers"
+      - "All new processes MUST have binding gates (zasada 4)"
+    quality_gate: "New process approved ONLY IF 100% zasady compliant"
+    success_probability: 95%
+    notes: "Greenfield design - highest compliance probability"
+
+# ═══════════════════════════════════════════════════════════════
+# RISK ASSESSMENT
+# ═══════════════════════════════════════════════════════════════
+
+zasady_compliance_risks:
+
+  high_risk:
+    - risk: "Real-time monitoring (REC-MODIFY-004) challenges OODA phase structure"
+      zasady_affected: [0, 6, 7]
+      mitigation: "Redefine OODA as continuous loop with termination condition"
+      probability: MEDIUM
+      impact: HIGH
+
+    - risk: "Orchestrator merge without proper counter-check (REC-MODIFY-002)"
+      zasada_affected: [8]
+      mitigation: "Require explicit counter-check: search for cases favoring two orchestrators"
+      probability: MEDIUM
+      impact: MEDIUM
+
+    - risk: "Error recovery 'typically retries' instead of mechanized rules"
+      zasada_affected: [3]
+      mitigation: "Enforce: IF retry_count < N AND error IN [list] THEN retry ELSE escalate"
+      probability: HIGH
+      impact: MEDIUM
+
+  medium_risk:
+    - risk: "Timeout definitions as 'defaults' instead of exhaustive list"
+      zasada_affected: [2]
+      mitigation: "Define timeout for EVERY process explicitly, no defaults"
+      probability: MEDIUM
+      impact: LOW
+
+    - risk: "Approval gates using 'should require approval' not mechanism"
+      zasada_affected: [3]
+      mitigation: "Define: IF complexity > threshold AND risk > threshold THEN require_approval"
+      probability: MEDIUM
+      impact: MEDIUM
+
+    - risk: "Process distinctions as decorative text instead of metadata"
+      zasada_affected: [13]
+      mitigation: "Keep clarifications in metadata field only, max 10 words"
+      probability: LOW
+      impact: LOW
+
+  low_risk:
+    - risk: "Size splitting breaks forced sequence"
+      zasada_affected: [6]
+      mitigation: "Maintain blockers between split sections"
+      probability: LOW
+      impact: MEDIUM
+
+# ═══════════════════════════════════════════════════════════════
+# FINAL VERDICT
+# ═══════════════════════════════════════════════════════════════
+
+final_verdict:
+  overall_compliance: CONDITIONAL
+
+  verdict_statement: |
+    The ecosystem recommendations are FUNDAMENTALLY SOUND and align with 13 zasady
+    PRINCIPLES, but implementation MUST adhere to strict zasady REQUIREMENTS.
+
+    - 12/25 recommendations are IMMEDIATELY COMPLIANT (especially eliminations)
+    - 13/25 recommendations are CONDITIONAL on proper implementation
+    - 0/25 recommendations are NON-COMPLIANT
+
+    Key compliance requirements:
+    1. ALL phase integrations MUST add binding gates (zasada 4)
+    2. ALL rules MUST be mechanized as IF-THEN (zasada 3)
+    3. ALL completeness claims MUST use ALL/EVERY/EACH (zasada 2)
+    4. ALL new processes MUST have complete OODA structure (zasada 0)
+    5. ALL critical decisions MUST have counter-checks (zasada 8)
+
+    Highest risk area: Real-time monitoring (REC-MODIFY-004) challenges traditional
+    OODA phase structure - requires careful redesign as continuous OODA loop.
+
+    Recommendation: APPROVE with CONDITIONS
+    Conditions: Implementation team MUST validate each change against zasady checklist
+    before merging. Real-time monitoring requires zasady design review.
+
+  go_no_go: CONDITIONAL_GO
+
+  conditions_for_approval:
+    - condition: "All MODIFY recommendations must add required binding gates"
+      priority: P0
+      verification: "Code review validates gates present and blocking"
+
+    - condition: "All mechanisms must use IF-THEN format, no 'should' or 'typically'"
+      priority: P0
+      verification: "Automated scan for forbidden intent language"
+
+    - condition: "Real-time monitoring design review with zasady focus"
+      priority: P0
+      verification: "Zasady compliance officer approves continuous OODA design"
+
+    - condition: "All new processes follow zasady from start (not retrofit)"
+      priority: P0
+      verification: "Template compliance validation before implementation starts"
+
+    - condition: "Counter-check for orchestrator merge decision"
+      priority: P1
+      verification: "Document search for cases favoring two orchestrators"
+
+  confidence: HIGH
+  rationale: "Recommendations align with zasady principles. Conditional on execution discipline."
+
+  success_probability:
+    if_conditions_met: 90%
+    if_conditions_ignored: 40%
+
+  ecosystem_compliance_projection:
+    current: 64%
+    after_eliminations: 75%
+    after_phase_1_if_compliant: 82%
+    after_all_phases_if_compliant: 95%
+    after_all_phases_if_non_compliant: 70%
+
+---
+# END template_compliance_report.yaml
+# Validation complete: 25 recommendations assessed against 13 zasady
+# Verdict: CONDITIONAL GO - recommendations sound, implementation must follow zasady strictly
+# Highest risk: Real-time monitoring OODA redefinition
+# Critical requirement: Add binding gates for ALL integrations

@@ -1,0 +1,95 @@
+---
+# Subprocess Adapter: deep-implement
+# Wraps processes/deep-implement for Executive Orchestrator
+
+subprocess_id: deep-implement
+subprocess_name: "Implementation"
+version: 1.0.0
+
+purpose: "Implement system according to architecture specification"
+
+# Reference to original process
+original_process:
+  location: ../../../processes/deep-implement
+  process_file: process.yaml
+  workflow_file: workflow.md
+
+# Executive Orchestrator metadata
+inputs_required:
+  - architecture_document: "From deep-architect subprocess"
+  - requirements_document: "From deep-requirements subprocess"
+  - implementation_scope: "What to implement (may be phased)"
+
+outputs_produced:
+  - source_code: "Implemented system code"
+  - configuration_files: "System configuration"
+  - database_schema: "Database structure (if applicable)"
+  - api_specification: "API documentation (if applicable)"
+  - implementation_log: "What was implemented, how, why"
+
+estimated_duration: "4-8 hours (varies by scope)"
+complexity: CRITICAL
+
+execution_pattern: |
+  When invoked by Executive Orchestrator:
+
+  1. LOAD inputs:
+     - architecture.yaml (from deep-architect)
+     - requirements.yaml (from deep-requirements)
+     - scope (from backlog task definition)
+
+  2. DELEGATE to original deep-implement process:
+     EXECUTE: ../../../processes/deep-implement/workflow.md
+     PROVIDE: architecture, requirements, scope
+     CAPTURE: all code artifacts
+
+  3. MONITOR progress:
+     IF implementation takes > 2 hours:
+       CHECKPOINT every 30 minutes:
+         SAVE snapshot
+         REPORT progress to user (business level)
+
+  4. TRANSLATE outputs to business terms:
+     "Implemented UserService with CRUD operations" →
+     "Created user management capability"
+
+     "Added JWT authentication middleware" →
+     "Secured system with user authentication"
+
+  5. RETURN:
+     - implementation_artifacts (code, config, etc.)
+     - business_summary (for user display)
+
+business_value:
+  description: "Builds working system that implements designed architecture"
+  user_sees: "Implementation complete: [capabilities created]"
+  user_does_not_see: "Source code, technical implementation details"
+
+implementation_phases:
+  - core_functionality: "Essential features"
+  - integrations: "External system connections"
+  - error_handling: "Graceful failure management"
+  - optimization: "Performance improvements"
+
+integration_notes: |
+  Deep-implement is the LONGEST subprocess (4-8 hours).
+  Executive Orchestrator provides frequent progress updates:
+  - Every 30 minutes: "Progress: [X]%. Current: [capability being built]"
+  - User sees business value being added, not code being written
+
+  If scope too large, may be split into multiple tasks in backlog.
+
+recursive_pattern: |
+  Implementation errors detected by deep-test will trigger:
+  1. Fix task injection into backlog
+  2. Re-execution of deep-implement for fixes
+  3. Re-testing until pass
+
+error_handlers:
+  - missing_input
+  - invalid_input
+  - compilation_error
+  - runtime_error
+  - partial_completion
+  - timeout
+  - resource_exhaustion
