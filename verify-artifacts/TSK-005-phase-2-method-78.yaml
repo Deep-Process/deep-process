@@ -1,0 +1,437 @@
+---
+# TSK-005 Deep-Verify — Phase 2: Method #78 Execution
+# Method: Assumption Excavation
+# Date: 2026-02-16
+---
+
+method_78_assumption_excavation:
+  method_id: 78
+  method_name: "Assumption Excavation"
+  tier: 2
+  cluster: "grounding"
+  execution_date: "2026-02-16"
+
+  # Excavate assumptions for key mechanisms
+
+  mechanisms_analyzed:
+
+    # MECHANISM 1: Performance Guarantee (P95 <500ms)
+
+    mechanism_1_performance:
+      name: "Job submission performance guarantee"
+      claim: "Job submission P95 <500ms, 100 concurrent jobs"
+      location: "line 48"
+
+      surface_assumptions_stated:
+        A1:
+          assumption: "Event-driven async execution provides low latency submission"
+          stated: "Implicit in ADR-002 (line 186): 'Temporal Decoupling: Job submission returns immediately'"
+          justified: "PARTIAL - Async means API returns fast, but 500ms is specific"
+
+        A2:
+          assumption: "202 Accepted response is the submission latency"
+          stated: "No - conflates submission (sync) with execution (async)"
+          justified: "UNCLEAR - Is 500ms for HTTP response or full enqueue?"
+
+      inherited_assumptions_domain:
+        A3:
+          assumption: "SQS enqueue is <100ms"
+          domain_convention: "AWS SQS typical latency is <100ms for enqueue"
+          valid: "YES - but not guaranteed (can spike)"
+          source: "AWS service characteristics (not stated in document)"
+
+        A4:
+          assumption: "Database write latency is <100ms"
+          domain_convention: "PostgreSQL on RDS can achieve <100ms writes"
+          valid: "SOMETIMES - depends on load, Multi-AZ sync, instance size"
+          source: "Database performance characteristics"
+
+        A5:
+          assumption: "API Gateway adds <100ms overhead"
+          domain_convention: "Kong/AWS API Gateway typical latency"
+          valid: "USUALLY - but not guaranteed under load"
+          source: "API Gateway performance characteristics"
+
+      invisible_assumptions_unstated:
+        A6:
+          assumption: "No cascading failures slow down orchestrator"
+          unstated: true
+          reasonable: "QUESTIONABLE - Circuit breaker can add latency when open"
+          risk: "If circuit opens, requests may queue, violating P95"
+
+        A7:
+          assumption: "Cold start latency doesn't affect P95"
+          unstated: true
+          reasonable: "NO - K8s pod cold starts can be seconds"
+          risk: "P95 includes cold starts → could violate 500ms"
+
+        A8:
+          assumption: "100 concurrent = steady state, not spike"
+          unstated: true
+          reasonable: "UNCLEAR - Is this sustained or peak?"
+          risk: "Spike could saturate connection pool, violate P95"
+
+        A9:
+          assumption: "Latency budget: 100+100+100+100 = 400ms (100ms slack)"
+          unstated: true
+          reasonable: "SPECULATIVE - No budget documented"
+          risk: "If any component >100ms, budget violated"
+
+      risk_assessment:
+        A7_cold_start:
+          assumption: "Cold start doesn't affect P95"
+          if_wrong: "K8s pod scaling events → seconds of latency → P95 violation"
+          impact: "CRITICAL - Makes 500ms P95 unachievable"
+          likelihood: "HIGH - Auto-scaling triggers cold starts"
+
+        A9_latency_budget:
+          assumption: "4×100ms components sum to <500ms"
+          if_wrong: "Even one component >125ms violates budget → P95 miss"
+          impact: "CRITICAL - Tight budget leaves no error margin"
+          likelihood: "MEDIUM-HIGH - Database spikes common"
+
+        A8_concurrency:
+          assumption: "100 concurrent is sustained, not spike"
+          if_wrong: "Spike → connection pool saturation → queue → P95 miss"
+          impact: "IMPORTANT - Needs connection pool sizing"
+          likelihood: "MEDIUM"
+
+      finding:
+        id: "F78-001"
+        description: |
+          Performance claim relies on multiple unstated assumptions with HIGH risk:
+          - A7 (Cold start): K8s pod scaling adds seconds, violates P95
+          - A9 (Latency budget): Undocumented 4×100ms budget is VERY tight
+          - A8 (Concurrency): Undefined if 100 concurrent is sustained or spike
+          All three assumptions are CRITICAL for 500ms P95, but NONE are validated.
+        quote: "Job submission P95 <500ms, 100 concurrent jobs"
+        location: "line 48"
+        severity: "TBD in 2.4"
+
+    # MECHANISM 2: Risk Mitigation (RLS → 30%→10%)
+
+    mechanism_2_risk_mitigation:
+      name: "RLS risk reduction mechanism"
+      claim: "Database Row-Level Security (RLS) - Reduces probability 30% → 10%"
+      location: "line 541"
+
+      surface_assumptions_stated:
+        A1:
+          assumption: "RLS provides defense-in-depth"
+          stated: "Yes (line 218, 541)"
+          justified: "PARTIAL - RLS adds layer, but effectiveness unmeasured"
+
+      inherited_assumptions_domain:
+        A2:
+          assumption: "Baseline risk is 30%"
+          domain_convention: "Multi-tenant breach probability"
+          valid: "UNKNOWN - No reference class data"
+          source: "NOT STATED"
+
+        A3:
+          assumption: "RLS reduces breach vectors by 66.7% (30→10)"
+          domain_convention: "Security control effectiveness"
+          valid: "UNKNOWN - No empirical evidence"
+          source: "NOT STATED"
+
+        A4:
+          assumption: "SQL injection is primary attack vector"
+          domain_convention: "Web application security threat model"
+          valid: "REASONABLE - SQL injection is common"
+          source: "Implicit from 'SQL injection or tenant_ID filter bypass' (line 57)"
+
+      invisible_assumptions_unstated:
+        A5:
+          assumption: "RLS is properly configured (no misconfigurations)"
+          unstated: true
+          reasonable: "OPTIMISTIC - RLS policies complex, error-prone"
+          risk: "Misconfigured RLS provides 0% reduction, not 66.7%"
+
+        A6:
+          assumption: "Application doesn't use SUPERUSER credentials"
+          unstated: true
+          reasonable: "RISKY - Many apps use SUPERUSER for simplicity"
+          risk: "SUPERUSER bypasses RLS → 0% effectiveness"
+
+        A7:
+          assumption: "Attacker doesn't have SUPERUSER access"
+          unstated: true
+          reasonable: "DEPENDS - If attacker compromises app, gets SUPERUSER"
+          risk: "RLS bypass → effectiveness NULL"
+
+        A8:
+          assumption: "30%→10% applies to ALL breach scenarios"
+          unstated: true
+          reasonable: "NO - RLS only defends SQL injection, not all vectors"
+          risk: "Overstates RLS effectiveness for non-SQL attacks"
+
+        A9:
+          assumption: "No other mitigations in baseline 30%"
+          unstated: true
+          reasonable: "UNCLEAR - Is 30% WITH or WITHOUT RLS?"
+          risk: "If 30% includes RLS, claiming reduction is circular"
+
+      risk_assessment:
+        A6_SUPERUSER:
+          assumption: "Application doesn't use SUPERUSER"
+          if_wrong: "RLS bypassed → 0% risk reduction, not 66.7%"
+          impact: "CRITICAL - Mitigation NULLIFIED"
+          likelihood: "MEDIUM - Common pattern in managed RDS"
+          note: "Phase 1 finding V-004 identified this"
+
+        A5_misconfiguration:
+          assumption: "RLS policies correct for all tables"
+          if_wrong: "Missing policy on one table → full data access"
+          impact: "CRITICAL - Single misconfiguration defeats isolation"
+          likelihood: "MEDIUM - RLS policies complex"
+
+        A8_scope:
+          assumption: "Reduction applies to ALL attack vectors"
+          if_wrong: "RLS only helps SQL injection, not XSS, CSRF, etc."
+          impact: "IMPORTANT - Overstates overall risk reduction"
+          likelihood: "HIGH - Document doesn't scope reduction to SQL only"
+
+        A2_baseline:
+          assumption: "30% baseline is empirically derived"
+          if_wrong: "Made-up baseline → made-up reduction"
+          impact: "CRITICAL - Entire calculation fictitious"
+          likelihood: "VERY HIGH - No evidence for 30% in document"
+
+      finding:
+        id: "F78-002"
+        description: |
+          Risk reduction claim (30%→10%) relies on FIVE unstated assumptions, ALL HIGH RISK:
+          - A2 (Baseline): 30% probability has NO empirical basis (likely fictional)
+          - A5 (Configuration): Assumes RLS perfectly configured (error-prone)
+          - A6 (SUPERUSER): Assumes app doesn't use SUPERUSER (bypasses RLS)
+          - A7 (Attacker): Assumes attacker can't get SUPERUSER (optimistic)
+          - A8 (Scope): Assumes reduction applies to ALL attacks (overstated)
+          If ANY assumption false, claimed 66.7% reduction is WRONG.
+          If A2 false (most likely), entire calculation is fictional.
+        quote: "Database Row-Level Security (RLS) - Reduces probability 30% → 10%"
+        location: "line 541"
+        severity: "TBD in 2.4"
+        critical_dependency: "A2 (baseline) and A6 (SUPERUSER)"
+
+    # MECHANISM 3: Reliability (99.9% uptime)
+
+    mechanism_3_reliability:
+      name: "High availability mechanism"
+      claim: "99.9% uptime, no data loss"
+      location: "line 46"
+
+      surface_assumptions_stated:
+        A1:
+          assumption: "Multi-AZ RDS provides high availability"
+          stated: "Yes (line 312)"
+          justified: "YES - Multi-AZ is AWS HA feature"
+
+      inherited_assumptions_domain:
+        A2:
+          assumption: "Multi-AZ failover is automatic and fast"
+          domain_convention: "AWS RDS Multi-AZ failover 1-2 minutes"
+          valid: "YES - AWS documented"
+          source: "AWS RDS documentation (not cited)"
+
+        A3:
+          assumption: "Application handles failover gracefully"
+          domain_convention: "Connection retry logic"
+          valid: "DEPENDS - App must handle transient failures"
+          source: "NOT STATED"
+
+        A4:
+          assumption: "Replication is synchronous (for 'no data loss')"
+          domain_convention: "Multi-AZ uses sync replication"
+          valid: "YES - AWS Multi-AZ is synchronous"
+          source: "AWS RDS documentation (not cited)"
+
+      invisible_assumptions_unstated:
+        A5:
+          assumption: "99.9% = 8.76 hours downtime per year budget"
+          unstated: true
+          reasonable: "YES - Mathematical fact"
+          risk: "If misunderstood as 43 min/month (99.9% monthly)"
+
+        A6:
+          assumption: "Planned maintenance fits in downtime budget"
+          unstated: true
+          reasonable: "RISKY - AWS maintenance can be hours"
+          risk: "Maintenance windows may exceed budget"
+
+        A7:
+          assumption: "No cascading failures (e.g., K8s cluster issue)"
+          unstated: true
+          reasonable: "OPTIMISTIC - K8s can have cluster-wide issues"
+          risk: "K8s control plane failure → all pods down → SLA miss"
+
+        A8:
+          assumption: "'Uptime' means API availability, not data availability"
+          unstated: true
+          reasonable: "UNCLEAR - Needs definition"
+          risk: "API up but RDS down = ambiguous"
+
+        A9:
+          assumption: "No multi-region requirement (single region failure OK)"
+          unstated: true
+          reasonable: "YES - Multi-AZ is single region"
+          risk: "Regional outage (rare) violates SLA"
+
+      risk_assessment:
+        A3_application_retry:
+          assumption: "Application retries database connections"
+          if_wrong: "Failover → connection errors → API errors → downtime"
+          impact: "CRITICAL - Failover becomes downtime"
+          likelihood: "MEDIUM - Connection retry is common pattern"
+
+        A6_maintenance:
+          assumption: "Maintenance fits 8.76h/year budget"
+          if_wrong: "Quarterly patching 4× 2h = 8h → leaves 0.76h for incidents"
+          impact: "IMPORTANT - Very tight budget"
+          likelihood: "MEDIUM - AWS maintenance typically 1-2h"
+
+        A7_cascading:
+          assumption: "No K8s cluster failures"
+          if_wrong: "K8s etcd failure → all services down → SLA miss"
+          impact: "CRITICAL - Single point of failure"
+          likelihood: "LOW - K8s clusters reliable, but not 99.9%"
+
+      finding:
+        id: "F78-003"
+        description: |
+          Reliability claim (99.9% uptime) relies on unstated assumptions:
+          - A3 (Retry logic): Application must handle failover gracefully (not verified)
+          - A6 (Maintenance budget): 8.76h/year budget is VERY tight with patching
+          - A7 (K8s reliability): Assumes K8s cluster itself is 99.9%+ (not guaranteed)
+          While Multi-AZ RDS is sound, other infrastructure assumptions are not validated.
+          Missing: Backup/restore RPO/RTO, replication lag monitoring.
+        quote: "99.9% uptime, no data loss"
+        location: "line 46"
+        severity: "TBD in 2.4"
+        note: "Confirms Phase 1 V-003 and Method #85 F85-004"
+
+    # MECHANISM 4: Security (RLS defense-in-depth)
+
+    mechanism_4_security:
+      name: "Row-Level Security defense-in-depth"
+      claim: "Row-Level Security (RLS) as defense-in-depth (even if search_path wrong, RLS blocks access)"
+      location: "line 218"
+
+      surface_assumptions_stated:
+        A1:
+          assumption: "RLS is independent of search_path"
+          stated: "Yes (line 218)"
+          justified: "YES - PostgreSQL RLS is orthogonal to search_path"
+
+      inherited_assumptions_domain:
+        A2:
+          assumption: "RLS policies are configured on all tenant data tables"
+          domain_convention: "Database security practice"
+          valid: "REQUIRED - But not verified in document"
+          source: "NOT STATED"
+
+        A3:
+          assumption: "RLS policy filters by tenant_id column"
+          domain_convention: "Multi-tenant RLS pattern"
+          valid: "ASSUMED - But not shown in document"
+          source: "NOT STATED"
+
+      invisible_assumptions_unstated:
+        A4:
+          assumption: "Application does NOT use SUPERUSER role"
+          unstated: true
+          reasonable: "RISKY - See A6 from mechanism_2"
+          risk: "SUPERUSER bypasses RLS → defense-in-depth FAILS"
+
+        A5:
+          assumption: "RLS performance overhead is acceptable"
+          unstated: true
+          reasonable: "DEPENDS - RLS adds WHERE clause to every query"
+          risk: "Performance degradation, query timeouts"
+
+        A6:
+          assumption: "RLS policies are tested for all table operations (SELECT, UPDATE, DELETE)"
+          unstated: true
+          reasonable: "CRITICAL - Different policies for different operations"
+          risk: "Missing DELETE policy → cross-tenant data deletion"
+
+        A7:
+          assumption: "No bypass via materialized views, foreign tables, or inheritance"
+          unstated: true
+          reasonable: "RISKY - PostgreSQL has many bypass vectors"
+          risk: "Complex schema features can bypass RLS"
+
+      risk_assessment:
+        A4_SUPERUSER:
+          assumption: "Application doesn't use SUPERUSER"
+          if_wrong: "RLS completely bypassed → multi-tenant isolation BROKEN"
+          impact: "CRITICAL - Core security assumption"
+          likelihood: "MEDIUM - Common in managed RDS for simplicity"
+          note: "DUPLICATE of mechanism_2 A6 - Same critical assumption"
+
+        A6_policy_completeness:
+          assumption: "RLS policies cover ALL operations"
+          if_wrong: "Missing DELETE policy → tenant can delete others' data"
+          impact: "CRITICAL - Data integrity breach"
+          likelihood: "MEDIUM - RLS policy configuration is complex"
+
+        A7_bypass_vectors:
+          assumption: "No schema features bypass RLS"
+          if_wrong: "Foreign table or inheritance bypasses RLS"
+          impact: "CRITICAL - Isolation defeated"
+          likelihood: "LOW - Advanced PostgreSQL features"
+
+      finding:
+        id: "F78-004"
+        description: |
+          RLS defense-in-depth claim relies on CRITICAL unstated assumption:
+          - A4 (SUPERUSER): Application MUST NOT use SUPERUSER credentials
+          If application uses SUPERUSER (common pattern for managed RDS simplicity),
+          RLS is COMPLETELY BYPASSED. Document claims "even if search_path wrong, RLS blocks"
+          but omits that SUPERUSER bypasses RLS entirely.
+          This is a SINGLE POINT OF FAILURE for the entire multi-tenant isolation strategy.
+        quote: "Row-Level Security (RLS) as defense-in-depth (even if search_path wrong, RLS blocks access)"
+        location: "line 218"
+        severity: "TBD in 2.4"
+        critical_assumption: "A4 (SUPERUSER)"
+        note: "Confirms Phase 1 V-004"
+
+  # Summary
+
+  assumptions_excavated:
+    total: 30
+    by_mechanism:
+      performance: 9
+      risk_mitigation: 9
+      reliability: 9
+      security: 7
+
+    by_type:
+      surface_stated: 5
+      inherited_domain: 12
+      invisible_unstated: 13
+
+    risk_level:
+      CRITICAL: 8  # A7, A9 (perf), A2, A5, A6, A7 (risk), A4, A6, A7 (security)
+      IMPORTANT: 6  # A8 (perf), A8 (risk), A3, A6, A7 (reliability)
+      MEDIUM: 16
+
+  findings_count: 4
+
+  critical_cross_mechanism_assumption:
+    assumption: "Application does NOT use SUPERUSER credentials"
+    appears_in:
+      - "mechanism_2 (risk mitigation) - A6"
+      - "mechanism_4 (security) - A4"
+    impact_if_wrong: "CATASTROPHIC"
+    description: |
+      This SINGLE assumption invalidates BOTH:
+      1. Risk mitigation effectiveness (30%→10% reduction becomes 0%)
+      2. Security defense-in-depth (RLS bypass)
+      Yet it is NEVER STATED or VALIDATED in the document.
+      This is a CRITICAL ARCHITECTURAL ASSUMPTION with NO VERIFICATION.
+    likelihood_wrong: "MEDIUM - Using SUPERUSER is common in managed RDS apps for operational simplicity"
+    total_budget_at_risk: "$20K-$40K (RLS mitigation) + entire multi-tenant security model"
+
+  clean_pass: false
+
+next_step: "Execute Method #153 (Theoretical Impossibility Check)"

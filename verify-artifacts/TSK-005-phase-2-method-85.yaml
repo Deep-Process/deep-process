@@ -1,0 +1,468 @@
+---
+# TSK-005 Deep-Verify — Phase 2: Method #85 Execution
+# Method: Grounding Check
+# Date: 2026-02-16
+---
+
+method_85_grounding_check:
+  method_id: 85
+  method_name: "Grounding Check"
+  tier: 2
+  cluster: "grounding"
+  execution_date: "2026-02-16"
+
+  # Step 1: Extract significant claims (from Phase 1, focusing on critical ones)
+
+  significant_claims_analyzed:
+    total: 12  # Focusing on high-impact claims
+
+    claim_C008:
+      claim_id: "C008"
+      text: "99.9% uptime, no data loss"
+      location: "line 46"
+      criticality: "HIGH (Quality Attribute #1 - Reliability)"
+
+      evidence_search:
+        explicit_evidence:
+          status: "PARTIAL"
+          found:
+            - "Multi-AZ RDS deployment (line 312) ✓"
+            - "RDS failover mentioned (line 473 - alert trigger) ✓"
+          missing:
+            - "Replication strategy (sync/async?) - NOT specified"
+            - "Backup/restore RPO/RTO - NOT specified"
+            - "Downtime budget calculation (99.9% = 8.76h/year) - NOT shown"
+            - "Historical uptime data - NOT provided"
+            - "SLA documentation - NOT referenced"
+
+        implicit_evidence:
+          status: "WEAK"
+          analysis: |
+            Multi-AZ deployment implies redundancy, but:
+            - Does NOT prove 99.9% uptime (could be 99%, 95%, etc.)
+            - Does NOT prove "no data loss" (requires sync replication + backup)
+            - Failover time not specified (could violate downtime budget)
+
+        verdict: "PARTIALLY GROUNDED"
+        grounding_score: "30% (2/7 fundamentals documented)"
+
+    claim_C010:
+      claim_id: "C010"
+      text: "Job submission P95 <500ms, 100 concurrent jobs"
+      location: "line 48"
+      criticality: "HIGH (Quality Attribute #3 - Performance)"
+
+      evidence_search:
+        explicit_evidence:
+          status: "NONE"
+          found: []
+          missing:
+            - "Latency budget breakdown - NOT provided"
+            - "Component-level measurements (API Gateway, Orchestrator, DB, SQS) - NOT provided"
+            - "P95 benchmarking data - NOT provided"
+            - "Load testing results - NOT referenced"
+
+        implicit_evidence:
+          status: "NONE"
+          analysis: |
+            Architecture mentions components (API Gateway, Orchestrator, SQS) but:
+            - No latency specifications for any component
+            - Cannot derive 500ms P95 from architecture alone
+            - Event-driven async execution does NOT imply submission latency
+
+        verdict: "UNGROUNDED"
+        grounding_score: "0% (0/5 fundamentals documented)"
+
+    claim_C050:
+      claim_id: "C050"
+      text: "Database Row-Level Security (RLS) - $20K-$40K - Reduces probability 30% → 10% (defense-in-depth)"
+      location: "line 541"
+      criticality: "CRITICAL (VR-001 mitigation)"
+
+      evidence_search:
+        explicit_evidence:
+          status: "NONE"
+          found: []
+          missing:
+            - "Baseline 30% probability derivation - NOT provided"
+            - "3x reduction (30%→10%) empirical evidence - NOT provided"
+            - "Reference class data - NOT cited"
+            - "Expert judgment documentation - NOT provided"
+            - "RLS effectiveness studies - NOT referenced"
+
+        implicit_evidence:
+          status: "NONE"
+          analysis: |
+            RLS implementation described (schema-per-tenant + RLS policies), but:
+            - No connection between RLS presence and 3x risk reduction
+            - No mechanism explaining HOW RLS achieves 30%→10%
+            - Cannot derive effectiveness from implementation alone
+
+        verdict: "UNGROUNDED"
+        grounding_score: "0% (0/5 fundamentals documented)"
+        cui_bono_flag: "HIGH - $20K-$40K investment decision based on this claim"
+
+    claim_C051:
+      claim_id: "C051"
+      text: "Real-Time Tenant Isolation Anomaly Detection - $30K-$50K - Improves detectability 25% → 60%"
+      location: "line 549"
+      criticality: "CRITICAL (VR-001 mitigation)"
+
+      evidence_search:
+        explicit_evidence:
+          status: "NONE"
+          found: []
+          missing:
+            - "Baseline 25% detectability - NOT derived"
+            - "Improvement to 60% (2.4x) - NOT justified"
+            - "Anomaly detection effectiveness research - NOT cited"
+            - "False positive/negative rates - NOT specified"
+
+        implicit_evidence:
+          status: "NONE"
+          analysis: "No basis to derive 2.4x detectability improvement from anomaly detection feature"
+
+        verdict: "UNGROUNDED"
+        grounding_score: "0%"
+        cui_bono_flag: "HIGH - $30K-$50K investment decision"
+
+    claim_C009:
+      claim_id: "C009"
+      text: "SOC 2 Type II, GDPR/HIPAA compliance"
+      location: "line 47"
+      criticality: "HIGH (Quality Attribute #2 - Security)"
+
+      evidence_search:
+        explicit_evidence:
+          status: "PARTIAL"
+          found:
+            - "Schema-per-tenant isolation (line 208) ✓"
+            - "Row-Level Security (line 218) ✓"
+            - "Encryption at rest (line 375) ✓"
+            - "Audit logging 7-year retention (line 380) ✓"
+            - "TLS 1.3 (line 374) ✓"
+          missing:
+            - "SOC 2 audit report - NOT provided"
+            - "GDPR compliance certification - NOT provided"
+            - "HIPAA attestation - NOT provided"
+            - "Compliance gap analysis - NOT provided"
+
+        implicit_evidence:
+          status: "WEAK"
+          analysis: |
+            Architecture includes compliance-relevant controls (encryption, audit, isolation),
+            but presence of controls does NOT equal certification. Compliance requires:
+            - External audit (SOC 2)
+            - Legal review (GDPR)
+            - HIPAA assessment
+
+        verdict: "PARTIALLY GROUNDED"
+        grounding_score: "40% (controls present, certification not shown)"
+        note: "Claim may be ASPIRATIONAL (target state) vs ACTUAL (current state)"
+
+    claim_C029:
+      claim_id: "C029"
+      text: "100 tenants on single db.r6g.2xlarge ($600/month) vs 100 separate DBs ($50K/month)"
+      location: "line 212"
+      criticality: "MEDIUM (Cost justification for multi-tenancy)"
+
+      evidence_search:
+        explicit_evidence:
+          status: "NONE"
+          found: []
+          missing:
+            - "AWS RDS pricing verification - NOT shown"
+            - "db.r6g.2xlarge cost calculation - NOT shown"
+            - "100× db.t3.micro (or equivalent) cost - NOT shown"
+
+        implicit_evidence:
+          status: "WEAK"
+          analysis: |
+            db.r6g.2xlarge pricing can be verified externally (~$600/mo is plausible).
+            100 separate instances at ~$500/mo each = $50K (rough calculation).
+            But document doesn't show this calculation.
+
+        verdict: "IMPLICITLY GROUNDED"
+        grounding_score: "60% (verifiable externally, not shown in document)"
+
+    claim_C007:
+      claim_id: "C007"
+      text: "Cost-efficient: 100 tenants on single DB instance ($600/month vs $50K for separate DBs)"
+      location: "line 29"
+      criticality: "MEDIUM (Duplicate of C029)"
+
+      evidence_search:
+        verdict: "DUPLICATE of C029"
+
+    claim_C014:
+      claim_id: "C014"
+      text: "SOC 2 violation, GDPR fines up to €20M, 70% customer churn"
+      location: "line 58"
+      criticality: "HIGH (VR-001 impact assessment)"
+
+      evidence_search:
+        explicit_evidence:
+          status: "PARTIAL"
+          found:
+            - "GDPR Article 83: max fine €20M or 4% global revenue (whichever higher) - VERIFIABLE ✓"
+          missing:
+            - "SOC 2 violation consequences - NOT specified"
+            - "70% customer churn derivation - NOT provided"
+            - "Historical churn data after breaches - NOT cited"
+
+        implicit_evidence:
+          status: "WEAK"
+          analysis: |
+            GDPR €20M is statutory maximum (verifiable).
+            70% churn is plausible but not derived from data.
+
+        verdict: "PARTIALLY GROUNDED"
+        grounding_score: "40% (GDPR statutory, churn ungrounded)"
+
+    claim_C049:
+      claim_id: "C049"
+      text: "Total impact: $100M+ liability"
+      location: "line 536"
+      criticality: "HIGH (VR-001 worst-case scenario)"
+
+      evidence_search:
+        explicit_evidence:
+          status: "PARTIAL"
+          found:
+            - "€20M GDPR fines (line 535) ✓"
+            - "$50M HIPAA penalties (line 535) ✓"
+          missing:
+            - "$100M calculation: €20M + $50M = $70M, not $100M"
+            - "Customer churn impact ($30M?) - NOT calculated"
+            - "Reputational damage quantification - NOT provided"
+
+        implicit_evidence:
+          status: "WEAK"
+          analysis: "$70M (fines) + $30M (est. churn) ≈ $100M, but breakdown not shown"
+
+        verdict: "PARTIALLY GROUNDED"
+        grounding_score: "50% (fines grounded, total calculation missing)"
+
+    claim_C027:
+      claim_id: "C027"
+      text: "PostgreSQL enforces schema boundaries at kernel level"
+      location: "line 210"
+      criticality: "MEDIUM (Technical claim about PostgreSQL)"
+
+      evidence_search:
+        explicit_evidence:
+          status: "NONE"
+          found: []
+          missing: "PostgreSQL documentation reference - NOT provided"
+
+        implicit_evidence:
+          status: "INCORRECT"
+          analysis: |
+            PostgreSQL search_path is APPLICATION-LEVEL, not kernel-level.
+            Kernel-level enforcement would be OS-level (e.g., SELinux, seccomp).
+            PostgreSQL runs in userspace, uses application-level namespace isolation.
+
+        verdict: "UNGROUNDED (and likely INCORRECT)"
+        grounding_score: "0% (technical inaccuracy)"
+        finding_potential: "IMPORTANT - Misleading technical claim"
+
+    claim_C036:
+      claim_id: "C036"
+      text: "Fail-fast: Return error in <1ms when circuit open (vs 60s timeout)"
+      location: "line 237"
+      criticality: "LOW (Circuit breaker performance claim)"
+
+      evidence_search:
+        explicit_evidence:
+          status: "NONE"
+          found: []
+          missing: "Circuit breaker implementation latency measurement - NOT provided"
+
+        implicit_evidence:
+          status: "WEAK"
+          analysis: |
+            In-memory circuit breaker state check is typically <1ms, but:
+            - No measurement provided
+            - "<1ms" is very specific without evidence
+
+        verdict: "PARTIALLY GROUNDED"
+        grounding_score: "30% (plausible but not measured)"
+
+    claim_C055:
+      claim_id: "C055"
+      text: "All 8 canonical operations executed, all gates passed, 4 ADRs created, 9 diagrams generated"
+      location: "line 691"
+      criticality: "MEDIUM (Process execution claim)"
+
+      evidence_search:
+        explicit_evidence:
+          status: "PARTIAL"
+          found:
+            - "4 ADRs present in document (ADR-001, ADR-002, ADR-003, ADR-004) ✓"
+          missing:
+            - "8 canonical operations - NOT listed or verified in document"
+            - "9 diagrams - Referenced but marked 'not provided' (13 dead refs)"
+
+        implicit_evidence:
+          status: "WEAK"
+          analysis: "ADRs verified (4/4), diagrams NOT provided (0/9), operations unclear"
+
+        verdict: "PARTIALLY GROUNDED"
+        grounding_score: "33% (ADRs grounded, operations/diagrams unverified)"
+
+  # Step 3: CUI BONO Analysis (Who benefits from ungrounded claims?)
+
+  cui_bono_analysis:
+    C010_performance:
+      claim: "Job submission P95 <500ms"
+      beneficiaries:
+        - "Sales/Marketing: Competitive positioning (faster than competitors)"
+        - "Product Management: Meets customer expectations"
+      pressure_to_claim: "HIGH"
+      scrutiny_level: "HIGH - Performance SLA directly impacts customer satisfaction"
+      consequences_if_wrong: "Customer complaints, SLA violations, credibility loss"
+
+    C050_risk_mitigation:
+      claim: "RLS reduces probability 30% → 10%"
+      beneficiaries:
+        - "Security team: Justifies $20K-$40K budget request"
+        - "Risk management: Shows proactive mitigation"
+      pressure_to_claim: "HIGH"
+      scrutiny_level: "CRITICAL - Investment decision based on unverified effectiveness"
+      consequences_if_wrong: "$20K-$40K wasted, risk NOT actually reduced, false sense of security"
+
+    C051_anomaly_detection:
+      claim: "Anomaly detection improves detectability 25% → 60%"
+      beneficiaries:
+        - "Security team: Justifies $30K-$50K budget"
+        - "Compliance: Demonstrates detection capability"
+      pressure_to_claim: "HIGH"
+      scrutiny_level: "CRITICAL - $30K-$50K investment decision"
+      consequences_if_wrong: "$30K-$50K wasted, false confidence in detection"
+
+    C008_uptime:
+      claim: "99.9% uptime, no data loss"
+      beneficiaries:
+        - "Sales: Enterprise SLA requirement (many require 99.9%+)"
+        - "Product: Competitive parity"
+      pressure_to_claim: "MEDIUM-HIGH"
+      scrutiny_level: "HIGH - Reliability is Quality Attribute #1"
+      consequences_if_wrong: "Failed SLA claims, enterprise sales lost"
+
+  # Step 4: Findings (Claims with missing evidence → severity assignment in 2.4)
+
+  findings:
+    F85-001:
+      method: 85
+      quote: "Job submission P95 <500ms, 100 concurrent jobs"
+      location: "line 48"
+      description: |
+        Performance guarantee completely ungrounded. Zero evidence provided:
+        - No latency budget breakdown
+        - No component-level measurements
+        - No P95 benchmarking data
+        - No load testing results
+        Architecture describes components but provides no latency specifications.
+        Verdict: UNGROUNDED (0% grounding score).
+        CUI BONO: Sales/marketing benefits from performance claim → HIGH scrutiny warranted.
+      pattern_match: "UG-001 (Undefined Central Concept)"
+      severity: "TBD in 2.4"
+      grounding_score: "0%"
+
+    F85-002:
+      method: 85
+      quote: "Database Row-Level Security (RLS) - Reduces probability 30% → 10%"
+      location: "line 541"
+      description: |
+        Risk mitigation effectiveness claim completely ungrounded. Zero evidence:
+        - No baseline 30% probability derivation
+        - No 3x reduction empirical basis
+        - No reference class data
+        - No expert judgment documentation
+        Verdict: UNGROUNDED (0% grounding score).
+        CUI BONO: Security team justifies $20K-$40K budget → CRITICAL scrutiny.
+        Investment decision based on fictional effectiveness metric.
+      pattern_match: "SI-004 (Fictional Benchmark Claims)"
+      severity: "TBD in 2.4"
+      grounding_score: "0%"
+      cui_bono_severity_escalation: "CRITICAL - Budget impact $20K-$40K"
+
+    F85-003:
+      method: 85
+      quote: "Real-Time Tenant Isolation Anomaly Detection - Improves detectability 25% → 60%"
+      location: "line 549"
+      description: |
+        Detectability improvement claim completely ungrounded. Zero evidence:
+        - No baseline 25% detectability justification
+        - No 2.4x improvement evidence
+        - No anomaly detection effectiveness research cited
+        Verdict: UNGROUNDED (0% grounding score).
+        CUI BONO: Security team justifies $30K-$50K budget → CRITICAL scrutiny.
+      pattern_match: "SI-004 (Fictional Benchmark Claims)"
+      severity: "TBD in 2.4"
+      grounding_score: "0%"
+      cui_bono_severity_escalation: "CRITICAL - Budget impact $30K-$50K"
+
+    F85-004:
+      method: 85
+      quote: "99.9% uptime, no data loss"
+      location: "line 46"
+      description: |
+        Reliability guarantee partially grounded. Evidence found:
+        - Multi-AZ RDS deployment ✓
+        - RDS failover mechanism ✓
+        Evidence missing:
+        - Replication strategy (sync/async?)
+        - Backup/restore RPO/RTO
+        - Downtime budget calculation
+        - Historical uptime data
+        Verdict: PARTIALLY GROUNDED (30% grounding score).
+        CUI BONO: Sales requires 99.9% for enterprise deals → HIGH scrutiny.
+      pattern_match: null
+      severity: "TBD in 2.4"
+      grounding_score: "30%"
+      note: "Confirms Phase 1 finding V-003"
+
+    F85-005:
+      method: 85
+      quote: "PostgreSQL enforces schema boundaries at kernel level"
+      location: "line 210"
+      description: |
+        Technical claim is INCORRECT and ungrounded.
+        - PostgreSQL search_path is application-level, not kernel-level
+        - Kernel-level enforcement requires OS mechanisms (SELinux, etc.)
+        - PostgreSQL runs in userspace, uses namespace isolation
+        Verdict: UNGROUNDED and TECHNICALLY INCORRECT.
+        This is a misleading claim about PostgreSQL security architecture.
+      pattern_match: null
+      severity: "TBD in 2.4"
+      grounding_score: "0%"
+      technical_error: true
+
+  findings_count: 5
+  ungrounded_count: 4
+  partially_grounded_count: 1
+
+  clean_pass: false
+
+  summary:
+    total_claims_analyzed: 12
+    grounding_verdicts:
+      UNGROUNDED: 4  # C010, C050, C051, C027
+      PARTIALLY_GROUNDED: 5  # C008, C009, C029, C049, C036, C055
+      GROUNDED: 0  # None fully grounded
+      IMPLICITLY_GROUNDED: 1  # C029
+
+    critical_findings:
+      - "F85-001: Performance guarantee (P95 <500ms) 0% grounded"
+      - "F85-002: Risk mitigation (30%→10%) 0% grounded, $20K-$40K at stake"
+      - "F85-003: Detectability improvement (25%→60%) 0% grounded, $30K-$50K at stake"
+      - "F85-005: PostgreSQL 'kernel-level' claim is technically incorrect"
+
+    cui_bono_flags:
+      HIGH: 3  # C010, C050, C051 - Budget/SLA impact
+      MEDIUM: 1  # C008 - Sales pressure
+
+    budget_impact: "$50K-$90K in investment decisions based on ungrounded claims"
+
+next_step: "Execute Method #78 (Assumption Excavation)"

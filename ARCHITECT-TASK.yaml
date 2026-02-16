@@ -1,0 +1,244 @@
+---
+# ARCHITECT TASK: Design Ecosystem Architecture
+# Input from Phase 1 (deep-explore)
+
+task_id: "ARCH-ECOSYSTEM-001"
+created: "2026-02-16"
+process: "deep-architect"
+
+# INPUTS FROM EXPLORATION
+exploration_findings:
+  missing_processes:
+    critical:
+      - deep-sync
+      - deep-validate
+      - deep-event
+      - deep-migrate
+      - deep-coherence
+    recommended:
+      - deep-lineage
+      - deep-cascade
+
+  missing_schemas: 12
+  coordination_mechanisms:
+    - Event-sourcing pattern
+    - Handoff protocol
+    - Coherence enforcement loop
+    - Cross-process communication matrix
+
+# ARCHITECTURE REQUIREMENTS
+requirements:
+  functional:
+    - ALL artifacts in YAML format with JSON schemas
+    - Git-based temporal versioning (main/planned/*/historical/*)
+    - Event log (append-only, immutable, hash-chained)
+    - State reconstruction from events
+    - Handoff protocol with pre/post validation
+    - Temporal branching with effective_from dates
+    - Real-time coherence validation
+    - Semantic drift detection
+    - Version migration automation
+
+  non_functional:
+    - 100% compliance with 13 zasad
+    - Self-contained (just-in-time loading)
+    - Binding gates prevent skipping
+    - Counter-checks on all claims
+    - Explicit reasoning blocks
+    - Imperative language only
+    - Zero decoration
+
+  constraints:
+    - Use deep-process as orchestrator
+    - File-based (no database requirement)
+    - LLM-executable (readable by Claude)
+    - Human-anchored (operator approval points)
+
+# DESIGN TASKS
+
+task_01_artifact_schema_hierarchy:
+  description: "Design hierarchy of all artifact types with JSON schemas"
+  deliverables:
+    - artifact-schema-hierarchy.yaml (taxonomy tree)
+    - schemas/ (12 new schemas + updates to existing)
+  must_include:
+    - Base artifact schema (inherited by all)
+    - Process-specific schemas
+    - System integration schemas (event, state, coherence)
+    - Version management schemas
+  compliance_check:
+    - Each schema self-contained (no external dependencies)
+    - All fields have examples
+    - Validation constraints specified
+
+task_02_event_sourcing_mechanism:
+  description: "Design event log and state reconstruction"
+  deliverables:
+    - event-sourcing-architecture.yaml
+    - event-log-schema.yaml
+    - state-reconstruction-algorithm.md
+  must_include:
+    - Event types (12+)
+    - Event log format (append-only YAML)
+    - Hash chain for immutability
+    - Snapshot mechanism (every 100 events)
+    - Replay algorithm
+  compliance_check:
+    - Mechanism-based (IF X THEN Y)
+    - No assumptions about event order
+    - Handles event log corruption
+
+task_03_handoff_protocol:
+  description: "Design handoff protocol between processes"
+  deliverables:
+    - handoff-protocol.yaml
+    - handoff-checkpoint-schema.yaml
+    - handoff-validation-rules.md
+  must_include:
+    - Pre-handoff validation (Method #348)
+    - Checkpoint creation
+    - Post-handoff verification
+    - Failure handling
+  compliance_check:
+    - Binding gates at handoff
+    - Counter-checks verify completion
+    - Visible reasoning for validation
+
+task_04_temporal_branching_strategy:
+  description: "Design Git branching strategy for temporal versioning"
+  deliverables:
+    - temporal-branching-strategy.yaml
+    - branch-activation-protocol.md
+    - effective-from-rules.md
+  must_include:
+    - Branch types (main, planned/*, historical/*)
+    - Activation triggers
+    - Merge rules
+    - Conflict resolution
+  compliance_check:
+    - Mechanism for activation (not manual)
+    - All branches have schema-validated metadata
+    - Counter-check: verify no temporal paradoxes
+
+task_05_process_registry_structure:
+  description: "Design registry.json structure for multi-instance tracking"
+  deliverables:
+    - process-registry-schema.yaml
+    - instance-lifecycle-states.yaml
+    - registry-update-protocol.md
+  must_include:
+    - Instance tracking fields
+    - State transitions (CREATED → RUNNING → COMPLETED → ARCHIVED)
+    - Process-instance relationships
+    - Locking mechanism
+  compliance_check:
+    - Self-contained (no external state)
+    - Exhaustive state coverage
+    - Binding gates between states
+
+task_06_orchestration_state_machine:
+  description: "Design state machine for deep-process orchestrator"
+  deliverables:
+    - orchestration-state-machine.yaml
+    - state-transition-rules.md
+    - event-to-state-mapping.yaml
+  must_include:
+    - States (IDLE, PLANNING, EXECUTING, VALIDATING, etc.)
+    - Transitions with triggers
+    - Event handlers
+    - Error states
+  compliance_check:
+    - All transitions have explicit triggers
+    - No skipping states (binding gates)
+    - Counter-check: verify all paths lead to terminal state
+
+task_07_coherence_validation_pipeline:
+  description: "Design pipeline for real-time coherence validation"
+  deliverables:
+    - coherence-pipeline-architecture.yaml
+    - validation-stage-sequence.md
+    - violation-categorization-schema.yaml
+  must_include:
+    - Validation stages (syntax → schema → semantic → coherence)
+    - Method application (when to use #93-100)
+    - Violation categorization
+    - Remediation triggering
+  compliance_check:
+    - Sequential stages (enforced order)
+    - Checklist after each stage
+    - Visible reasoning for violations
+
+# ARCHITECTURE DELIVERABLES
+
+deliverables:
+  primary:
+    - ecosystem-architecture.yaml (master document)
+    - architecture-decision-records/ (ADRs for key decisions)
+
+  schemas:
+    - artifact-schema-hierarchy.yaml
+    - event-log-schema.yaml
+    - handoff-checkpoint-schema.yaml
+    - process-registry-schema.yaml
+    - orchestration-state-machine.yaml
+    - coherence-violation-schema.yaml
+    - transformation-rule-schema.yaml
+    - drift-detection-result-schema.yaml
+    - lineage-provenance-schema.yaml
+    - cascade-impact-analysis-schema.yaml
+    - state-synchronization-schema.yaml
+    - consistency-report-schema.yaml
+
+  protocols:
+    - handoff-protocol.yaml
+    - temporal-branching-strategy.yaml
+    - coherence-pipeline-architecture.yaml
+    - event-sourcing-architecture.yaml
+
+  algorithms:
+    - state-reconstruction-algorithm.md
+    - registry-update-protocol.md
+    - state-transition-rules.md
+    - effective-from-rules.md
+    - validation-stage-sequence.md
+
+# SUCCESS CRITERIA
+
+success_criteria:
+  completeness:
+    - All 7 missing processes have architecture defined
+    - All 12 missing schemas created
+    - All coordination mechanisms specified
+    - All edge cases documented
+
+  compliance:
+    - 100% compliance with 13 zasad
+    - All architectures self-contained
+    - All mechanisms have IF/THEN rules
+    - All claims have counter-checks
+
+  coherence:
+    - No contradictions between components
+    - All references resolve
+    - Vocabulary consistent
+    - DNA inheritance maintained
+
+  feasibility:
+    - All components implementable
+    - No theoretical impossibilities
+    - Dependencies explicit
+    - Resource requirements specified
+
+# VERIFICATION CHECKLIST
+
+verification:
+  - [ ] All schemas have examples
+  - [ ] All mechanisms have explicit triggers
+  - [ ] All protocols have failure handling
+  - [ ] All state machines have terminal states
+  - [ ] All dependencies are acyclic
+  - [ ] All edge cases documented
+  - [ ] All assumptions explicit
+  - [ ] All counter-checks pass
+  - [ ] All checklists complete
+  - [ ] All reasoning blocks present

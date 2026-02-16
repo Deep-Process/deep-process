@@ -1,0 +1,191 @@
+---
+# TSK-005 Deep-Verify — Phase 2: Targeted Verification
+# Signal Analysis + Method Selection
+# Date: 2026-02-16
+# Mode: STANDARD (2-3 methods)
+---
+
+# ═══════════════════════════════════════════════════════════════
+# SECTION 2.1: ANALYZE PHASE 1 SIGNALS
+# ═══════════════════════════════════════════════════════════════
+
+phase_1_summary:
+  tier_1_findings: 7  # After deduplication
+  initial_score_S: 28
+  claims_extracted: 55
+  terms_extracted: 21
+  hypotheses_generated: 11
+
+primary_signals_detected:
+  UNGROUNDED_CLAIMS:
+    detected: true
+    evidence:
+      - "V-001: Job submission P95 <500ms - no latency budget breakdown"
+      - "V-002: RLS reduces probability 30% → 10% - no empirical basis, no methodology"
+      - "V-003: 99.9% uptime, no data loss - missing replication/backup specs"
+    severity: HIGH
+    recommended_cluster: "grounding"
+    recommended_methods:
+      - id: 85
+        name: "Grounding Check"
+        procedure: "data/method-procedures/085_Grounding_Check.md"
+        rationale: "Multiple claims lack justification and evidence"
+      - id: 78
+        name: "Assumption Excavation"
+        procedure: "data/method-procedures/078_Assumption_Excavation.md"
+        rationale: "Performance and risk claims have hidden assumptions"
+
+  ABSOLUTE_CLAIMS:
+    detected: true
+    evidence:
+      - "V-003: '99.9% uptime, no data loss' - absolute guarantee"
+      - "V-004: 'RLS blocks access even if search_path wrong' - absolute security claim"
+      - "C044: 'All API calls logged' - absolute coverage"
+      - "C045: '7-year retention for compliance' - absolute guarantee"
+    severity: MEDIUM
+    recommended_cluster: "theory"
+    recommended_methods:
+      - id: 153
+        name: "Theoretical Impossibility Check"
+        procedure: "data/method-procedures/153_Theoretical_Impossibility_Check.md"
+        rationale: "Absolute guarantees may violate known theorems (CAP, etc.)"
+
+  STRUCTURAL_COMPLEXITY:
+    detected: true
+    evidence:
+      - "23-component microservices architecture"
+      - "7 bounded contexts with Customer/Supplier relationships"
+      - "Multi-tier (API/Orchestration/Execution/Infrastructure)"
+      - "13 dead references to external artifacts"
+    severity: MEDIUM
+    recommended_cluster: "structure"
+    recommended_methods:
+      - id: 116
+        name: "Strange Loop Detection"
+        note: "Consider for Phase 3 if needed - lower priority than grounding issues"
+
+  VOCABULARY_ISSUES:
+    detected: true
+    evidence:
+      - "V-005: 'process' homonym (workflows vs microservices)"
+      - "V-006: MCP undefined"
+      - "V-007: RLS undefined"
+    severity: LOW
+    note: "Already handled by Method #100 (Vocabulary Consistency) in Phase 1"
+    action: "No additional methods needed - findings already documented"
+
+signal_priority_ranking:
+  1:
+    signal: "UNGROUNDED_CLAIMS"
+    severity: "HIGH"
+    action: "Execute grounding cluster methods"
+  2:
+    signal: "ABSOLUTE_CLAIMS"
+    severity: "MEDIUM"
+    action: "Execute theoretical impossibility check"
+  3:
+    signal: "STRUCTURAL_COMPLEXITY"
+    severity: "MEDIUM"
+    action: "Reserve for Phase 3 if time permits"
+
+# ═══════════════════════════════════════════════════════════════
+# SECTION 2.2: METHOD SELECTION (STANDARD MODE: 2-3 methods)
+# ═══════════════════════════════════════════════════════════════
+
+execution_mode: "STANDARD"
+target_method_count: "2-3"
+
+selected_methods:
+  method_1:
+    id: 85
+    name: "Grounding Check"
+    cluster: "grounding"
+    procedure: "data/method-procedures/085_Grounding_Check.md"
+    rationale: |
+      Primary signal: UNGROUNDED_CLAIMS. Multiple critical findings (V-001, V-002, V-003)
+      lack empirical evidence, methodology, or justification. Grounding Check will
+      systematically verify which claims have evidence and which are unfalsifiable.
+    target_findings: ["V-001", "V-002", "V-003"]
+    expected_outcome: "Identify claims without evidence, assess falsifiability"
+
+  method_2:
+    id: 78
+    name: "Assumption Excavation"
+    cluster: "grounding"
+    procedure: "data/method-procedures/078_Assumption_Excavation.md"
+    rationale: |
+      Same cluster as Method #85 (allowed: max 2 from same cluster). V-001 (P95 <500ms)
+      and V-002 (30%→10% reduction) have hidden assumptions about latency budgets and
+      risk baseline. Assumption Excavation will surface these implicit assumptions.
+    target_findings: ["V-001", "V-002", "V-004"]
+    expected_outcome: "Uncover hidden assumptions in performance/risk claims"
+    cluster_rule_check: "✓ Grounding cluster allows 2 methods (correlation HIGH, confirmation allowed)"
+
+  method_3:
+    id: 153
+    name: "Theoretical Impossibility Check"
+    cluster: "theory"
+    procedure: "data/method-procedures/153_Theoretical_Impossibility_Check.md"
+    rationale: |
+      Secondary signal: ABSOLUTE_CLAIMS. Architecture claims "99.9% uptime, no data loss"
+      and "SOC 2 Type II, GDPR/HIPAA compliance". Check if these violate CAP theorem,
+      distributed systems theorems, or regulatory impossibilities.
+    target_findings: ["V-003", "C009 (SOC 2/GDPR/HIPAA)"]
+    expected_outcome: "Verify no theorem violations in availability/consistency/compliance claims"
+    cluster_rule_check: "✓ Theory cluster, different from grounding cluster (no correlation issue)"
+
+methods_not_selected:
+  - id: 154
+    name: "Definitional Contradiction Detector"
+    cluster: "theory"
+    reason: "Same cluster as #153. Will execute #153 first; if it finds issues, may add #154 for confirmation."
+
+  - id: 130
+    name: "Assumption Torture"
+    cluster: "grounding"
+    reason: "Same cluster as #85, #78. Already selecting 2 from grounding cluster (max allowed)."
+
+  - id: 116
+    name: "Strange Loop Detection"
+    cluster: "structure"
+    reason: "Structural complexity is lower priority than ungrounded claims. Reserve for Phase 3 if needed."
+
+selection_summary:
+  total_selected: 3
+  by_cluster:
+    grounding: 2  # Methods #85, #78
+    theory: 1     # Method #153
+  cluster_rules_compliance: "✓ No cluster has 3+ methods"
+  signal_coverage: "HIGH and MEDIUM signals covered"
+
+# ═══════════════════════════════════════════════════════════════
+# EXECUTION PLAN
+# ═══════════════════════════════════════════════════════════════
+
+execution_plan:
+  step_1:
+    method: 85
+    action: "Load data/method-procedures/085_Grounding_Check.md"
+    execute: "Follow procedure step-by-step"
+    record: "Findings with quotes, severity assignment, counter-checks"
+    update: "Score after method complete"
+
+  step_2:
+    method: 78
+    action: "Load data/method-procedures/078_Assumption_Excavation.md"
+    execute: "Follow procedure step-by-step"
+    record: "Findings with quotes, severity assignment, counter-checks"
+    update: "Score after method complete"
+
+  step_3:
+    method: 153
+    action: "Load data/method-procedures/153_Theoretical_Impossibility_Check.md"
+    execute: "Follow procedure step-by-step"
+    record: "Findings with quotes, severity assignment, counter-checks"
+    update: "Score after method complete"
+
+  step_4:
+    action: "Calculate final Phase 2 score"
+    gate: "GATE_2 checklist"
+
+next_action: "Load data/method-procedures/085_Grounding_Check.md and execute Method #85"
