@@ -1,10 +1,10 @@
 ---
-# Deep Diagram Process
-# Standalone architecture diagram generation
+# Deep Implement Process
+# Code generation and implementation
 ---
 
-process_name: deep-diagram
-version: "0.2.0"
+process_name: deep-implement
+version: "2.0.0"
 13_zasady_version: "1.0.0"
 created: "2026-02-16"
 
@@ -13,195 +13,214 @@ created: "2026-02-16"
 # ═══════════════════════════════════════════════════════════════
 
 metadata:
-  category: DIAGRAM_GENERATION
-  complexity: MEDIUM
+  category: IMPLEMENTATION
+  complexity: HIGH
 
 # ═══════════════════════════════════════════════════════════════
 # INPUTS
 # ═══════════════════════════════════════════════════════════════
 
 inputs:
-  evidence_map:
+  project_context:
     type: artifact
+    schema_ref: "schemas/project-context-schema.yaml"
     required: true
-    loaded_from: "artifacts/evidence-map.yaml"
-    schema: "{claims[], ontology{}}"
 
-  documentation_plan:
+  requirements:
+    type: artifact
+    schema_ref: "schemas/requirements-schema.yaml"
+    required: true
+
+  architecture:
+    type: artifact
+    schema_ref: "schemas/architecture-schema.yaml"
+    required: true
+
+  api_specifications:
+    type: artifact
+    schema_ref: "schemas/api-specification-schema.yaml"
+    required: false
+
+  data_models:
     type: artifact
     required: false
-    loaded_from: "artifacts/documentation-plan.yaml"
+    loaded_from: "artifacts/{project_id}/data-models.yaml"
 
-  domain_ontology:
+  risk_assessment:
     type: artifact
-    required: true
-    loaded_from: "artifacts/domain-ontology.yaml"
+    schema_ref: "schemas/risk-assessment-schema.yaml"
+    required: false
+
+  existing_code:
+    type: directory
+    required: false
+    schema: "artifacts/{project_id}/src/**/*"
 
 # ═══════════════════════════════════════════════════════════════
 # PHASES (OODA STRUCTURE)
 # ═══════════════════════════════════════════════════════════════
 
 phases:
-  phase_0_load_inputs:
+  phase_0_preparation:
     observe:
-      action: "LOAD evidence_map + ontology + plan + triggers"
+      action: "LOAD requirements + architecture + api_specifications"
       gate: "GATE_0_OBSERVED"
 
     orient:
-      action: "EXTRACT domains FROM ontology FOR trigger_selection"
-      assumptions: "DECLARE trigger_applicability per domain"
+      action: "CLASSIFY requirements BY implementation_priority + EXTRACT tech_constraints"
+      assumptions: "DECLARE implementation_strategy per component_type"
       gate: "GATE_0_ORIENTED"
 
     decide:
-      action: "IF domains_detected THEN load_triggers ELSE use_base"
+      action: "IF existing_code THEN incremental_mode ELSE greenfield_mode"
       gate: "GATE_0_DECIDED"
 
     act:
-      action: "CREATE input-context.yaml WITH active_triggers"
+      action: "CREATE implementation-plan.yaml WITH component_order"
       gate: "GATE_0"
 
-  phase_1_assumptions:
+  phase_1_tech_stack:
     observe:
-      action: "LOAD input-context.yaml"
+      action: "LOAD architecture + requirements"
       gate: "GATE_1_OBSERVED"
 
     orient:
-      action: "CLASSIFY component_types + layers + relationships"
-      assumptions: "DECLARE coverage_threshold >= 0.90"
+      action: "SELECT tech_stack FROM architecture.technology_choices + VALIDATE compatibility"
+      assumptions: "DECLARE tech_stack_requirements"
       gate: "GATE_1_ORIENTED"
 
     decide:
-      action: "IF assumptions_complete THEN proceed ELSE request_clarification"
+      action: "FOR EACH layer IF tech_specified THEN use_specified ELSE select_default"
       gate: "GATE_1_DECIDED"
 
     act:
-      action: "CREATE assumptions.yaml WITH component_classification"
+      action: "CREATE tech-stack.yaml WITH dependencies"
       gate: "GATE_1"
 
-  phase_2_extract_components:
+  phase_2_project_structure:
     observe:
-      action: "LOAD ontology.entities"
+      action: "LOAD tech-stack.yaml"
       gate: "GATE_2_OBSERVED"
 
     orient:
-      action: "EXTRACT ALL components FROM ontology.entities"
-      assumptions: "DECLARE extraction_completeness = 100%"
+      action: "GENERATE project_structure FROM tech_stack USING conventions"
+      assumptions: "DECLARE structure_conventions per stack"
       gate: "GATE_2_ORIENTED"
 
     decide:
-      action: "FOR EACH entity IF is_component THEN extract ELSE skip"
+      action: "IF monorepo THEN multi_package_structure ELSE single_package"
       gate: "GATE_2_DECIDED"
 
     act:
-      action: "CREATE components.yaml WITH ALL entities"
+      action: "CREATE src/ WITH directory_structure + config_files"
       gate: "GATE_2"
 
-  phase_3_extract_relationships:
+  phase_3_data_layer:
     observe:
-      action: "LOAD evidence_map.claims"
+      action: "LOAD data_models + tech-stack.yaml"
       gate: "GATE_3_OBSERVED"
 
     orient:
-      action: "EXTRACT relationships FROM claims USING evidence_grounding"
-      assumptions: "DECLARE relationship_confidence_threshold"
+      action: "GENERATE models + schemas + migrations FROM data_models"
+      assumptions: "DECLARE orm_patterns per database_type"
       gate: "GATE_3_ORIENTED"
 
     decide:
-      action: "FOR EACH claim IF relationship_type THEN extract ELSE skip"
+      action: "FOR EACH entity IF relationships THEN include_associations ELSE simple_model"
       gate: "GATE_3_DECIDED"
 
     act:
-      action: "CREATE relationships.yaml WITH dependencies"
+      action: "CREATE src/models/ + src/schemas/ + migrations/"
       gate: "GATE_3"
 
-  phase_4_build_metrics:
+  phase_4_business_logic:
     observe:
-      action: "LOAD components.yaml + relationships.yaml"
+      action: "LOAD requirements + architecture"
       gate: "GATE_4_OBSERVED"
 
     orient:
-      action: "COUNT degrees FOR EACH component USING dependency_graph"
-      assumptions: "DECLARE degree_centrality = in_degree + out_degree"
+      action: "GENERATE services + use_cases FROM functional_requirements"
+      assumptions: "DECLARE business_logic_patterns"
       gate: "GATE_4_ORIENTED"
 
     decide:
-      action: "FOR EACH component CALCULATE degree_centrality"
+      action: "FOR EACH requirement IF complex THEN layered_service ELSE simple_function"
       gate: "GATE_4_DECIDED"
 
     act:
-      action: "CREATE metrics.yaml WITH degree_centrality"
+      action: "CREATE src/services/ + src/use-cases/"
       gate: "GATE_4"
 
-  phase_5_rank_components:
+  phase_5_api_layer:
     observe:
-      action: "LOAD metrics.yaml"
+      action: "LOAD api_specifications + tech-stack.yaml"
       gate: "GATE_5_OBSERVED"
 
     orient:
-      action: "RANK components BY degree_centrality DESC"
-      assumptions: "DECLARE priority_selection = top_N"
+      action: "GENERATE controllers + routes + middleware FROM api_specs"
+      assumptions: "DECLARE api_framework_patterns"
       gate: "GATE_5_ORIENTED"
 
     decide:
-      action: "IF coverage >= 0.90 WITH top_N THEN select ELSE increase_N"
+      action: "FOR EACH endpoint IF auth_required THEN add_middleware ELSE public"
       gate: "GATE_5_DECIDED"
 
     act:
-      action: "CREATE ranked-components.yaml WITH priorities"
+      action: "CREATE src/controllers/ + src/routes/ + src/middleware/"
       gate: "GATE_5"
 
-  phase_6_generate_diagrams:
+  phase_6_testing_stubs:
     observe:
-      action: "LOAD ranked-components.yaml + active_triggers"
+      action: "LOAD ALL generated_code"
       gate: "GATE_6_OBSERVED"
 
     orient:
-      action: "EVALUATE triggers FOR EACH diagram_type"
-      assumptions: "DECLARE diagram_types = [component, sequence, deployment]"
+      action: "GENERATE test_stubs FOR EACH component"
+      assumptions: "DECLARE test_framework per tech_stack"
       gate: "GATE_6_ORIENTED"
 
     decide:
-      action: "FOR EACH trigger IF conditions_met THEN generate ELSE skip"
+      action: "FOR EACH component IF critical THEN full_test_stub ELSE basic_stub"
       gate: "GATE_6_DECIDED"
 
     act:
-      action: "CREATE diagrams/*.mmd WITH Mermaid_syntax"
+      action: "CREATE tests/ WITH test_stubs"
       gate: "GATE_6"
 
-  phase_7_verify_coverage:
+  phase_7_documentation:
     observe:
-      action: "LOAD diagrams/*.mmd + components.yaml"
+      action: "LOAD ALL artifacts + generated_code"
       gate: "GATE_7_OBSERVED"
 
     orient:
-      action: "CALCULATE coverage_ratio = components_in_diagrams / total_components"
-      assumptions: "DECLARE coverage_target >= 0.90"
+      action: "GENERATE README + API_docs + inline_comments"
+      assumptions: "DECLARE documentation_completeness_checklist"
       gate: "GATE_7_ORIENTED"
 
     decide:
-      action: "IF coverage_ratio >= 0.90 THEN proceed ELSE add_diagrams"
+      action: "IF public_api THEN full_api_docs ELSE internal_docs_only"
       gate: "GATE_7_DECIDED"
 
     act:
-      action: "CREATE coverage-report.yaml WITH ratio"
+      action: "CREATE README.md + docs/ + inline_documentation"
       gate: "GATE_7"
 
-  phase_8_verify_and_render:
+  phase_8_finalization:
     observe:
       action: "LOAD ALL artifacts"
       gate: "GATE_8_OBSERVED"
 
     orient:
-      action: "VERIFY grounding + phantoms + coherence USING method#85,#168,#84"
-      assumptions: "DECLARE verification_sample_size = 3"
+      action: "VERIFY completeness + COMPILE implementation_log"
+      assumptions: "DECLARE completeness_criteria"
       gate: "GATE_8_ORIENTED"
 
     decide:
-      action: "IF verification_fails THEN flag ELSE finalize"
+      action: "IF all_components_implemented THEN finalize ELSE identify_gaps"
       gate: "GATE_8_DECIDED"
 
     act:
-      action: "CREATE architectural-model.json WITH diagrams"
+      action: "CREATE implementation-log.yaml + handoff-checkpoint.yaml"
       gate: "GATE_8"
 
 # ═══════════════════════════════════════════════════════════════
@@ -209,15 +228,16 @@ phases:
 # ═══════════════════════════════════════════════════════════════
 
 outputs:
-  input-context: {schema: "{domains[], triggers[]}", phase: 0}
-  assumptions: {schema: "{component_types[], layers[], threshold}", phase: 1}
-  components: {schema: "{entities[]}", phase: 2}
-  relationships: {schema: "{dependencies[]}", phase: 3}
-  metrics: {schema: "{degree_centrality{}}", phase: 4}
-  ranked-components: {schema: "{priorities[]}", phase: 5}
-  diagrams: {schema: "Mermaid files", path: "diagrams/*.mmd", phase: 6}
-  coverage-report: {schema: "{ratio, components_covered}", phase: 7}
-  architectural-model: {schema_ref: "data/schemas/architectural-model.schema.yaml", phase: 8}
+  implementation-plan: {schema: "{component_order[], strategy}", phase: 0}
+  tech-stack: {schema: "{languages[], frameworks[], dependencies[]}", phase: 1}
+  project-structure: {schema: "Directory structure", path: "src/", phase: 2}
+  data-layer: {schema: "Models + schemas", path: "src/models/", phase: 3}
+  business-logic: {schema: "Services + use cases", path: "src/services/", phase: 4}
+  api-layer: {schema: "Controllers + routes", path: "src/controllers/", phase: 5}
+  test-stubs: {schema: "Test files", path: "tests/", phase: 6}
+  documentation: {schema: "README + docs", path: "README.md", phase: 7}
+  implementation-log: {schema_ref: "schemas/implementation-log-schema.yaml", phase: 8}
+  handoff-checkpoint: {schema_ref: "schemas/handoff-checkpoint-schema.yaml", phase: 8}
 
 # ═══════════════════════════════════════════════════════════════
 # VALIDATION GATES
@@ -225,47 +245,47 @@ outputs:
 
 validation_gates:
   GATE_0:
-    condition: "input-context.yaml EXISTS AND triggers_loaded"
+    condition: "implementation-plan.yaml EXISTS AND component_order DEFINED"
     on_fail: "HALT"
     severity: BLOCKER
 
   GATE_1:
-    condition: "assumptions.yaml EXISTS AND coverage_threshold >= 0.90"
+    condition: "tech-stack.yaml EXISTS AND dependencies_resolved"
     on_fail: "HALT"
     severity: BLOCKER
 
   GATE_2:
-    condition: "components.yaml EXISTS AND ALL entities extracted"
+    condition: "src/ EXISTS AND structure_valid"
     on_fail: "HALT"
     severity: BLOCKER
 
   GATE_3:
-    condition: "relationships.yaml EXISTS AND dependencies_extracted"
+    condition: "src/models/ EXISTS AND data_layer_complete"
     on_fail: "EMIT_WARNING + PROCEED"
     severity: WARNING
 
   GATE_4:
-    condition: "metrics.yaml EXISTS AND degree_centrality_calculated"
+    condition: "src/services/ EXISTS AND business_logic_implemented"
     on_fail: "HALT"
     severity: BLOCKER
 
   GATE_5:
-    condition: "ranked-components.yaml EXISTS AND priorities_set"
+    condition: "src/controllers/ EXISTS AND api_layer_complete"
     on_fail: "HALT"
     severity: BLOCKER
 
   GATE_6:
-    condition: "diagrams/*.mmd EXIST AND at_least_1_diagram"
-    on_fail: "HALT"
-    severity: BLOCKER
+    condition: "tests/ EXISTS AND test_stubs_generated"
+    on_fail: "EMIT_WARNING + PROCEED"
+    severity: WARNING
 
   GATE_7:
-    condition: "coverage-report.yaml EXISTS AND coverage_ratio >= 0.90"
+    condition: "README.md EXISTS AND documentation_sufficient"
     on_fail: "EMIT_WARNING + PROCEED"
     severity: WARNING
 
   GATE_8:
-    condition: "architectural-model.json EXISTS AND verification_passed"
+    condition: "implementation-log.yaml EXISTS AND completeness_verified"
     on_fail: "HALT"
     severity: BLOCKER
 
@@ -275,16 +295,16 @@ validation_gates:
 
 error_handlers:
   missing_input:
-    trigger: "evidence_map.yaml OR ontology.yaml NOT PROVIDED"
+    trigger: "requirements OR architecture NOT PROVIDED"
     severity: CRITICAL
-    action: "HALT WITH error_missing_artifacts"
-    recovery: "Request required artifacts"
+    action: "HALT WITH error_missing_specs"
+    recovery: "Complete requirements and architecture first"
 
   invalid_input:
-    trigger: "ontology.yaml schema VALIDATION FAILS"
+    trigger: "architecture schema VALIDATION FAILS"
     severity: HIGH
     action: "HALT WITH validation_error"
-    recovery: "Request valid ontology"
+    recovery: "Fix architecture artifact"
 
   partial_completion:
     trigger: "phase N reaches 70% THEN interrupted"
@@ -293,25 +313,25 @@ error_handlers:
     recovery: "Resume from checkpoint"
 
   external_dependency_failure:
-    trigger: "data/patterns/diagram-triggers.yaml NOT ACCESSIBLE"
+    trigger: "package_registry OR code_templates NOT ACCESSIBLE"
     severity: MEDIUM
-    action: "USE base_triggers_only + EMIT_WARNING"
-    recovery: "Continue with reduced triggers"
+    action: "USE cached_templates + EMIT_WARNING"
+    recovery: "Continue with reduced templates"
 
   timeout:
-    trigger: "diagram_generation > max_allowed"
+    trigger: "code_generation > max_allowed"
     severity: HIGH
     action: "SAVE state + HALT WITH timeout_error"
     recovery: "User decides: continue OR reduce_scope"
 
   resource_exhaustion:
-    trigger: "component_count > max_processable"
+    trigger: "component_count > max_generatable"
     severity: HIGH
-    action: "PRIORITIZE by centrality + REDUCE scope"
-    recovery: "Generate for top N components only"
+    action: "PRIORITIZE by importance + REDUCE scope"
+    recovery: "Generate critical components only"
 
   concurrent_modification:
-    trigger: "evidence_map.yaml CHANGED during execution"
+    trigger: "requirements CHANGED during implementation"
     severity: CRITICAL
     action: "RELOAD + RESTART from GATE_0"
     recovery: "Phase 0 re-execution"
@@ -329,7 +349,7 @@ error_handlers:
 compliance_13_zasady:
   zasada_0_ooda: "PASS - 9 phases OODA"
   zasada_1_self_contained: "PASS - steps/*.md JIT"
-  zasada_2_completeness: "PASS - coverage >= 0.90 GATE_7"
+  zasada_2_completeness: "PASS - ALL layers implemented GATE_8"
   zasada_3_mechanisms: "PASS - 9 gates IF-THEN"
   zasada_4_binding_gates: "PASS - BLOCKER enforcement"
   zasada_5_assumptions: "PASS - DECLARE each phase"
@@ -337,10 +357,10 @@ compliance_13_zasady:
   zasada_7_checklists: "PASS - step files"
   zasada_8_counter_checks: "PASS - verification phase_8"
   zasada_9_executable: "PASS - LOAD/CREATE/IF"
-  zasada_10_visible_reasoning: "PASS - orient shows logic"
-  zasada_11_instruction_data: "PASS - schemas included"
+  zasada_10_visible_reasoning: "PASS - orient shows generation_logic"
+  zasada_11_instruction_data: "PASS - schemas + templates"
   zasada_12_jit: "PASS - on-demand loading"
   zasada_13_zero_decoration: "PASS - no explanations"
 
 ---
-# END deep-diagram process.yaml
+# END deep-implement process.yaml

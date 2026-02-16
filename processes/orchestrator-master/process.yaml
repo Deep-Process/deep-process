@@ -1,0 +1,295 @@
+---
+# Orchestrator Master Process
+# Main entry point coordinating all deep-process executions
+---
+
+process_name: orchestrator-master
+version: "2.0.0"
+13_zasady_version: "1.0.0"
+created: "2026-02-16"
+
+# ═══════════════════════════════════════════════════════════════
+# METADATA
+# ═══════════════════════════════════════════════════════════════
+
+metadata:
+  category: ORCHESTRATION
+  complexity: HIGH
+
+# ═══════════════════════════════════════════════════════════════
+# INPUTS
+# ═══════════════════════════════════════════════════════════════
+
+inputs:
+  user_request:
+    type: string
+    required: true
+    schema: "User's project idea or change request"
+
+  existing_artifacts:
+    type: list
+    required: false
+    loaded_from: "./artifacts/*.yaml"
+
+  process_registry:
+    type: artifact
+    schema_ref: "schemas/process-registry-schema.yaml"
+    required: false
+
+# ═══════════════════════════════════════════════════════════════
+# PHASES (OODA STRUCTURE)
+# ═══════════════════════════════════════════════════════════════
+
+phases:
+  phase_0_initialization:
+    subprocess: "orchestrator-phase-0-init.yaml"
+    observe:
+      action: "LOAD process-registry.yaml IF EXISTS"
+      gate: "GATE_0_OBSERVED"
+    orient:
+      action: "CLASSIFY registry AS empty|active"
+      gate: "GATE_0_ORIENTED"
+    decide:
+      action: "IF empty THEN create_registry ELSE load_registry"
+      gate: "GATE_0_DECIDED"
+    act:
+      action: "EMIT ORCHESTRATOR_STARTED event"
+      gate: "GATE_0"
+
+  phase_1_request_analysis:
+    subprocess: "orchestrator-phase-1-analysis.yaml"
+    observe:
+      action: "LOAD user_request"
+      gate: "GATE_1_OBSERVED"
+    orient:
+      action: "CLASSIFY intent AS NEW_PROJECT|CHANGE|DEPLOY|QUERY"
+      assumptions: "DECLARE request_classification rules"
+      gate: "GATE_1_ORIENTED"
+    decide:
+      action: "IF NEW_PROJECT THEN check_discovery_needed ELSE analyze_impact"
+      gate: "GATE_1_DECIDED"
+    act:
+      action: "CREATE analysis-result.yaml WITH execution_plan"
+      gate: "GATE_1"
+
+  phase_2_project_setup:
+    subprocess: "orchestrator-phase-2-setup.yaml"
+    observe:
+      action: "LOAD analysis-result.yaml"
+      gate: "GATE_2_OBSERVED"
+    orient:
+      action: "CLASSIFY mode AS NEW_PROJECT|MODIFY_EXISTING"
+      gate: "GATE_2_ORIENTED"
+    decide:
+      action: "IF NEW_PROJECT THEN create_context ELSE load_context"
+      gate: "GATE_2_DECIDED"
+    act:
+      action: "CREATE project-context.yaml + ACQUIRE project_lock"
+      gate: "GATE_2"
+
+  phase_3_process_invocation:
+    subprocess: "orchestrator-phase-3-invoke.yaml"
+    observe:
+      action: "LOAD execution-plan.yaml"
+      gate: "GATE_3_OBSERVED"
+    orient:
+      action: "MAP phases TO processes USING phase_process_mapping"
+      gate: "GATE_3_ORIENTED"
+    decide:
+      action: "FOR EACH phase IF previous_complete THEN invoke"
+      gate: "GATE_3_DECIDED"
+    act:
+      action: "INVOKE child_processes + UPDATE execution-plan.yaml"
+      gate: "GATE_3"
+
+  phase_4_result_aggregation:
+    subprocess: "orchestrator-phase-4-aggregate.yaml"
+    observe:
+      action: "LOAD ALL phase_outputs FROM execution-plan.yaml"
+      gate: "GATE_4_OBSERVED"
+    orient:
+      action: "VERIFY all_expected_artifacts EXIST"
+      gate: "GATE_4_ORIENTED"
+    decide:
+      action: "IF missing_artifacts THEN flag_warning ELSE proceed"
+      gate: "GATE_4_DECIDED"
+    act:
+      action: "CREATE execution-summary.yaml"
+      gate: "GATE_4"
+
+  phase_5_state_finalization:
+    subprocess: "orchestrator-phase-5-finalize.yaml"
+    observe:
+      action: "LOAD execution-summary.yaml"
+      gate: "GATE_5_OBSERVED"
+    orient:
+      action: "CLASSIFY final_status AS COMPLETED|FAILED|PARTIAL"
+      gate: "GATE_5_ORIENTED"
+    decide:
+      action: "IF COMPLETED THEN move_to_completed ELSE keep_active"
+      gate: "GATE_5_DECIDED"
+    act:
+      action: "UPDATE registry + RELEASE lock + EMIT final_event"
+      gate: "GATE_5"
+
+# ═══════════════════════════════════════════════════════════════
+# OUTPUTS
+# ═══════════════════════════════════════════════════════════════
+
+outputs:
+  project-context:
+    schema_ref: "schemas/project-context-schema.yaml"
+    path: "artifacts/{project_id}/project-context.yaml"
+
+  orchestration-state:
+    schema_ref: "schemas/orchestration-state-machine-schema.yaml"
+    path: "artifacts/{project_id}/orchestration-state.yaml"
+
+  execution-plan:
+    schema_ref: "schemas/execution-plan-schema.yaml"
+    path: "artifacts/{project_id}/execution-plan.yaml"
+
+  execution-summary:
+    schema_ref: "schemas/execution-summary-schema.yaml"
+    path: "artifacts/{project_id}/execution-summary.yaml"
+
+  process-registry:
+    schema_ref: "schemas/process-registry-schema.yaml"
+    path: "artifacts/process-registry.yaml"
+
+# ═══════════════════════════════════════════════════════════════
+# VALIDATION GATES
+# ═══════════════════════════════════════════════════════════════
+
+validation_gates:
+  GATE_0:
+    condition: "registry loaded OR created"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+  GATE_1:
+    condition: "analysis-result.yaml EXISTS AND execution_phases determined"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+  GATE_2:
+    condition: "project-context.yaml EXISTS AND lock ACQUIRED"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+  GATE_3:
+    condition: "ALL child_processes invoked"
+    on_fail: "ROLLBACK + HALT"
+    severity: BLOCKER
+
+  GATE_4:
+    condition: "execution-summary.yaml EXISTS"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+  GATE_5:
+    condition: "registry updated AND lock RELEASED"
+    on_fail: "FORCE_UNLOCK + HALT"
+    severity: CRITICAL
+
+# ═══════════════════════════════════════════════════════════════
+# ERROR HANDLERS
+# ═══════════════════════════════════════════════════════════════
+
+error_handlers:
+  missing_input:
+    trigger: "user_request NOT PROVIDED"
+    severity: CRITICAL
+    action: "HALT WITH error_no_request"
+    recovery: "Request user input"
+
+  invalid_input:
+    trigger: "user_request EMPTY OR invalid_format"
+    severity: HIGH
+    action: "HALT WITH validation_error"
+    recovery: "Request valid input"
+
+  partial_completion:
+    trigger: "child_process fails at 70%"
+    severity: HIGH
+    action: "SAVE checkpoint + invoke feedback-loop-handler"
+    recovery: "User decides: retry|skip|abort"
+
+  external_dependency_failure:
+    trigger: "child_process unavailable"
+    severity: CRITICAL
+    action: "HALT WITH missing_process_error"
+    recovery: "Verify process exists"
+
+  timeout:
+    trigger: "child_process > max_duration"
+    severity: HIGH
+    action: "KILL child + SAVE state + HALT"
+    recovery: "User decides: retry|abort"
+
+  resource_exhaustion:
+    trigger: "concurrent_projects > max_allowed"
+    severity: MEDIUM
+    action: "QUEUE request + NOTIFY user"
+    recovery: "Process when slot available"
+
+  concurrent_modification:
+    trigger: "lock_conflict OR artifact_changed"
+    severity: CRITICAL
+    action: "IF stale_lock THEN force_release ELSE QUEUE"
+    recovery: "Retry after lock released"
+
+  user_cancellation:
+    trigger: "user_cancels DURING execution"
+    severity: LOW
+    action: "STOP children + SAVE checkpoint + RELEASE lock"
+    recovery: "State saved for resume"
+
+# ═══════════════════════════════════════════════════════════════
+# LOOKUP TABLES
+# ═══════════════════════════════════════════════════════════════
+
+phase_process_mapping:
+  0: "deep-explore"
+  1: "deep-requirements"
+  2: "deep-architecture"
+  3: "deep-verify"
+  4: "deep-risk"
+  5: "deep-implement"
+  6: "deep-test"
+  7: "deep-verify"
+  8: "deep-deploy"
+
+discovery_triggers:
+  vague_language: ["I want", "I need", "build a", "create a"]
+  domain_terms: ["task management", "CRM", "e-commerce", "platform"]
+  research_keywords: ["research", "explore", "best practices"]
+
+priority_mapping:
+  urgent: ["urgent", "critical", "production", "emergency"]
+  high: ["bug", "fix", "broken", "failing"]
+  medium: ["feature", "add", "enhance"]
+  low: ["refactor", "optimize", "cleanup"]
+
+# ═══════════════════════════════════════════════════════════════
+# COMPLIANCE
+# ═══════════════════════════════════════════════════════════════
+
+compliance_13_zasady:
+  zasada_0_ooda: "PASS - 6 phases OODA"
+  zasada_1_self_contained: "PASS - subprocess delegation"
+  zasada_2_completeness: "PASS - ALL phases sequential"
+  zasada_3_mechanisms: "PASS - 6 gates IF-THEN"
+  zasada_4_binding_gates: "PASS - BLOCKER enforcement"
+  zasada_5_assumptions: "PASS - DECLARE in phase_1"
+  zasada_6_evr: "PASS - observe→orient→act"
+  zasada_7_checklists: "PASS - subprocess checklists"
+  zasada_8_counter_checks: "PASS - subprocess validation"
+  zasada_9_executable: "PASS - LOAD/INVOKE/IF-THEN"
+  zasada_10_visible_reasoning: "PASS - orient classification"
+  zasada_11_instruction_data: "PASS - schemas + lookups"
+  zasada_12_jit: "PASS - subprocess JIT loading"
+  zasada_13_zero_decoration: "PASS - only routing logic"
+
+---
+# END orchestrator-master.yaml

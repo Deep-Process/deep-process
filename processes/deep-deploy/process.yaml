@@ -1,0 +1,337 @@
+---
+# Deep Deploy Process
+# Deployment and infrastructure provisioning
+---
+
+process_name: deep-deploy
+version: "2.0.0"
+13_zasady_version: "1.0.0"
+created: "2026-02-16"
+
+# ═══════════════════════════════════════════════════════════════
+# METADATA
+# ═══════════════════════════════════════════════════════════════
+
+metadata:
+  category: DEPLOYMENT
+  complexity: MEDIUM
+
+# ═══════════════════════════════════════════════════════════════
+# INPUTS
+# ═══════════════════════════════════════════════════════════════
+
+inputs:
+  project_context:
+    type: artifact
+    schema_ref: "schemas/project-context-schema.yaml"
+    required: true
+
+  source_code:
+    type: directory
+    required: true
+    schema: "artifacts/{project_id}/src/**/*"
+
+  test_results:
+    type: artifact
+    schema_ref: "schemas/test-results-schema.yaml"
+    required: true
+
+  validation_report:
+    type: artifact
+    schema_ref: "schemas/validation-report-schema.yaml"
+    required: true
+
+  deployment_architecture:
+    type: artifact
+    required: false
+    loaded_from: "artifacts/{project_id}/deployment-architecture.yaml"
+
+  implementation_log:
+    type: artifact
+    schema_ref: "schemas/implementation-log-schema.yaml"
+    required: true
+
+# ═══════════════════════════════════════════════════════════════
+# PHASES (OODA STRUCTURE)
+# ═══════════════════════════════════════════════════════════════
+
+phases:
+  phase_0_preparation:
+    observe:
+      action: "LOAD test_results + validation_report + implementation_log"
+      gate: "GATE_0_OBSERVED"
+
+    orient:
+      action: "VALIDATE readiness = [tests_passed, zero_critical_bugs, dependencies_resolved]"
+      assumptions: "DECLARE deployment_gates_required"
+      gate: "GATE_0_ORIENTED"
+
+    decide:
+      action: "IF readiness_fail THEN halt ELSE prepare_deployment"
+      gate: "GATE_0_DECIDED"
+
+    act:
+      action: "CREATE deployment-plan.yaml WITH strategy"
+      gate: "GATE_0"
+
+  phase_1_containerization:
+    observe:
+      action: "LOAD source_code + deployment-plan.yaml"
+      gate: "GATE_1_OBSERVED"
+
+    orient:
+      action: "GENERATE Dockerfile + docker-compose.yaml FROM tech_stack"
+      assumptions: "DECLARE container_strategy per runtime"
+      gate: "GATE_1_ORIENTED"
+
+    decide:
+      action: "IF multi_service THEN compose_orchestration ELSE single_container"
+      gate: "GATE_1_DECIDED"
+
+    act:
+      action: "CREATE Dockerfile + docker-compose.yaml + .dockerignore"
+      gate: "GATE_1"
+
+  phase_2_ci_cd:
+    observe:
+      action: "LOAD deployment-plan.yaml"
+      gate: "GATE_2_OBSERVED"
+
+    orient:
+      action: "GENERATE ci_pipeline + cd_pipeline USING platform_config"
+      assumptions: "DECLARE pipeline_stages = [lint, test, build, deploy]"
+      gate: "GATE_2_ORIENTED"
+
+    decide:
+      action: "IF platform==github THEN github_actions ELIF gitlab THEN gitlab_ci ELSE generic"
+      gate: "GATE_2_DECIDED"
+
+    act:
+      action: "CREATE .github/workflows/*.yml OR .gitlab-ci.yml"
+      gate: "GATE_2"
+
+  phase_3_infrastructure:
+    observe:
+      action: "LOAD deployment_architecture + deployment-plan.yaml"
+      gate: "GATE_3_OBSERVED"
+
+    orient:
+      action: "GENERATE infrastructure_code USING target_platform"
+      assumptions: "DECLARE infra_requirements FROM architecture"
+      gate: "GATE_3_ORIENTED"
+
+    decide:
+      action: "IF cloud THEN provision_cloud ELIF on_prem THEN docker_compose ELSE minimal"
+      gate: "GATE_3_DECIDED"
+
+    act:
+      action: "CREATE infrastructure/ WITH terraform|compose|k8s_manifests"
+      gate: "GATE_3"
+
+  phase_4_configuration:
+    observe:
+      action: "LOAD source_code + deployment_architecture"
+      gate: "GATE_4_OBSERVED"
+
+    orient:
+      action: "GENERATE env_config + secrets_management + monitoring_config"
+      assumptions: "DECLARE config_per_environment = [dev, staging, prod]"
+      gate: "GATE_4_ORIENTED"
+
+    decide:
+      action: "FOR EACH environment IF needs_config THEN generate ELSE skip"
+      gate: "GATE_4_DECIDED"
+
+    act:
+      action: "CREATE config/ WITH .env.example + secrets.yaml.template"
+      gate: "GATE_4"
+
+  phase_5_monitoring:
+    observe:
+      action: "LOAD deployment_architecture + requirements"
+      gate: "GATE_5_OBSERVED"
+
+    orient:
+      action: "CONFIGURE health_checks + logging + metrics + alerting"
+      assumptions: "DECLARE monitoring_targets FROM nfr"
+      gate: "GATE_5_ORIENTED"
+
+    decide:
+      action: "IF observability_required THEN full_stack ELSE basic_health_checks"
+      gate: "GATE_5_DECIDED"
+
+    act:
+      action: "CREATE monitoring/ WITH health_endpoints + dashboards"
+      gate: "GATE_5"
+
+  phase_6_documentation:
+    observe:
+      action: "LOAD ALL deployment_artifacts"
+      gate: "GATE_6_OBSERVED"
+
+    orient:
+      action: "GENERATE deployment_guide + runbook + troubleshooting"
+      assumptions: "DECLARE documentation_completeness_checklist"
+      gate: "GATE_6_ORIENTED"
+
+    decide:
+      action: "IF critical_steps_documented THEN proceed ELSE add_missing"
+      gate: "GATE_6_DECIDED"
+
+    act:
+      action: "CREATE DEPLOYMENT.md + RUNBOOK.md + deployment-summary.yaml"
+      gate: "GATE_6"
+
+  phase_7_verification:
+    observe:
+      action: "LOAD ALL artifacts"
+      gate: "GATE_7_OBSERVED"
+
+    orient:
+      action: "VERIFY completeness + smoke_tests USING checklist"
+      assumptions: "DECLARE verification_checklist"
+      gate: "GATE_7_ORIENTED"
+
+    decide:
+      action: "IF verification_pass THEN finalize ELSE identify_gaps"
+      gate: "GATE_7_DECIDED"
+
+    act:
+      action: "CREATE deployment-verification.yaml + handoff-checkpoint.yaml"
+      gate: "GATE_7"
+
+# ═══════════════════════════════════════════════════════════════
+# OUTPUTS
+# ═══════════════════════════════════════════════════════════════
+
+outputs:
+  deployment-plan: {schema: "{strategy, target_platform, requirements}", phase: 0}
+  containerization: {schema: "Dockerfile + docker-compose.yaml", path: "Dockerfile", phase: 1}
+  ci-cd: {schema: "Pipeline configurations", path: ".github/workflows/", phase: 2}
+  infrastructure: {schema: "IaC files", path: "infrastructure/", phase: 3}
+  configuration: {schema: "Environment configs", path: "config/", phase: 4}
+  monitoring: {schema: "Observability setup", path: "monitoring/", phase: 5}
+  documentation: {schema: "Deployment docs", path: "DEPLOYMENT.md", phase: 6}
+  deployment-verification: {schema: "{checklist{}, status}", phase: 7}
+  handoff-checkpoint: {schema_ref: "schemas/handoff-checkpoint-schema.yaml", phase: 7}
+
+# ═══════════════════════════════════════════════════════════════
+# VALIDATION GATES
+# ═══════════════════════════════════════════════════════════════
+
+validation_gates:
+  GATE_0:
+    condition: "deployment-plan.yaml EXISTS AND readiness_validated"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+  GATE_1:
+    condition: "Dockerfile EXISTS AND builds_successfully"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+  GATE_2:
+    condition: "CI/CD pipelines EXISTS AND syntax_valid"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+  GATE_3:
+    condition: "infrastructure/ EXISTS AND provisioning_ready"
+    on_fail: "EMIT_WARNING + PROCEED"
+    severity: WARNING
+
+  GATE_4:
+    condition: "config/ EXISTS AND all_environments_covered"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+  GATE_5:
+    condition: "monitoring/ EXISTS AND health_checks_configured"
+    on_fail: "EMIT_WARNING + PROCEED"
+    severity: WARNING
+
+  GATE_6:
+    condition: "DEPLOYMENT.md + RUNBOOK.md EXIST"
+    on_fail: "EMIT_WARNING + PROCEED"
+    severity: WARNING
+
+  GATE_7:
+    condition: "deployment-verification.yaml EXISTS AND all_checks_passed"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+# ═══════════════════════════════════════════════════════════════
+# ERROR HANDLERS
+# ═══════════════════════════════════════════════════════════════
+
+error_handlers:
+  missing_input:
+    trigger: "test_results OR validation_report NOT PROVIDED"
+    severity: CRITICAL
+    action: "HALT WITH error_missing_validation"
+    recovery: "Complete testing and validation first"
+
+  invalid_input:
+    trigger: "test_results.overall_status != PASSED"
+    severity: HIGH
+    action: "HALT WITH tests_not_passing"
+    recovery: "Fix failing tests before deployment"
+
+  partial_completion:
+    trigger: "phase N reaches 70% THEN interrupted"
+    severity: MEDIUM
+    action: "SAVE checkpoint + HALT"
+    recovery: "Resume from checkpoint"
+
+  external_dependency_failure:
+    trigger: "docker OR cloud_provider NOT ACCESSIBLE"
+    severity: HIGH
+    action: "USE fallback_strategy + EMIT_WARNING"
+    recovery: "Continue with reduced deployment"
+
+  timeout:
+    trigger: "infrastructure_provisioning > max_allowed"
+    severity: HIGH
+    action: "SAVE state + HALT WITH timeout_error"
+    recovery: "User decides: continue OR simplify_infra"
+
+  resource_exhaustion:
+    trigger: "cloud_resources > quota_limit"
+    severity: HIGH
+    action: "REDUCE scope + EMIT_WARNING"
+    recovery: "Deploy to smaller instance"
+
+  concurrent_modification:
+    trigger: "source_code CHANGED during deployment_prep"
+    severity: CRITICAL
+    action: "RELOAD + RESTART from GATE_0"
+    recovery: "Phase 0 re-execution"
+
+  user_cancellation:
+    trigger: "user_cancels DURING execution"
+    severity: LOW
+    action: "SAVE checkpoint + CLEANUP temp_files"
+    recovery: "State saved for resume"
+
+# ═══════════════════════════════════════════════════════════════
+# COMPLIANCE
+# ═══════════════════════════════════════════════════════════════
+
+compliance_13_zasady:
+  zasada_0_ooda: "PASS - 8 phases OODA"
+  zasada_1_self_contained: "PASS - steps/*.md JIT"
+  zasada_2_completeness: "PASS - ALL deployment aspects GATE_0"
+  zasada_3_mechanisms: "PASS - 8 gates IF-THEN"
+  zasada_4_binding_gates: "PASS - BLOCKER enforcement"
+  zasada_5_assumptions: "PASS - DECLARE each phase"
+  zasada_6_evr: "PASS - observe→orient→act"
+  zasada_7_checklists: "PASS - step files"
+  zasada_8_counter_checks: "PASS - verification phase_7"
+  zasada_9_executable: "PASS - LOAD/CREATE/IF"
+  zasada_10_visible_reasoning: "PASS - orient shows strategy"
+  zasada_11_instruction_data: "PASS - schemas + templates"
+  zasada_12_jit: "PASS - on-demand loading"
+  zasada_13_zero_decoration: "PASS - no explanations"
+
+---
+# END deep-deploy process.yaml

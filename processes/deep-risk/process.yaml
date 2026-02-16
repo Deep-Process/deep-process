@@ -1,240 +1,324 @@
-name: deep-risk
-version: 2.2.0
-type: risk-assessment
-status: operational
+---
+# Deep Risk Process
+# Systematic risk assessment with binding enforcement
+---
 
-description: |
-  Deep-Risk V2.0 — Systematic risk assessment with binding enforcement.
+process_name: deep-risk
+version: "2.3.0"
+13_zasady_version: "1.0.0"
+created: "2026-02-16"
 
-  VALUE PROPOSITION: Discovers risks through theory-grounded extraction (GROUND → IDENTIFY),
-  quantifies with 5D scoring (P/I/V/D/R), analyzes interactions (cascades, correlations),
-  designs mitigations with Cobra Effect checks, and establishes monitoring with leading indicators.
+# ═══════════════════════════════════════════════════════════════
+# METADATA
+# ═══════════════════════════════════════════════════════════════
 
-  V2.0 IMPROVEMENTS:
-  - Pure Deep-Verify Pattern (self-contained steps, 0 reference.md, methods embedded inline)
-  - Binding gates (8 GATE_X with BLOCKER/CRITICAL conditions)
-  - ASSUMPTIONS_DECLARED mandatory before each phase
-  - EVR sequence enforced (Extract → Verify → Render with PRECONDITION checks)
-  - Counter-checks on critical claims (3 per phase)
-  - R0-R13 compliant (13/13 requirements met)
-  - 75% token reduction (workflow 277L→150L, deleted 331L reference.md)
+metadata:
+  category: RISK_ASSESSMENT
+  complexity: HIGH
 
-architecture:
-  pattern: deep-verify
-  components:
-    - workflow.md (routing + enforcement rules only)
-    - gates.yaml (8 binding gates)
-    - steps/ (8 self-contained step files with YAML frontmatter + ENFORCED SEQUENCE + embedded methods)
-    - data/ (configs: scoring, theoretical foundations, pattern libraries)
+# ═══════════════════════════════════════════════════════════════
+# INPUTS
+# ═══════════════════════════════════════════════════════════════
 
-requirements:
-  r0_no_decoration: true          # Zero non-execution content (no "Purpose", "When", "Why")
-  r1_self_contained: true         # Methods embedded inline (no external method-procedures/)
-  r2_completeness_priority: true  # "All", "Every", "Exhaustive" (not "main", "typical")
-  r3_mechanisms: true             # IF-THEN triggers (not "should", "recommended")
-  r4_binding_gates: true          # 8 gates with BLOCKER/CRITICAL severity
-  r5_assumptions_declared: true   # Mandatory ASSUMPTIONS_DECLARED section per phase
-  r6_evr_sequence: true           # Extract→Verify→Render enforced with PRECONDITION
-  r7_post_phase_checklists: true  # YAML checklists after each phase
-  r8_counter_checks: true         # 3 counter-checks per critical phase (24 total)
-  r9_executable: true             # Imperative procedures (not descriptive states)
-  r11_unified: true               # Instructions + data in step files (no split brain)
-  r12_just_in_time: true          # Progressive loading (workflow routes → steps)
-  r13_zero_decorations: true      # Only executable mechanisms
+inputs:
+  architecture:
+    type: artifact
+    schema_ref: "schemas/architecture-schema.yaml"
+    required: true
+    loaded_from: "artifacts/architecture.yaml"
 
-gates:
-  count: 8
-  ids: [GATE_0, GATE_1, GATE_2, GATE_3, GATE_4, GATE_5, GATE_6, GATE_7]
-  enforcement: binding            # Agent CANNOT proceed past gate if conditions fail
-  definition_file: gates.yaml
+  requirements:
+    type: artifact
+    schema_ref: "schemas/requirements-schema.yaml"
+    required: false
+    loaded_from: "artifacts/requirements.yaml"
+
+  depth_level:
+    type: enum
+    values: [quick, standard, comprehensive, critical]
+    default: standard
+    loaded_from: "data/risk-scoring.yaml"
+
+# ═══════════════════════════════════════════════════════════════
+# PHASES (OODA STRUCTURE)
+# ═══════════════════════════════════════════════════════════════
 
 phases:
-  - id: 0
-    name: GROUND
-    gate: GATE_0
-    step_file: steps/step-00-ground.md
-    methods: [001, 002, 003]
-    time_estimate: "30-60 min"
+  phase_0_ground:
+    observe:
+      action: "LOAD architecture.yaml + requirements.yaml"
+      gate: "GATE_0_OBSERVED"
 
-  - id: 1
-    name: IDENTIFY_VERTICAL
-    gate: GATE_1
-    step_file: steps/step-01-identify-vertical.md
-    methods: [101, 102, 103, 104, 105, 106, 107]
-    time_estimate: "45-90 min"
+    orient:
+      action: "EXTRACT theoretical_foundations FROM data/theoretical-foundations.yaml"
+      assumptions: "DECLARE applicable_theories per domain"
+      gate: "GATE_0_ORIENTED"
 
-  - id: 2
-    name: IDENTIFY_HORIZONTAL
-    gate: GATE_2
-    step_file: steps/step-02-identify-horizontal.md
-    methods: [108, 109, 110, 111, 112]
-    time_estimate: "30-60 min"
+    decide:
+      action: "IF foundations_applicable THEN load_patterns ELSE use_generic"
+      gate: "GATE_0_DECIDED"
 
-  - id: 3
-    name: QUANTIFY
-    gate: GATE_3
-    step_file: steps/step-03-quantify.md
-    methods: [201, 202, 203, 204, 205, 206, 207]
-    time_estimate: "45-75 min"
+    act:
+      action: "CREATE grounding-context.yaml WITH selected_theories"
+      gate: "GATE_0"
 
-  - id: 4
-    name: INTERACT
-    gate: GATE_4
-    step_file: steps/step-04-interact.md
-    methods: [301, 302, 303, 304, 305, 306, 307, ADVERSARY-01, ADVERSARY-02, ADVERSARY-03]
-    time_estimate: "45-90 min"
+  phase_1_identify_vertical:
+    observe:
+      action: "LOAD grounding-context.yaml + data/risk-pattern-libraries/*.yaml"
+      gate: "GATE_1_OBSERVED"
 
-  - id: 5
-    name: MITIGATE
-    gate: GATE_5
-    step_file: steps/step-05-mitigate.md
-    methods: [401, 402, 403, 405, 407]
-    time_estimate: "60-90 min"
+    orient:
+      action: "CLASSIFY components BY risk_categories USING pattern_detection"
+      assumptions: "DECLARE pattern_libraries per domain"
+      gate: "GATE_1_ORIENTED"
 
-  - id: 6
-    name: MONITOR
-    gate: GATE_6
-    step_file: steps/step-06-monitor.md
-    methods: [501, 502, 503, 504, 505, 506, 507]
-    time_estimate: "45-60 min"
+    decide:
+      action: "FOR EACH component IF matches_pattern THEN extract_risks"
+      gate: "GATE_1_DECIDED"
 
-  - id: 7
-    name: OUTPUT
-    gate: GATE_7
-    step_file: steps/step-07-output.md
-    methods: [601, 602, 603, 604, 605, 606]
-    time_estimate: "45-60 min"
+    act:
+      action: "CREATE vertical-risks.yaml WITH component_risks"
+      gate: "GATE_1"
 
-depth_levels:
-  quick:
-    phases: [0, 1, 3, 5, 6]
-    methods_subset: [001, 002, 003, 101, 102, 103, 104, 201, 401, 501]
-    max_iterations: 1
-    coverage_target: 15
+  phase_2_identify_horizontal:
+    observe:
+      action: "LOAD vertical-risks.yaml"
+      gate: "GATE_2_OBSERVED"
 
-  standard:
-    phases: [0, 1, 2, 3, 4, 5, 6]
-    methods_subset: all_except_chaos  # All except method 110 (chaos probes)
-    max_iterations: 3
-    coverage_target: 35
+    orient:
+      action: "ANALYZE dependencies FOR cascades + correlations"
+      assumptions: "DECLARE interaction_scope boundaries"
+      gate: "GATE_2_ORIENTED"
 
-  comprehensive:
-    phases: [0, 1, 2, 3, 4, 5, 6, 7]
-    methods_subset: all_except_chaos
-    max_iterations: 5
-    coverage_target: 50
+    decide:
+      action: "IF dependency_risk THEN trace_cascade ELSE skip"
+      gate: "GATE_2_DECIDED"
 
-  critical:
-    phases: [0, 1, 2, 3, 4, 5, 6, 7]
-    methods_subset: all_48_methods
-    max_iterations: unlimited
-    coverage_target: 65
+    act:
+      action: "CREATE horizontal-risks.yaml WITH interaction_map"
+      gate: "GATE_2"
 
-integration:
-  consumes:
-    - deep-explore (exploration reports: assumptions, dependencies, consequences)
-    - deep-verify (verification reports: impossibility findings, ungrounded claims)
-  produces:
-    - risk-register.yaml (all identified risks with 5D scores)
-    - risk-interaction-map.yaml (cascades, correlations, common-mode failures)
-    - mitigation-portfolio.yaml (4T classification, cost-benefit, Cobra checks)
-    - monitoring-system.yaml (leading indicators, review cadence, escalation protocol)
-    - risk-report.md (executive summary, portfolio view, recommendations)
+  phase_3_quantify:
+    observe:
+      action: "LOAD vertical-risks.yaml + horizontal-risks.yaml"
+      gate: "GATE_3_OBSERVED"
 
-theoretical_foundations:
-  file: data/theoretical-foundations.yaml
-  theorems: 9
-  coverage:
-    - Normal Accidents (Perrow)
-    - Non-Ergodicity (Peters)
-    - Fat Tails (Taleb)
-    - Swiss Cheese (Reason)
-    - Cobra Effect
-    - Goodhart's Law
-    - Knight's Distinction
-    - Survivorship Bias
-    - Lindy Effect
+    orient:
+      action: "SCORE ALL risks USING 5D(P/I/V/D/R) FROM data/risk-scoring.yaml"
+      assumptions: "DECLARE scoring_confidence per risk"
+      gate: "GATE_3_ORIENTED"
 
-changelog:
-  - version: 2.2.0
-    date: 2026-02-13
-    changes:
-      - "EXPANDED: step-02-identify-horizontal.md from 100L stub → 354L self-contained (R1/R11 compliance)"
-      - "EXPANDED: step-03-quantify.md from 115L stub → 386L self-contained (R1/R11 compliance)"
-      - "EXPANDED: step-04-interact.md from 104L stub → 484L self-contained + ADVERSARY mechanism (R1/R6/R11 compliance)"
-      - "EXPANDED: step-07-output.md from 260L → ~730L with all 6 META methods embedded inline (R1/R2/R11 compliance)"
-      - "ADDED: ADVERSARY mechanism to INTERACT phase — Devil's Advocate (5 angles, ≥10 challenges), Missing Risk Hunt (5 stakeholder perspectives), Risk Register Reconciliation (delta math)"
-      - "ADDED: ADVERSARY-01 Devil's Advocate, ADVERSARY-02 Missing Risk Hunt, ADVERSARY-03 Reconciliation methods to INTERACT phase"
-      - "ADDED: G4-08 Devil's Advocate (BLOCKER), G4-09 Missing Risk Hunt (CRITICAL), G4-10 Reconciliation (BLOCKER) to GATE_4"
-      - "ADDED: CC4-04 adversary grounding (ERROR), CC4-05 adversary coherence delta math (BLOCKER) to GATE_4"
-      - "ADDED: detection-rules.yaml — weighted multi-condition pattern detection algorithm with confidence thresholds"
-      - "ADDED: G1-07 pattern libraries detected (CRITICAL) to GATE_1"
-      - "ADDED: 6 domain pattern libraries — cloud-infrastructure (10), security-cybersecurity (8), ai-ml-systems (8), web-applications (8), microservices (8), serverless-realtime (8) = 50 new patterns"
-      - "UPDATED: Pattern library total 69 → 119 patterns across 11 domains"
-      - "UPDATED: _manifest.yaml version 1.0.0 → 2.0.0 with detection_rules_file reference"
-      - "UPDATED: GATE_1 conditions 6 → 7, checklist 8/8 → 9/9"
-      - "UPDATED: GATE_4 conditions 7 → 10, counter-checks 3 → 5, checklist 8/8 → 10/10"
-      - "UPDATED: INTERACT time_estimate 30-60 min → 45-90 min"
-      - "UPDATED: workflow.md Step 1 pattern detection reference, Step 4 ADVERSARY reference, version V2.1.0 → V2.2.0"
-      - "MOTIVATION: Deep Verify V2.0 verification identified 7 CRITICAL findings — F-01 (steps 02-04 stubs), F-02 (step-07 META stubs), F-05 (EVR one-liners), F-06 (no ADVERSARY), F-07 (no detection algorithm), F-08 (missing domain libraries). All resolved."
+    decide:
+      action: "FOR EACH risk IF score > threshold THEN flag_critical"
+      gate: "GATE_3_DECIDED"
 
-  - version: 2.1.0
-    date: 2026-02-12
-    changes:
-      - "ADDED: Method #506 Cobra Monitoring Check (step-06-monitor.md section 6.6) — 5-question Cobra Effect framework applied to 3 monitoring components (LEADING_INDICATORS, REVIEW_CADENCE, ESCALATION_PROTOCOL)"
-      - "ADDED: Method #507 Adversarial Monitoring Test (step-06-monitor.md section 6.7) — self-adversarial test identifying ≥3 gaming vectors with defenses"
-      - "ADDED: G6-08 Cobra Monitoring Check (BLOCKER) — all monitoring components checked for perverse effects"
-      - "ADDED: G6-09 Adversarial Monitoring Test (CRITICAL) — gaming vectors identified and defended"
-      - "ADDED: CC6-04 Coherence Check — verify Cobra monitoring checks coherent with mitigation Cobra checks (GATE_5 ↔ GATE_6)"
-      - "UPDATED: GATE_6 conditions 7 → 9 (G6-01 through G6-09)"
-      - "UPDATED: GATE_6 counter-checks 3 → 4 (CC6-01 through CC6-04)"
-      - "UPDATED: POST_PHASE_CHECKLIST for MONITOR phase 8 → 10 items"
-      - "UPDATED: MONITOR time_estimate 30-45 min → 45-60 min"
-      - "UPDATED: workflow.md scope to include GATE_6 Cobra check, theoretical foundations 'Used in' to reference GATE_6"
-      - "MOTIVATION: Deep-Explore analysis identified gap — GATE_5 had specific Cobra theorem check (G5-06 BLOCKER) but GATE_6 had only generic unintended consequences check (G6-03) without theoretical grounding. Monitoring systems create second-order effects (alert fatigue, gaming, moral hazard) that need systematic detection."
+    act:
+      action: "CREATE risk-register.yaml WITH ALL 5D_scores"
+      gate: "GATE_3"
 
-  - version: 2.0.0
-    date: 2026-02-12
-    changes:
-      - "SYSTEMATIC REFACTOR: V1.1 → V2.0 for R0-R13 compliance"
-      - "ARCHITECTURE: Pure Deep-Verify Pattern (workflow routing + self-contained steps)"
-      - "DELETED: reference.md (331 lines, violated R0/R11/R13)"
-      - "DELETED: data/method-procedures/*.md (48 files, violated R1 self-containment)"
-      - "CREATED: process.yaml (process metadata + compliance matrix)"
-      - "CREATED: gates.yaml (8 binding gates with BLOCKER/CRITICAL conditions)"
-      - "REFACTORED: workflow.md (277L → 150L, routing + enforcement rules only)"
-      - "REFACTORED: 8 step files (added YAML frontmatter, embedded 48 methods inline, ASSUMPTIONS_DECLARED, EVR sequence, counter-checks)"
-      - "COMPLIANCE: R0-R13 13/13 PASS (was 1/13 in V1.1)"
-      - "MECHANISMS: 8 binding gates (was 0), 24 counter-checks (was 0), 8 ASSUMPTIONS_DECLARED sections (was 0)"
-      - "TOKEN ECONOMY: 75% reduction in upfront loading (workflow 277L→150L, deleted reference.md 331L)"
-      - "METHODS USED: #167 Baseline Census, #81 Scope Integrity, #17 Abstraction Laddering, #42 Reverse Engineering, #59 CUI BONO, #61 Pre-mortem, #84 Coherence Check, #99 Multi-Artifact Coherence, #114 Reversibility, #78 Assumption Excavation"
+  phase_4_interact:
+    observe:
+      action: "LOAD risk-register.yaml"
+      gate: "GATE_4_OBSERVED"
 
-  - version: 1.1.0
-    date: 2024-02-07
-    changes:
-      - "Self-contained execution: lean workflow.md + reference.md"
-      - "48 method procedures in data/method-procedures/"
-      - "8 step files with procedures"
-      - "4 depth levels (quick, standard, comprehensive, critical)"
-      - "Crisis mode detection"
-      - "Integration with Deep-Explore and Deep-Verify"
+    orient:
+      action: "EXECUTE ADVERSARY Devil's_Advocate + Missing_Risk_Hunt"
+      assumptions: "DECLARE adversary_completeness criteria"
+      gate: "GATE_4_ORIENTED"
 
-  - version: 1.0.0
-    date: 2024-02-04
-    changes:
-      - "Initial release based on DEEP-RISK.md methodology"
-      - "6 phases (GROUND, IDENTIFY, QUANTIFY, INTERACT, MITIGATE, MONITOR)"
-      - "48 methods across 6 method families"
-      - "5D risk scoring (P/I/V/D/R)"
-      - "Theoretical foundations (9 theorems)"
+    decide:
+      action: "IF adversary_finds_gaps THEN add_to_register ELSE proceed"
+      gate: "GATE_4_DECIDED"
 
-verification:
-  target: deep-verify-v2
-  target_score: ">= 7.0/10"
-  baseline_audit: BASELINE-AUDIT-V2.md
-  status: pending_verification
+    act:
+      action: "CREATE risk-interaction-map.yaml WITH adversary_findings"
+      gate: "GATE_4"
 
-maintainers:
-  - deep-process-compliance-system
+  phase_5_mitigate:
+    observe:
+      action: "LOAD risk-register.yaml + risk-interaction-map.yaml"
+      gate: "GATE_5_OBSERVED"
 
-license: MIT
+    orient:
+      action: "CLASSIFY mitigations AS 4T(Transfer/Treat/Tolerate/Terminate)"
+      assumptions: "DECLARE mitigation_strategy per risk"
+      gate: "GATE_5_ORIENTED"
+
+    decide:
+      action: "FOR EACH mitigation IF Cobra_Effect_detected THEN redesign"
+      gate: "GATE_5_DECIDED"
+
+    act:
+      action: "CREATE mitigation-portfolio.yaml WITH 4T_classifications"
+      gate: "GATE_5"
+
+  phase_6_monitor:
+    observe:
+      action: "LOAD mitigation-portfolio.yaml"
+      gate: "GATE_6_OBSERVED"
+
+    orient:
+      action: "DESIGN leading_indicators + review_cadence + escalation_protocol"
+      assumptions: "DECLARE monitoring_scope"
+      gate: "GATE_6_ORIENTED"
+
+    decide:
+      action: "IF monitoring_creates_perverse_effects THEN Cobra_check"
+      gate: "GATE_6_DECIDED"
+
+    act:
+      action: "CREATE monitoring-system.yaml WITH indicators"
+      gate: "GATE_6"
+
+  phase_7_output:
+    observe:
+      action: "LOAD ALL phase_outputs"
+      gate: "GATE_7_OBSERVED"
+
+    orient:
+      action: "EXECUTE META_audit portfolio_coherence + completeness"
+      assumptions: "DECLARE output_format requirements"
+      gate: "GATE_7_ORIENTED"
+
+    decide:
+      action: "IF coherence_fails THEN flag_inconsistency ELSE proceed"
+      gate: "GATE_7_DECIDED"
+
+    act:
+      action: "CREATE risk-report.md + risk-register.yaml(final)"
+      gate: "GATE_7"
+
+# ═══════════════════════════════════════════════════════════════
+# OUTPUTS
+# ═══════════════════════════════════════════════════════════════
+
+outputs:
+  grounding-context: {schema: "{theories, patterns}", phase: 0}
+  vertical-risks: {schema: "{component_risks[]}", phase: 1}
+  horizontal-risks: {schema: "{cascades[], correlations[]}", phase: 2}
+  risk-register: {schema: "{risks[], 5D_scores{}}", phase: 3}
+  risk-interaction-map: {schema: "{interactions[], adversary_findings[]}", phase: 4}
+  mitigation-portfolio: {schema: "{4T_classifications{}}", phase: 5}
+  monitoring-system: {schema: "{leading_indicators[], cadence, escalation}", phase: 6}
+  risk-report: {schema_ref: "data/risk-report-template.md", phase: 7}
+
+# ═══════════════════════════════════════════════════════════════
+# VALIDATION GATES
+# ═══════════════════════════════════════════════════════════════
+
+validation_gates:
+  GATE_0:
+    condition: "grounding-context.yaml EXISTS AND theories_selected"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+  GATE_1:
+    condition: "vertical-risks.yaml EXISTS AND pattern_detection >= min_coverage"
+    on_fail: "SCOPE_REDUCTION OR HALT"
+    severity: CRITICAL
+
+  GATE_2:
+    condition: "horizontal-risks.yaml EXISTS AND cascades_analyzed"
+    on_fail: "EMIT_WARNING + PROCEED"
+    severity: WARNING
+
+  GATE_3:
+    condition: "risk-register.yaml EXISTS AND ALL risks 5D_scored"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+  GATE_4:
+    condition: "risk-interaction-map.yaml EXISTS AND adversary_complete"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+  GATE_5:
+    condition: "mitigation-portfolio.yaml EXISTS AND Cobra_checks_passed"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+  GATE_6:
+    condition: "monitoring-system.yaml EXISTS AND indicators_defined"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+  GATE_7:
+    condition: "risk-report.md + risk-register.yaml(final) EXIST"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+# ═══════════════════════════════════════════════════════════════
+# ERROR HANDLERS
+# ═══════════════════════════════════════════════════════════════
+
+error_handlers:
+  missing_input:
+    trigger: "architecture.yaml NOT PROVIDED"
+    severity: CRITICAL
+    action: "HALT WITH error_missing_architecture"
+    recovery: "Request architecture artifact"
+
+  invalid_input:
+    trigger: "architecture.yaml schema VALIDATION FAILS"
+    severity: HIGH
+    action: "HALT WITH validation_error"
+    recovery: "Request valid architecture"
+
+  partial_completion:
+    trigger: "phase N reaches 70% THEN interrupted"
+    severity: MEDIUM
+    action: "SAVE checkpoint + HALT"
+    recovery: "Resume from checkpoint"
+
+  external_dependency_failure:
+    trigger: "data/risk-pattern-libraries/* NOT ACCESSIBLE"
+    severity: MEDIUM
+    action: "USE core_patterns_only + EMIT_WARNING"
+    recovery: "Continue with reduced coverage"
+
+  timeout:
+    trigger: "phase_duration > max_allowed"
+    severity: HIGH
+    action: "SAVE state + HALT WITH timeout_error"
+    recovery: "User decides: continue OR abort"
+
+  resource_exhaustion:
+    trigger: "risk_count > max_processable"
+    severity: HIGH
+    action: "PRIORITIZE by score + REDUCE scope"
+    recovery: "Continue with top N risks"
+
+  concurrent_modification:
+    trigger: "architecture.yaml CHANGED during execution"
+    severity: CRITICAL
+    action: "RELOAD + RESTART from GATE_0"
+    recovery: "Phase 0 re-execution"
+
+  user_cancellation:
+    trigger: "user_cancels DURING execution"
+    severity: LOW
+    action: "SAVE checkpoint + CLEANUP"
+    recovery: "State saved for resume"
+
+# ═══════════════════════════════════════════════════════════════
+# COMPLIANCE
+# ═══════════════════════════════════════════════════════════════
+
+compliance_13_zasady:
+  zasada_0_ooda: "PASS - 8 phases OODA"
+  zasada_1_self_contained: "PASS - methods in steps/"
+  zasada_2_completeness: "PASS - ALL risks scored GATE_3"
+  zasada_3_mechanisms: "PASS - 8 gates IF-THEN"
+  zasada_4_binding_gates: "PASS - BLOCKER enforcement"
+  zasada_5_assumptions: "PASS - DECLARE each phase"
+  zasada_6_evr: "PASS - observe→orient→act"
+  zasada_7_checklists: "PASS - step files"
+  zasada_8_counter_checks: "PASS - ADVERSARY phase_4"
+  zasada_9_executable: "PASS - LOAD/CREATE/IF"
+  zasada_10_visible_reasoning: "PASS - orient shows logic"
+  zasada_11_instruction_data: "PASS - schemas + patterns"
+  zasada_12_jit: "PASS - steps/*.md JIT"
+  zasada_13_zero_decoration: "PASS - no explanations"
+
+---
+# END deep-risk process.yaml

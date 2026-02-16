@@ -1,10 +1,10 @@
 ---
-# Deep Document Process
-# Automated documentation generation
+# Deep Requirements Process
+# Requirements extraction and analysis
 ---
 
-process_name: deep-document
-version: "8.2.0"
+process_name: deep-requirements
+version: "2.0.0"
 13_zasady_version: "1.0.0"
 created: "2026-02-16"
 
@@ -13,7 +13,7 @@ created: "2026-02-16"
 # ═══════════════════════════════════════════════════════════════
 
 metadata:
-  category: DOCUMENTATION
+  category: REQUIREMENTS_ANALYSIS
   complexity: MEDIUM
 
 # ═══════════════════════════════════════════════════════════════
@@ -21,20 +21,27 @@ metadata:
 # ═══════════════════════════════════════════════════════════════
 
 inputs:
-  codebase_path:
+  user_request:
     type: string
     required: true
-    schema: "Absolute path to codebase"
+    schema: "User's project description or change request"
 
-  template_type:
-    type: enum
-    values: [README, API, ARCHITECTURE, USER_GUIDE, DEVELOPER_GUIDE]
-    required: true
-
-  existing_docs:
-    type: list
+  project_context:
+    type: artifact
+    schema_ref: "schemas/project-context-schema.yaml"
     required: false
-    loaded_from: "docs/**/*.md"
+    loaded_from: "artifacts/{project_id}/project-context.yaml"
+
+  existing_requirements:
+    type: artifact
+    schema_ref: "schemas/requirements-schema.yaml"
+    required: false
+    loaded_from: "artifacts/{project_id}/requirements.yaml"
+
+  analysis_result:
+    type: artifact
+    required: true
+    schema: "{mode, request_type, high_level_requirements}"
 
 # ═══════════════════════════════════════════════════════════════
 # PHASES (OODA STRUCTURE)
@@ -43,110 +50,110 @@ inputs:
 phases:
   phase_0_preparation:
     observe:
-      action: "LOAD template_type + data/domain-config.yaml"
+      action: "LOAD user_request + analysis_result + project_context IF exists"
       gate: "GATE_0_OBSERVED"
 
     orient:
-      action: "DETECT domains USING multi-domain_detection + transitive_closure"
-      assumptions: "DECLARE domain_detection_rules"
+      action: "CLASSIFY mode AS new_project|modify_existing + EXTRACT request_type"
+      assumptions: "DECLARE requirement_extraction_patterns"
       gate: "GATE_0_ORIENTED"
 
     decide:
-      action: "IF multiple_domains THEN load_all_patterns ELSE load_base"
+      action: "IF mode==modify_existing THEN merge_strategy ELSE fresh_extraction"
       gate: "GATE_0_DECIDED"
 
     act:
-      action: "CREATE preparation-report.yaml WITH domain_list"
+      action: "CREATE preparation-context.yaml WITH extraction_strategy"
       gate: "GATE_0"
 
-  phase_1_knowledge_extraction:
+  phase_1_extraction:
     observe:
-      action: "LOAD codebase FROM codebase_path"
+      action: "LOAD preparation-context.yaml"
       gate: "GATE_1_OBSERVED"
 
     orient:
-      action: "EXTRACT execution|data|control|test|config flows USING method#167"
-      assumptions: "DECLARE extraction_completeness target"
+      action: "EXTRACT functional|nonfunctional|constraints|stakeholders FROM user_request USING patterns"
+      assumptions: "DECLARE pattern_library = [action_verbs, quality_attributes, constraint_keywords]"
       gate: "GATE_1_ORIENTED"
 
     decide:
-      action: "FOR EACH entity IF relevant THEN extract ELSE skip"
+      action: "FOR EACH detected_requirement IF valid THEN extract ELSE skip"
       gate: "GATE_1_DECIDED"
 
     act:
-      action: "CREATE knowledge-map.yaml WITH ALL flows"
+      action: "CREATE raw-requirements.yaml WITH extracted_requirements"
       gate: "GATE_1"
 
-  phase_2_template_mapping:
+  phase_2_elaboration:
     observe:
-      action: "LOAD knowledge-map.yaml + template_type"
+      action: "LOAD raw-requirements.yaml"
       gate: "GATE_2_OBSERVED"
 
     orient:
-      action: "MAP entities TO template_sections USING semantic_matching"
-      assumptions: "DECLARE entity_expectation per section"
+      action: "ELABORATE acceptance_criteria + dependencies + user_stories FOR EACH requirement"
+      assumptions: "DECLARE prioritization_method = MoSCoW"
       gate: "GATE_2_ORIENTED"
 
     decide:
-      action: "IF semantic_mismatch < threshold THEN proceed ELSE adjust"
+      action: "FOR EACH requirement IF testable THEN elaborate ELSE flag_for_review"
       gate: "GATE_2_DECIDED"
 
     act:
-      action: "CREATE documentation-plan.yaml WITH section_mappings"
+      action: "CREATE elaborated-requirements.yaml WITH priorities"
       gate: "GATE_2"
 
-  phase_3_documentation:
+  phase_3_validation:
     observe:
-      action: "LOAD documentation-plan.yaml"
+      action: "LOAD elaborated-requirements.yaml"
       gate: "GATE_3_OBSERVED"
 
     orient:
-      action: "GENERATE docs FOR EACH section USING knowledge-map"
-      assumptions: "DECLARE completeness_per_section"
+      action: "VALIDATE completeness + consistency + feasibility + testability USING checklist"
+      assumptions: "DECLARE validation_thresholds per check_type"
       gate: "GATE_3_ORIENTED"
 
     decide:
-      action: "FOR EACH section IF entities_found THEN document ELSE skip"
+      action: "IF total_issues == 0 THEN pass ELIF critical_issues > 0 THEN fail ELSE pass_with_warnings"
       gate: "GATE_3_DECIDED"
 
     act:
-      action: "CREATE docs/*.md + entity-log.yaml"
+      action: "CREATE validation-report.yaml WITH findings"
       gate: "GATE_3"
 
-  phase_4_verification:
+  phase_4_success_criteria:
     observe:
-      action: "LOAD docs/*.md + entity-log.yaml"
+      action: "LOAD elaborated-requirements.yaml + validation-report.yaml"
       gate: "GATE_4_OBSERVED"
 
     orient:
-      action: "VERIFY claims BY grounding_check + phantom_hunt USING method#85,#168"
-      assumptions: "DECLARE verification_sample_size"
+      action: "DEFINE functional|quality|deployment success_criteria FROM requirements"
+      assumptions: "DECLARE default_quality_gates = [coverage>80%, zero_critical_vulns]"
       gate: "GATE_4_ORIENTED"
 
     decide:
-      action: "IF verification_fails THEN flag_section ELSE proceed"
+      action: "IF criteria_complete THEN proceed ELSE add_default_criteria"
       gate: "GATE_4_DECIDED"
 
     act:
-      action: "CREATE verification-report.yaml WITH findings"
+      action: "CREATE success-criteria.yaml WITH definition_of_done"
       gate: "GATE_4"
 
-  phase_5_refinement:
+  phase_5_finalization:
     observe:
-      action: "LOAD verification-report.yaml"
+      action: "LOAD ALL artifacts"
       gate: "GATE_5_OBSERVED"
 
     orient:
-      action: "CLASSIFY issues AS critical|minor"
-      assumptions: "DECLARE refinement_threshold"
+      action: "AGGREGATE requirements + validation + success_criteria INTO final_document"
+      assumptions: "DECLARE handoff_validation_checklist"
       gate: "GATE_5_ORIENTED"
 
     decide:
-      action: "IF critical_issues THEN fix ELSE skip_refinement"
+      action: "IF ready_for_handoff THEN finalize ELSE return_to_validation"
       gate: "GATE_5_DECIDED"
 
     act:
-      action: "UPDATE docs/*.md WITH fixes"
+      action: "CREATE requirements.yaml + handoff-checkpoint.yaml"
       gate: "GATE_5"
 
 # ═══════════════════════════════════════════════════════════════
@@ -154,12 +161,13 @@ phases:
 # ═══════════════════════════════════════════════════════════════
 
 outputs:
-  preparation-report: {schema: "{domains[], patterns[], assumptions[]}", phase: 0}
-  knowledge-map: {schema: "{flows{}, entities[]}", phase: 1}
-  documentation-plan: {schema: "{sections[], mappings{}}", phase: 2}
-  entity-log: {schema: "{documented_entities{}, coverage{}}", phase: 3}
-  docs: {schema: "Markdown files", path: "docs/*.md", phase: 3}
-  verification-report: {schema: "{grounding_check{}, phantom_hunt{}}", phase: 4}
+  preparation-context: {schema: "{mode, strategy}", phase: 0}
+  raw-requirements: {schema: "{functional[], nonfunctional[], constraints[], stakeholders[]}", phase: 1}
+  elaborated-requirements: {schema: "{requirements[] WITH acceptance_criteria, priorities}", phase: 2}
+  validation-report: {schema: "{completeness{}, consistency{}, feasibility{}, testability{}}", phase: 3}
+  success-criteria: {schema: "{functional[], quality[], deployment[], definition_of_done[]}", phase: 4}
+  requirements: {schema_ref: "schemas/requirements-schema.yaml", phase: 5}
+  handoff-checkpoint: {schema_ref: "schemas/handoff-checkpoint-schema.yaml", phase: 5}
 
 # ═══════════════════════════════════════════════════════════════
 # VALIDATION GATES
@@ -167,34 +175,34 @@ outputs:
 
 validation_gates:
   GATE_0:
-    condition: "preparation-report.yaml EXISTS AND domains_detected"
+    condition: "preparation-context.yaml EXISTS AND extraction_strategy SET"
     on_fail: "HALT"
     severity: BLOCKER
 
   GATE_1:
-    condition: "knowledge-map.yaml EXISTS AND flows_extracted"
+    condition: "raw-requirements.yaml EXISTS AND functional_requirements > 0"
     on_fail: "HALT"
     severity: BLOCKER
 
   GATE_2:
-    condition: "documentation-plan.yaml EXISTS AND semantic_mismatches_resolved"
+    condition: "elaborated-requirements.yaml EXISTS AND ALL requirements have priorities"
     on_fail: "HALT"
     severity: BLOCKER
 
   GATE_3:
-    condition: "docs/*.md EXIST AND entity-log.yaml complete"
+    condition: "validation-report.yaml EXISTS AND validation_status != FAIL"
     on_fail: "HALT"
     severity: BLOCKER
 
   GATE_4:
-    condition: "verification-report.yaml EXISTS"
-    on_fail: "EMIT_WARNING + PROCEED"
-    severity: WARNING
+    condition: "success-criteria.yaml EXISTS AND definition_of_done DEFINED"
+    on_fail: "HALT"
+    severity: BLOCKER
 
   GATE_5:
-    condition: "docs/*.md updated IF critical_issues_found"
-    on_fail: "PROCEED"
-    severity: WARNING
+    condition: "requirements.yaml + handoff-checkpoint.yaml EXIST AND handoff_validation PASSED"
+    on_fail: "HALT"
+    severity: BLOCKER
 
 # ═══════════════════════════════════════════════════════════════
 # ERROR HANDLERS
@@ -202,16 +210,16 @@ validation_gates:
 
 error_handlers:
   missing_input:
-    trigger: "codebase_path NOT PROVIDED OR invalid"
+    trigger: "user_request NOT PROVIDED OR empty"
     severity: CRITICAL
-    action: "HALT WITH error_no_codebase"
-    recovery: "Request valid codebase path"
+    action: "HALT WITH error_missing_user_request"
+    recovery: "Request user input"
 
   invalid_input:
-    trigger: "template_type NOT IN allowed_values"
+    trigger: "user_request < 10 chars OR incoherent"
     severity: HIGH
     action: "HALT WITH validation_error"
-    recovery: "Request valid template type"
+    recovery: "Request clarification"
 
   partial_completion:
     trigger: "phase N reaches 70% THEN interrupted"
@@ -220,28 +228,28 @@ error_handlers:
     recovery: "Resume from checkpoint"
 
   external_dependency_failure:
-    trigger: "data/domain-config.yaml NOT ACCESSIBLE"
+    trigger: "data/patterns/*.yaml NOT ACCESSIBLE"
     severity: MEDIUM
-    action: "USE base_domains_only + EMIT_WARNING"
-    recovery: "Continue with reduced domains"
+    action: "USE built-in_patterns + EMIT_WARNING"
+    recovery: "Continue with reduced patterns"
 
   timeout:
-    trigger: "knowledge_extraction > max_allowed"
+    trigger: "extraction_duration > max_allowed"
     severity: HIGH
     action: "SAVE state + HALT WITH timeout_error"
-    recovery: "User decides: continue OR reduce_scope"
+    recovery: "User decides: continue OR simplify_request"
 
   resource_exhaustion:
-    trigger: "codebase_size > max_processable"
+    trigger: "requirement_count > max_processable"
     severity: HIGH
     action: "PRIORITIZE by importance + REDUCE scope"
-    recovery: "Document top N files only"
+    recovery: "Process top N requirements only"
 
   concurrent_modification:
-    trigger: "codebase CHANGED during execution"
+    trigger: "user_request CHANGED during execution"
     severity: CRITICAL
-    action: "RELOAD + RESTART from GATE_1"
-    recovery: "Phase 1 re-execution"
+    action: "RELOAD + RESTART from GATE_0"
+    recovery: "Phase 0 re-execution"
 
   user_cancellation:
     trigger: "user_cancels DURING execution"
@@ -256,18 +264,18 @@ error_handlers:
 compliance_13_zasady:
   zasada_0_ooda: "PASS - 6 phases OODA"
   zasada_1_self_contained: "PASS - steps/*.md JIT"
-  zasada_2_completeness: "PASS - ALL entities GATE_1"
+  zasada_2_completeness: "PASS - ALL requirements extracted GATE_1"
   zasada_3_mechanisms: "PASS - 6 gates IF-THEN"
   zasada_4_binding_gates: "PASS - BLOCKER enforcement"
   zasada_5_assumptions: "PASS - DECLARE each phase"
   zasada_6_evr: "PASS - observe→orient→act"
   zasada_7_checklists: "PASS - step files"
-  zasada_8_counter_checks: "PASS - verification phase_4"
+  zasada_8_counter_checks: "PASS - validation phase_3"
   zasada_9_executable: "PASS - LOAD/CREATE/IF"
-  zasada_10_visible_reasoning: "PASS - orient extraction"
-  zasada_11_instruction_data: "PASS - schemas included"
+  zasada_10_visible_reasoning: "PASS - orient shows extraction"
+  zasada_11_instruction_data: "PASS - schemas + patterns"
   zasada_12_jit: "PASS - on-demand loading"
   zasada_13_zero_decoration: "PASS - no explanations"
 
 ---
-# END deep-document process.yaml
+# END deep-requirements process.yaml

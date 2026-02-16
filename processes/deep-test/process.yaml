@@ -1,10 +1,10 @@
 ---
-# Deep Document Process
-# Automated documentation generation
+# Deep Test Process
+# Comprehensive testing strategy
 ---
 
-process_name: deep-document
-version: "8.2.0"
+process_name: deep-test
+version: "2.0.0"
 13_zasady_version: "1.0.0"
 created: "2026-02-16"
 
@@ -13,28 +13,43 @@ created: "2026-02-16"
 # ═══════════════════════════════════════════════════════════════
 
 metadata:
-  category: DOCUMENTATION
-  complexity: MEDIUM
+  category: TESTING
+  complexity: HIGH
 
 # ═══════════════════════════════════════════════════════════════
 # INPUTS
 # ═══════════════════════════════════════════════════════════════
 
 inputs:
-  codebase_path:
-    type: string
-    required: true
-    schema: "Absolute path to codebase"
-
-  template_type:
-    type: enum
-    values: [README, API, ARCHITECTURE, USER_GUIDE, DEVELOPER_GUIDE]
+  project_context:
+    type: artifact
+    schema_ref: "schemas/project-context-schema.yaml"
     required: true
 
-  existing_docs:
-    type: list
+  source_code:
+    type: directory
+    required: true
+    schema: "artifacts/{project_id}/src/**/*"
+
+  requirements:
+    type: artifact
+    schema_ref: "schemas/requirements-schema.yaml"
+    required: true
+
+  api_specifications:
+    type: artifact
+    schema_ref: "schemas/api-specification-schema.yaml"
     required: false
-    loaded_from: "docs/**/*.md"
+
+  risk_assessment:
+    type: artifact
+    schema_ref: "schemas/risk-assessment-schema.yaml"
+    required: false
+
+  implementation_log:
+    type: artifact
+    schema_ref: "schemas/implementation-log-schema.yaml"
+    required: true
 
 # ═══════════════════════════════════════════════════════════════
 # PHASES (OODA STRUCTURE)
@@ -43,123 +58,143 @@ inputs:
 phases:
   phase_0_preparation:
     observe:
-      action: "LOAD template_type + data/domain-config.yaml"
+      action: "LOAD implementation_log + requirements + risk_assessment"
       gate: "GATE_0_OBSERVED"
 
     orient:
-      action: "DETECT domains USING multi-domain_detection + transitive_closure"
-      assumptions: "DECLARE domain_detection_rules"
+      action: "CLASSIFY components BY test_needs + IDENTIFY test_types_required"
+      assumptions: "DECLARE test_pyramid = [unit>60%, integration>25%, e2e>10%]"
       gate: "GATE_0_ORIENTED"
 
     decide:
-      action: "IF multiple_domains THEN load_all_patterns ELSE load_base"
+      action: "IF api_exists THEN include_contract_tests ELSE skip"
       gate: "GATE_0_DECIDED"
 
     act:
-      action: "CREATE preparation-report.yaml WITH domain_list"
+      action: "CREATE test-plan.yaml WITH test_strategy"
       gate: "GATE_0"
 
-  phase_1_knowledge_extraction:
+  phase_1_test_generation:
     observe:
-      action: "LOAD codebase FROM codebase_path"
+      action: "LOAD test-plan.yaml + source_code"
       gate: "GATE_1_OBSERVED"
 
     orient:
-      action: "EXTRACT execution|data|control|test|config flows USING method#167"
-      assumptions: "DECLARE extraction_completeness target"
+      action: "GENERATE unit|integration|e2e tests FROM components USING patterns"
+      assumptions: "DECLARE test_patterns per component_type"
       gate: "GATE_1_ORIENTED"
 
     decide:
-      action: "FOR EACH entity IF relevant THEN extract ELSE skip"
+      action: "FOR EACH component IF testable THEN generate_tests ELSE flag"
       gate: "GATE_1_DECIDED"
 
     act:
-      action: "CREATE knowledge-map.yaml WITH ALL flows"
+      action: "CREATE tests/ WITH generated_test_files"
       gate: "GATE_1"
 
-  phase_2_template_mapping:
+  phase_2_test_execution:
     observe:
-      action: "LOAD knowledge-map.yaml + template_type"
+      action: "LOAD tests/ + source_code"
       gate: "GATE_2_OBSERVED"
 
     orient:
-      action: "MAP entities TO template_sections USING semantic_matching"
-      assumptions: "DECLARE entity_expectation per section"
+      action: "EXECUTE unit_tests THEN integration_tests THEN e2e_tests"
+      assumptions: "DECLARE execution_order = [unit, integration, e2e, security]"
       gate: "GATE_2_ORIENTED"
 
     decide:
-      action: "IF semantic_mismatch < threshold THEN proceed ELSE adjust"
+      action: "IF test_fails THEN record_failure ELSE continue"
       gate: "GATE_2_DECIDED"
 
     act:
-      action: "CREATE documentation-plan.yaml WITH section_mappings"
+      action: "CREATE test-results.yaml WITH pass_fail_stats"
       gate: "GATE_2"
 
-  phase_3_documentation:
+  phase_3_coverage_analysis:
     observe:
-      action: "LOAD documentation-plan.yaml"
+      action: "LOAD test-results.yaml + source_code"
       gate: "GATE_3_OBSERVED"
 
     orient:
-      action: "GENERATE docs FOR EACH section USING knowledge-map"
-      assumptions: "DECLARE completeness_per_section"
+      action: "CALCULATE coverage BY file|function|branch USING coverage_tool"
+      assumptions: "DECLARE coverage_target >= 80%"
       gate: "GATE_3_ORIENTED"
 
     decide:
-      action: "FOR EACH section IF entities_found THEN document ELSE skip"
+      action: "IF coverage < target THEN identify_gaps ELSE proceed"
       gate: "GATE_3_DECIDED"
 
     act:
-      action: "CREATE docs/*.md + entity-log.yaml"
+      action: "CREATE coverage-report.yaml WITH gaps"
       gate: "GATE_3"
 
-  phase_4_verification:
+  phase_4_security_testing:
     observe:
-      action: "LOAD docs/*.md + entity-log.yaml"
+      action: "LOAD source_code + risk_assessment"
       gate: "GATE_4_OBSERVED"
 
     orient:
-      action: "VERIFY claims BY grounding_check + phantom_hunt USING method#85,#168"
-      assumptions: "DECLARE verification_sample_size"
+      action: "EXECUTE SAST + DAST + dependency_scan USING security_tools"
+      assumptions: "DECLARE vulnerability_threshold = zero_critical"
       gate: "GATE_4_ORIENTED"
 
     decide:
-      action: "IF verification_fails THEN flag_section ELSE proceed"
+      action: "IF critical_vulns > 0 THEN fail ELSE proceed"
       gate: "GATE_4_DECIDED"
 
     act:
-      action: "CREATE verification-report.yaml WITH findings"
+      action: "CREATE security-report.yaml WITH findings"
       gate: "GATE_4"
 
-  phase_5_refinement:
+  phase_5_performance_testing:
     observe:
-      action: "LOAD verification-report.yaml"
+      action: "LOAD api_specifications + requirements"
       gate: "GATE_5_OBSERVED"
 
     orient:
-      action: "CLASSIFY issues AS critical|minor"
-      assumptions: "DECLARE refinement_threshold"
+      action: "EXECUTE load_tests + stress_tests USING performance_targets"
+      assumptions: "DECLARE performance_targets FROM nfr"
       gate: "GATE_5_ORIENTED"
 
     decide:
-      action: "IF critical_issues THEN fix ELSE skip_refinement"
+      action: "IF performance < target THEN flag_bottleneck ELSE proceed"
       gate: "GATE_5_DECIDED"
 
     act:
-      action: "UPDATE docs/*.md WITH fixes"
+      action: "CREATE performance-report.yaml WITH metrics"
       gate: "GATE_5"
+
+  phase_6_finalization:
+    observe:
+      action: "LOAD ALL test_reports"
+      gate: "GATE_6_OBSERVED"
+
+    orient:
+      action: "AGGREGATE results + VALIDATE quality_gates"
+      assumptions: "DECLARE quality_gates = [coverage>80%, zero_critical_bugs, all_tests_pass]"
+      gate: "GATE_6_ORIENTED"
+
+    decide:
+      action: "IF all_gates_pass THEN approve ELSE reject"
+      gate: "GATE_6_DECIDED"
+
+    act:
+      action: "CREATE test-summary.yaml + handoff-checkpoint.yaml"
+      gate: "GATE_6"
 
 # ═══════════════════════════════════════════════════════════════
 # OUTPUTS
 # ═══════════════════════════════════════════════════════════════
 
 outputs:
-  preparation-report: {schema: "{domains[], patterns[], assumptions[]}", phase: 0}
-  knowledge-map: {schema: "{flows{}, entities[]}", phase: 1}
-  documentation-plan: {schema: "{sections[], mappings{}}", phase: 2}
-  entity-log: {schema: "{documented_entities{}, coverage{}}", phase: 3}
-  docs: {schema: "Markdown files", path: "docs/*.md", phase: 3}
-  verification-report: {schema: "{grounding_check{}, phantom_hunt{}}", phase: 4}
+  test-plan: {schema: "{test_types[], strategy}", phase: 0}
+  tests: {schema: "Generated test files", path: "tests/", phase: 1}
+  test-results: {schema: "{passed, failed, skipped, duration}", phase: 2}
+  coverage-report: {schema: "{coverage%, gaps[]}", phase: 3}
+  security-report: {schema: "{vulnerabilities[], severity_counts{}}", phase: 4}
+  performance-report: {schema: "{load_test{}, stress_test{}, bottlenecks[]}", phase: 5}
+  test-summary: {schema: "{overall_status, quality_gates_status{}}", phase: 6}
+  handoff-checkpoint: {schema_ref: "schemas/handoff-checkpoint-schema.yaml", phase: 6}
 
 # ═══════════════════════════════════════════════════════════════
 # VALIDATION GATES
@@ -167,34 +202,39 @@ outputs:
 
 validation_gates:
   GATE_0:
-    condition: "preparation-report.yaml EXISTS AND domains_detected"
+    condition: "test-plan.yaml EXISTS AND test_strategy DEFINED"
     on_fail: "HALT"
     severity: BLOCKER
 
   GATE_1:
-    condition: "knowledge-map.yaml EXISTS AND flows_extracted"
+    condition: "tests/ EXISTS AND test_count > 0"
     on_fail: "HALT"
     severity: BLOCKER
 
   GATE_2:
-    condition: "documentation-plan.yaml EXISTS AND semantic_mismatches_resolved"
+    condition: "test-results.yaml EXISTS AND execution_completed"
     on_fail: "HALT"
     severity: BLOCKER
 
   GATE_3:
-    condition: "docs/*.md EXIST AND entity-log.yaml complete"
-    on_fail: "HALT"
-    severity: BLOCKER
-
-  GATE_4:
-    condition: "verification-report.yaml EXISTS"
+    condition: "coverage-report.yaml EXISTS AND coverage >= 80%"
     on_fail: "EMIT_WARNING + PROCEED"
     severity: WARNING
 
+  GATE_4:
+    condition: "security-report.yaml EXISTS AND critical_vulns == 0"
+    on_fail: "HALT"
+    severity: BLOCKER
+
   GATE_5:
-    condition: "docs/*.md updated IF critical_issues_found"
-    on_fail: "PROCEED"
+    condition: "performance-report.yaml EXISTS AND targets_met"
+    on_fail: "EMIT_WARNING + PROCEED"
     severity: WARNING
+
+  GATE_6:
+    condition: "test-summary.yaml EXISTS AND quality_gates_passed"
+    on_fail: "HALT"
+    severity: BLOCKER
 
 # ═══════════════════════════════════════════════════════════════
 # ERROR HANDLERS
@@ -202,16 +242,16 @@ validation_gates:
 
 error_handlers:
   missing_input:
-    trigger: "codebase_path NOT PROVIDED OR invalid"
+    trigger: "source_code OR implementation_log NOT PROVIDED"
     severity: CRITICAL
-    action: "HALT WITH error_no_codebase"
-    recovery: "Request valid codebase path"
+    action: "HALT WITH error_missing_code"
+    recovery: "Request implementation artifacts"
 
   invalid_input:
-    trigger: "template_type NOT IN allowed_values"
+    trigger: "source_code directory empty OR invalid"
     severity: HIGH
     action: "HALT WITH validation_error"
-    recovery: "Request valid template type"
+    recovery: "Verify implementation completion"
 
   partial_completion:
     trigger: "phase N reaches 70% THEN interrupted"
@@ -220,25 +260,25 @@ error_handlers:
     recovery: "Resume from checkpoint"
 
   external_dependency_failure:
-    trigger: "data/domain-config.yaml NOT ACCESSIBLE"
-    severity: MEDIUM
-    action: "USE base_domains_only + EMIT_WARNING"
-    recovery: "Continue with reduced domains"
+    trigger: "test_tools OR coverage_tools NOT ACCESSIBLE"
+    severity: HIGH
+    action: "USE fallback_tools + EMIT_WARNING"
+    recovery: "Continue with reduced testing"
 
   timeout:
-    trigger: "knowledge_extraction > max_allowed"
+    trigger: "test_execution > max_allowed"
     severity: HIGH
     action: "SAVE state + HALT WITH timeout_error"
     recovery: "User decides: continue OR reduce_scope"
 
   resource_exhaustion:
-    trigger: "codebase_size > max_processable"
+    trigger: "test_count > max_executable"
     severity: HIGH
     action: "PRIORITIZE by importance + REDUCE scope"
-    recovery: "Document top N files only"
+    recovery: "Execute critical tests only"
 
   concurrent_modification:
-    trigger: "codebase CHANGED during execution"
+    trigger: "source_code CHANGED during testing"
     severity: CRITICAL
     action: "RELOAD + RESTART from GATE_1"
     recovery: "Phase 1 re-execution"
@@ -254,20 +294,20 @@ error_handlers:
 # ═══════════════════════════════════════════════════════════════
 
 compliance_13_zasady:
-  zasada_0_ooda: "PASS - 6 phases OODA"
+  zasada_0_ooda: "PASS - 7 phases OODA"
   zasada_1_self_contained: "PASS - steps/*.md JIT"
-  zasada_2_completeness: "PASS - ALL entities GATE_1"
-  zasada_3_mechanisms: "PASS - 6 gates IF-THEN"
+  zasada_2_completeness: "PASS - ALL test types GATE_0"
+  zasada_3_mechanisms: "PASS - 7 gates IF-THEN"
   zasada_4_binding_gates: "PASS - BLOCKER enforcement"
   zasada_5_assumptions: "PASS - DECLARE each phase"
   zasada_6_evr: "PASS - observe→orient→act"
   zasada_7_checklists: "PASS - step files"
-  zasada_8_counter_checks: "PASS - verification phase_4"
+  zasada_8_counter_checks: "PASS - security + coverage checks"
   zasada_9_executable: "PASS - LOAD/CREATE/IF"
-  zasada_10_visible_reasoning: "PASS - orient extraction"
-  zasada_11_instruction_data: "PASS - schemas included"
+  zasada_10_visible_reasoning: "PASS - orient shows test_strategy"
+  zasada_11_instruction_data: "PASS - schemas + patterns"
   zasada_12_jit: "PASS - on-demand loading"
   zasada_13_zero_decoration: "PASS - no explanations"
 
 ---
-# END deep-document process.yaml
+# END deep-test process.yaml

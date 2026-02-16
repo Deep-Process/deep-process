@@ -1,122 +1,301 @@
-# Deep-Architect V1.4.1 — Framework Registration
+---
+# Deep Architect Process
+# Systematic architecture design
+---
+
+process_name: deep-architect
+version: "1.5.0"
+13_zasady_version: "1.0.0"
+created: "2026-02-16"
+
+# ═══════════════════════════════════════════════════════════════
+# METADATA
+# ═══════════════════════════════════════════════════════════════
 
 metadata:
-  name: "deep-architect"
-  version: "1.4.1"
-  status: "development"
-  created: "2026-02-11"
-  pattern: "deep-verify-v2"
+  category: ARCHITECTURE_DESIGN
+  complexity: HIGH
+
+# ═══════════════════════════════════════════════════════════════
+# INPUTS
+# ═══════════════════════════════════════════════════════════════
+
+inputs:
+  requirements:
+    type: artifact
+    schema_ref: "schemas/requirements-schema.yaml"
+    required: true
+    loaded_from: "artifacts/requirements.yaml"
+
+  constraints:
+    type: artifact
+    required: false
+    loaded_from: "artifacts/constraints.yaml"
+
+  depth_level:
+    type: enum
+    values: [quick, standard, deep]
+    default: standard
+
+# ═══════════════════════════════════════════════════════════════
+# PHASES (OODA STRUCTURE)
+# ═══════════════════════════════════════════════════════════════
 
 phases:
-  - id: 0
-    name: "Context Assessment"
-    step_file: "steps/step-00-context.md"
-    gate: "GATE_0"
-    time_estimate: "15-30 minutes"
+  phase_0_context_assessment:
+    observe:
+      action: "LOAD requirements.yaml + constraints.yaml"
+      gate: "GATE_0_OBSERVED"
 
-  - id: 1
-    name: "Canonical Operations"
-    step_file: "steps/step-01-canonical.md"
-    gate: "GATE_1"
-    time_estimate: "60-120 minutes"
-    mandatory: true
-    operation_count: 8
+    orient:
+      action: "CLASSIFY requirements BY architectural_drivers USING domain_detection"
+      assumptions: "DECLARE architectural_significance criteria"
+      gate: "GATE_0_ORIENTED"
 
-  - id: 2
-    name: "Artifact Generation"
-    step_file: "steps/step-02-artifacts.md"
-    gate: "GATE_2"
-    time_estimate: "45-90 minutes"
+    decide:
+      action: "IF complexity_high THEN deep_analysis ELSE standard"
+      gate: "GATE_0_DECIDED"
 
-  - id: 3
-    name: "ADVERSARY"
-    step_file: "steps/step-03-adversary.md"
-    gate: "GATE_3"
-    time_estimate: "90-180 minutes"
-    mandatory: true
-    non_negotiable: true
-    operation_count: 8
+    act:
+      action: "CREATE context-assessment.yaml WITH drivers"
+      gate: "GATE_0"
 
-  - id: 4
-    name: "Trade-off Analysis"
-    step_file: "steps/step-04-tradeoffs.md"
-    gate: "GATE_4"
-    time_estimate: "45-90 minutes"
+  phase_1_canonical_operations:
+    observe:
+      action: "LOAD context-assessment.yaml"
+      gate: "GATE_1_OBSERVED"
 
-  - id: 5
-    name: "Validation"
-    step_file: "steps/step-05-validation.md"
-    gate: "GATE_5"
-    time_estimate: "30-60 minutes"
-    mandatory: true
-    bounded_count: 10
+    orient:
+      action: "EXTRACT 8_canonical_operations FROM requirements USING method#90"
+      assumptions: "DECLARE operation_completeness threshold"
+      gate: "GATE_1_ORIENTED"
 
-  - id: 6
-    name: "Verification"
-    step_file: "steps/step-06-verification.md"
-    gate: "GATE_6"
-    time_estimate: "20-40 minutes"
+    decide:
+      action: "FOR EACH operation IF core THEN document ELSE flag_optional"
+      gate: "GATE_1_DECIDED"
 
-gates:
-  total: 7
-  conditions: 53
-  breakdown:
-    GATE_0: 8
-    GATE_1: 8
-    GATE_2: 7
-    GATE_3: 7
-    GATE_4: 7
-    GATE_5: 7
-    GATE_6: 9
-  severity_distribution:
-    BLOCKER: 5
-    CRITICAL: 30
-    ERROR: 13
-    REQUIRED: 5
+    act:
+      action: "CREATE canonical-operations.yaml WITH ALL 8"
+      gate: "GATE_1"
 
-invariants:
-  total: 16
-  enforcement_level:
-    BLOCKER: 5
-    CRITICAL: 8
-    ERROR: 2
-    REQUIRED: 1
+  phase_2_artifact_generation:
+    observe:
+      action: "LOAD canonical-operations.yaml + data/patterns/*.yaml"
+      gate: "GATE_2_OBSERVED"
 
-artifacts:
-  output_directory: "{output_directory}/architecture-artifacts/"
-  files:
-    - "context-assessment.yaml"
-    - "canonical-operations.yaml"
-    - "architecture-model.yaml"
-    - "diagrams/"
-    - "adrs/"
-    - "adversary-findings.yaml"
-    - "tradeoff-analysis.yaml"
-    - "validation-report.yaml"
-    - "verification-report.yaml"
-    - "process-log.yaml"
+    orient:
+      action: "SELECT patterns BY domain + drivers USING pattern_matching"
+      assumptions: "DECLARE pattern_applicability rules"
+      gate: "GATE_2_ORIENTED"
 
-pattern_library:
-  version: "1.1.0"
-  location: "data/patterns/"
-  files: 9
-  total_patterns: 110
-  domains: 17
+    decide:
+      action: "IF pattern_matches THEN apply ELSE design_custom"
+      gate: "GATE_2_DECIDED"
 
-schemas:
-  location: "data/schemas/"
-  count: 8
+    act:
+      action: "CREATE architecture-model.yaml + diagrams/ + adrs/"
+      gate: "GATE_2"
 
-configuration:
-  checkpoint_max: 4
-  validation_bound: 10
-  depth_levels:
-    quick:
-      counter_checks_min: 1
-      iterations_max: 1
-    standard:
-      counter_checks_min: 2
-      iterations_max: 3
-    deep:
-      counter_checks_min: 3
-      iterations_max: 10
+  phase_3_adversary:
+    observe:
+      action: "LOAD architecture-model.yaml"
+      gate: "GATE_3_OBSERVED"
+
+    orient:
+      action: "EXECUTE ADVERSARY 8_operations USING counter_checks"
+      assumptions: "DECLARE adversary_rigor per depth"
+      gate: "GATE_3_ORIENTED"
+
+    decide:
+      action: "FOR EACH finding IF critical THEN redesign ELSE document"
+      gate: "GATE_3_DECIDED"
+
+    act:
+      action: "CREATE adversary-findings.yaml WITH challenges"
+      gate: "GATE_3"
+
+  phase_4_tradeoff_analysis:
+    observe:
+      action: "LOAD architecture-model.yaml + adversary-findings.yaml"
+      gate: "GATE_4_OBSERVED"
+
+    orient:
+      action: "ANALYZE tradeoffs BY quality_attributes"
+      assumptions: "DECLARE tradeoff_acceptance criteria"
+      gate: "GATE_4_ORIENTED"
+
+    decide:
+      action: "IF unacceptable_tradeoff THEN iterate ELSE proceed"
+      gate: "GATE_4_DECIDED"
+
+    act:
+      action: "CREATE tradeoff-analysis.yaml WITH decisions"
+      gate: "GATE_4"
+
+  phase_5_validation:
+    observe:
+      action: "LOAD architecture-model.yaml + tradeoff-analysis.yaml"
+      gate: "GATE_5_OBSERVED"
+
+    orient:
+      action: "VALIDATE against requirements + constraints USING checklist"
+      assumptions: "DECLARE validation_completeness target"
+      gate: "GATE_5_ORIENTED"
+
+    decide:
+      action: "IF validation_fails THEN return_to_phase_2 ELSE proceed"
+      gate: "GATE_5_DECIDED"
+
+    act:
+      action: "CREATE validation-report.yaml WITH results"
+      gate: "GATE_5"
+
+  phase_6_verification:
+    observe:
+      action: "LOAD ALL artifacts"
+      gate: "GATE_6_OBSERVED"
+
+    orient:
+      action: "VERIFY coherence + completeness USING method#84,#99"
+      assumptions: "DECLARE verification_rigor"
+      gate: "GATE_6_ORIENTED"
+
+    decide:
+      action: "IF coherence_fails THEN flag_inconsistency ELSE finalize"
+      gate: "GATE_6_DECIDED"
+
+    act:
+      action: "CREATE verification-report.yaml + process-log.yaml"
+      gate: "GATE_6"
+
+# ═══════════════════════════════════════════════════════════════
+# OUTPUTS
+# ═══════════════════════════════════════════════════════════════
+
+outputs:
+  context-assessment: {schema: "{drivers[], complexity}", phase: 0}
+  canonical-operations: {schema: "{operations[8]}", phase: 1}
+  architecture-model: {schema_ref: "data/schemas/architecture-model.schema.yaml", phase: 2}
+  diagrams: {schema: "Mermaid diagrams", path: "diagrams/", phase: 2}
+  adrs: {schema: "Architecture Decision Records", path: "adrs/", phase: 2}
+  adversary-findings: {schema: "{challenges[], counter_evidence[]}", phase: 3}
+  tradeoff-analysis: {schema: "{tradeoffs[], decisions[]}", phase: 4}
+  validation-report: {schema: "{validated[], issues[]}", phase: 5}
+  verification-report: {schema: "{coherence{}, completeness{}}", phase: 6}
+  process-log: {schema: "{events[], timestamps[]}", phase: 6}
+
+# ═══════════════════════════════════════════════════════════════
+# VALIDATION GATES
+# ═══════════════════════════════════════════════════════════════
+
+validation_gates:
+  GATE_0:
+    condition: "context-assessment.yaml EXISTS AND drivers_identified"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+  GATE_1:
+    condition: "canonical-operations.yaml EXISTS AND ALL 8 operations documented"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+  GATE_2:
+    condition: "architecture-model.yaml + diagrams/ + adrs/ EXIST"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+  GATE_3:
+    condition: "adversary-findings.yaml EXISTS AND 8_operations_challenged"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+  GATE_4:
+    condition: "tradeoff-analysis.yaml EXISTS AND tradeoffs_documented"
+    on_fail: "EMIT_WARNING + PROCEED"
+    severity: WARNING
+
+  GATE_5:
+    condition: "validation-report.yaml EXISTS AND requirements_met"
+    on_fail: "RETURN_TO_PHASE_2"
+    severity: CRITICAL
+
+  GATE_6:
+    condition: "verification-report.yaml + process-log.yaml EXIST"
+    on_fail: "HALT"
+    severity: BLOCKER
+
+# ═══════════════════════════════════════════════════════════════
+# ERROR HANDLERS
+# ═══════════════════════════════════════════════════════════════
+
+error_handlers:
+  missing_input:
+    trigger: "requirements.yaml NOT PROVIDED"
+    severity: CRITICAL
+    action: "HALT WITH error_missing_requirements"
+    recovery: "Request requirements artifact"
+
+  invalid_input:
+    trigger: "requirements.yaml schema VALIDATION FAILS"
+    severity: HIGH
+    action: "HALT WITH validation_error"
+    recovery: "Request valid requirements"
+
+  partial_completion:
+    trigger: "phase N reaches 70% THEN interrupted"
+    severity: MEDIUM
+    action: "SAVE checkpoint + HALT"
+    recovery: "Resume from checkpoint"
+
+  external_dependency_failure:
+    trigger: "data/patterns/*.yaml NOT ACCESSIBLE"
+    severity: MEDIUM
+    action: "USE built-in_patterns + EMIT_WARNING"
+    recovery: "Continue with reduced patterns"
+
+  timeout:
+    trigger: "phase_duration > max_allowed"
+    severity: HIGH
+    action: "SAVE state + HALT WITH timeout_error"
+    recovery: "User decides: continue OR abort"
+
+  resource_exhaustion:
+    trigger: "pattern_combinations > max_analyzable"
+    severity: HIGH
+    action: "PRIORITIZE by relevance + REDUCE combinations"
+    recovery: "Continue with top N patterns"
+
+  concurrent_modification:
+    trigger: "requirements.yaml CHANGED during execution"
+    severity: CRITICAL
+    action: "RELOAD + RESTART from GATE_0"
+    recovery: "Phase 0 re-execution"
+
+  user_cancellation:
+    trigger: "user_cancels DURING execution"
+    severity: LOW
+    action: "SAVE checkpoint + CLEANUP temp_files"
+    recovery: "State saved for resume"
+
+# ═══════════════════════════════════════════════════════════════
+# COMPLIANCE
+# ═══════════════════════════════════════════════════════════════
+
+compliance_13_zasady:
+  zasada_0_ooda: "PASS - 7 phases OODA"
+  zasada_1_self_contained: "PASS - steps/*.md JIT"
+  zasada_2_completeness: "PASS - ALL 8 operations GATE_1"
+  zasada_3_mechanisms: "PASS - 7 gates IF-THEN"
+  zasada_4_binding_gates: "PASS - BLOCKER enforcement"
+  zasada_5_assumptions: "PASS - DECLARE each phase"
+  zasada_6_evr: "PASS - observe→orient→act"
+  zasada_7_checklists: "PASS - step files"
+  zasada_8_counter_checks: "PASS - ADVERSARY phase_3"
+  zasada_9_executable: "PASS - LOAD/CREATE/IF"
+  zasada_10_visible_reasoning: "PASS - orient shows logic"
+  zasada_11_instruction_data: "PASS - schemas + patterns"
+  zasada_12_jit: "PASS - on-demand loading"
+  zasada_13_zero_decoration: "PASS - no explanations"
+
+---
+# END deep-architect process.yaml
