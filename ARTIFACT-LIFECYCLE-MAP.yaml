@@ -505,26 +505,6 @@ artifacts:
       - artifacts_involved
       - conflicts_detected
 
-  feedback-event:
-    artifact_type: "feedback-event"
-    schema: "schemas/feedback-event-schema.yaml"
-    category: coordination
-    created_by: "feedback-loop-handler"
-    created_in_phase: "Any (on error/failure)"
-    lifecycle: APPEND_ONLY
-    purpose: "Records feedback events triggering re-execution"
-    dependencies: [error_artifact]
-    dependents: [orchestration-state]
-    update_triggers:
-      - "Test failure"
-      - "Validation failure"
-      - "User change request"
-    fields:
-      - trigger_event
-      - root_cause
-      - impact_scope
-      - restart_phase
-      - remediation_plan
 
 # ═══════════════════════════════════════════════════════════════
 # ARTIFACT LIFECYCLE STATES

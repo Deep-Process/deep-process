@@ -202,6 +202,96 @@ Process is successful when:
 6. Critical decisions are presented clearly with options
 7. Full SDLC executes end-to-end automatically
 8. Tasks tracked, progress visible, blockers identified
+9. Track changes over time with immutable logs
+10. Observability into process state at all times
+11. User feels in control, informed, and aligned with execution
+12. Too much information is never generated without a clear executive summary
+13. User should see only executive-level information, never technical details unless they ask for it
+14. At any point, the user should be able to ask "where we are?" and get a clear, concise summary of current status, next steps, and how it serves the goal
+15. There is summary report of all decisions made, with business impact explained, that the user can review at any time
+16. There is progess dashboard with current phase, % complete, blockers, and next milestones visible to the user at all times
+17. There is dashboard with plans, backlog, and task states visible to the user at all times
+18. User can change the goal or direction at any time, and the process adapts without losing context
+19. If the process encounters a blocker, it identifies it clearly and reports it to the user with options for resolution
+20. If the process detects goal drift, it alerts the user and provides options to realign
+21. There is clear drift detection mechanism and drift manager that manages drift when detected, either by alerting user or automatically realigning
+22. The process maintains a complete, immutable log of all actions, decisions, and state changes
+23. Obsolite information is pruned from user-facing communication, but preserved in logs for traceability
+24. Any process should follow RULES to ensure clarity, consistency, and alignment with the vision
+25. The process should be designed to be self-contained, with all necessary information provided just-in-time for each phase, and no assumptions about prior knowledge of the agent
+26. The process should prioritize completeness over token limits, ensuring that all necessary information is provided rather than just the "main" points
+27. There is easy way to review the entire process history, including all decisions, changes, and progress, in a clear and organized manner
+28. There is easy way for user to execute any task, any phase, or even the entire process again, with the same or modified parameters, without losing context or progress
+29. User is informed about what he can do at any point, what options he has, and how to interact with the process to achieve his goals
+30. Process should follow user vison and constraints at all times, and adapt to any changes in vision or constraints without losing progress or context
+31. User may change the vision or constraints at any time, and the process should adapt accordingly while preserving as much progress as possible
+32. If changes in vision or constraints cause significant disruption, the process should alert the user and provide options for how to proceed, including potential trade-offs
 
+
+
+## RULES
+
+OODA is only for complex processe
+OODA Loop: Observe → Orient → Decide → Act
+OODA jest tylko dla deep-orchestration
+
+
+0. Jeżeli coś nie służy wykonaniu procesu nie powinno być w procesie jak opisy, dokumetnacje, rzeczy tylko informacyjne - są zbędne
+0. Zadania należy dzielić na mniejsze jeżeli pliki zaczynają być za duże, należy zachować ciągłość procesu 
+
+1. Self-contained
+Instrukcja zawiera wszystko do wykonania, zero założeń o wiedzy agenta.
+Self-contained realizowana przez just-in-time loading (nie upfront)
+
+2. Completeness > tokens
+Wymuszaj wyczerpanie zamiast selekcji. "Wszystkie" zamiast "główne". "Każdy" zamiast "typowe".
+
+3. Mechanizm zamiast intencji
+Nie pisz co powinno się stać. Pisz co agent ma zrobić gdy warunek X. Każda reguła = trigger + akcja.
+proces musi mieć wszędzie definicje mechanizmów wymuszania a nie intencje (co powinno się stać), 
+
+4. Binding gate
+Pominięcie czegokolwiek wymaga jawnej deklaracji. Brak deklaracji = naruszenie procesu.
+Proces  musi mieć binding gate — żeby nie pozwalać agentowi na "inteligentne" pominięcia bez formalnej deklaracji scope reduction. 
+
+5. Założenia przed działaniem
+Agent najpierw deklaruje interpretacje i założenia. Dopiero potem wykonuje.
+proces wymusza sekwencję extract → verify → render. żeby agent na przykład nie przeszedł do generowania treści dowolnym momencie 
+
+6. Wymuszona sekwencja
+Fazy połączone blokerami. "Dopiero po X", "Nie przechodź zanim". Agent nie może przeskakiwać.
+
+7. Checklist po fazie
+Koniec fazy = pytania kontrolne. Odpowiedź negatywna = stop lub powrót.
+Proces  wymusza checklisty PO KAŻDEJ fazie - zawsze.
+
+8. Counter-check
+Kluczowe twierdzenia wymagają próby obalenia. Agent szuka kontrargumentu i raportuje wynik.
+proces ma counter-checks na kluczowe twierdzenia 
+
+9. Egzekucyjny język
+Czasowniki rozkazujące + sekwencja + warunki. Nie opisy stanów docelowych.
+procesem jest procesem egzekucyjnym ( wymusza JAK i W JAKIEJ KOLEJNOŚCI),  nie jest procesem opisowym (mówi CO powinno się stać) 
+
+10. Widoczne rozumowanie
+Wymuś pokazanie kroków myślenia przed odpowiedzią.
+
+11. Instrukcja + dane do niej
+Każdy krok zawiera: akcję + minimum informacji potrzebnych do wykonania tej akcji. Nic ponad.
+
+11. proces musi zawierać executable instructions i niezbędne informacje żeby poprawnie wykonać executable instructions (Executable Instructions + Necessary Information)
+
+
+12. Informacja w momencie użycia
+Dane do fazy N pojawiają się przy fazie N. Nie wcześniej.
+
+13. Zero ozdobników
+Brak wyjaśnień, kontekstu, uzasadnień. Tylko mechanizmy wykonawcze.
+
+14. Preserves critical facts across document rewrites - YAML frontmatter with facts list,
+Mathematical proof of migration lossiness- Formula: L = (unmapped + semantic_loss) / N_source
 ---
 # END VISION.md
+
+
+
