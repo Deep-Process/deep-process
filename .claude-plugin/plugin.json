@@ -1,0 +1,8 @@
+{
+  "name": "deep-process-skills",
+  "version": "1.0.0",
+  "description": "Structured workflows that make LLMs think instead of just respond. Skills for verification, exploration, architecture, risk, feasibility, synthesis, and more.",
+  "author": {
+    "name": "Lukasz Krysik"
+  }
+}
