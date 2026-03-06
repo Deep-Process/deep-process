@@ -1,264 +1,171 @@
-# Deep Process
+# Deep Process Skills
 
 ![Deep Process Logo](img/logo_small.png)
 
-
-A collection of structured workflows that make LLMs actually think instead of just respond.
+A collection of Claude Code skills that make LLMs think instead of just respond.
 
 ## Why this exists
 
-LLMs are incredibly capable - until they're not. Ask one to verify your code and it says "looks good." Ask it to assess risks and you get the same five generic risks every time. Ask it to design architecture and you get a clean diagram with hidden contradictions.
+LLMs are capable — until they take shortcuts. Ask one to verify your code and it says "looks good." Ask it to assess risks and you get the same five generic risks every time. Ask it to design architecture and you get a clean diagram with hidden contradictions.
 
-The problem isn't intelligence. It's that LLMs default to being agreeable and fast. They skip steps, take shortcuts, and produce outputs that *look* thorough but aren't. They summarize instead of synthesize. They list risks instead of tracing cascades. They say "yes, that's feasible" without checking if your timeline is realistic or your team has the right skills.
+The problem isn't intelligence. It's that LLMs default to being agreeable and fast. They skip steps, summarize instead of synthesize, and produce outputs that *look* thorough but aren't.
 
-Deep Process fixes this by giving the LLM a structured protocol to follow - specific steps, quality gates, adversarial checks, and bias corrections. The LLM still does the thinking, but the process ensures it actually *does* the thinking instead of pattern-matching to "what a good answer looks like."
-
-## What you get
-
-Each process produces a structured, evidence-based deliverable - not conversation, not hand-waving. Scored assessments, traceable findings, falsifiable conclusions. The kind of output you can actually act on.
+Deep Process Skills fix this by giving the LLM structured procedures — specific steps, scoring systems, adversarial checks, and counter-checks. Each skill extracts only the **essential 10-20%** that Claude doesn't do natively: numeric scoring, mandatory counter-checks, scope transparency, pattern matching, standardized output formats.
 
 ## Installation
 
-### Option A: Universal installer (any AI tool)
+### Claude Code Plugin
 
 ```bash
-npx deep-process init
+claude plugin add /path/to/deep-process-skill
 ```
 
-The interactive installer will:
-1. Copy process files to `_deep-process/` in your project
-2. Detect which AI tools you use (Claude, Gemini, Cursor, etc.)
-3. Generate properly configured commands for each tool
-4. Optionally add `_deep-process/` to `.gitignore`
+This gives you all 21 skills as slash commands.
 
-Then open your AI tool and run:
+### Manual
 
-```
-/deep-verify Check the API in src/api/ against the spec in docs/requirements.md
-```
+Copy the repository into your project. Skills are self-contained — each `deep-*-skill/` directory works independently.
 
-#### Non-interactive mode
+## Skills
 
-```bash
-npx deep-process init --yes --tools claude,gemini
-```
+### Analysis & Verification
 
-#### Other commands
+| Skill | Command | What it does |
+|-------|---------|--------------|
+| **deep-verify** | `/verify` | Structured verification with numeric scoring, pattern matching against known impossibilities, adversarial self-review. Produces scored findings with evidence and a verdict (ACCEPT/REJECT/UNCERTAIN). |
+| **deep-challenge** | `/challenge` | Stress-tests a plan or proposal through 5 lenses: pre-mortem, assumption stress, incentive analysis, 2nd-order effects, reference class forecasting. |
+| **deep-compliance** | `/compliance` | Checks compliance against regulations, standards, or policies (GDPR, SOC2, etc.). |
+| **deep-monitoring** | `/monitor` | Verifies quality of a previously executed analysis or process output. |
 
-```bash
-npx deep-process status       # Show what's installed
-npx deep-process add-tool cursor   # Add a tool integration
-npx deep-process remove-tool cursor # Remove a tool integration
-npx deep-process update       # Update processes to latest versions
-npx deep-process uninstall    # Remove everything
-```
+### Decision & Exploration
 
-### Option B: Claude Code Plugin
+| Skill | Command | What it does |
+|-------|---------|--------------|
+| **deep-explore** | `/explore` | Systematic decision exploration: knowledge audit, research, option mapping, consequence tracing, synthesis. |
+| **deep-risk** | `/risk` | 5-dimensional risk scoring (probability, impact, velocity, detectability, reversibility) with cascade analysis and Cobra Effect checking on mitigations. |
+| **deep-feasibility** | `/feasibility` | 10-dimension feasibility assessment with planning fallacy detection. GO/CONDITIONAL/NO-GO verdict. |
+| **deep-synthesis** | `/synthesize` | Turns multiple sources into understanding. Shannon Test: does the insight require combining sources? |
 
-If you only use Claude Code, install directly as a plugin:
+### Design & Architecture
 
-```bash
-claude plugin install deep-process-org/deep-process --directory packages/claude-plugin
-```
+| Skill | Command | What it does |
+|-------|---------|--------------|
+| **deep-architect** | `/architect` | Architecture design with adversarial phase (STRIDE, FMEA, anti-patterns, pre-mortem, dependency analysis, scale stress, cost, ops complexity). |
+| **deep-requirements** | `/requirements` | Extracts, clarifies, and structures requirements from conversations, documents, or vague descriptions. |
+| **deep-diagram** | `/diagram` | Generates diagrams (Mermaid) from code or documentation. |
+| **deep-change** | `/change-impact` | Evaluates impact of a proposed change to an existing system. |
 
-Or via the plugin manager:
+### Implementation & Delivery
 
-```bash
-/plugin install deep-process
-```
+| Skill | Command | What it does |
+|-------|---------|--------------|
+| **deep-plan** | `/plan` | Implementation planning — breaks architecture into sprints and tasks. |
+| **deep-implement** | `/implement` | Implements a designed system from architecture docs. |
+| **deep-test** | `/test-strategy` | Test strategy, test plan, and test generation. |
+| **deep-deploy** | `/deploy` | Deployment planning with rollout strategy and go-live checklist. |
+| **deep-document** | `/document` | Evidence-based documentation with file:line tracing. Every claim traces to code. |
 
-This gives you `/deep-process:deep-verify`, `/deep-process:deep-explore`, etc. — no file copying needed.
+### Governance & Operations
 
-Browse on [Claude Marketplace](https://claudemarketplaces.com).
+| Skill | Command | What it does |
+|-------|---------|--------------|
+| **deep-govern** | `/govern` | Project governance — health checks, decision tracking, escalation handling. |
+| **deep-governance** | `/governance` | Policy definition, access control review, audit trail, governance framework. |
 
-### Option C: GitHub Copilot Agents
+### Orchestration
 
-For GitHub Copilot users, use the universal installer which auto-generates agent files:
+| Skill | Command | What it does |
+|-------|---------|--------------|
+| **deep-aggregate** | `/aggregate` | Combines multiple analysis outputs into a single GO/NO-GO decision brief. |
+| **deep-orchestration** | `/orchestrate` | Runs multiple deep-* analyses in a coordinated workflow. |
 
-```bash
-npx deep-process init --tools github-agents
-```
-
-Or manually copy agent files from [`packages/copilot-agents/agents/`](packages/copilot-agents/agents/):
-
-```bash
-mkdir -p .github/agents
-cp packages/copilot-agents/agents/*.agent.md .github/agents/
-```
-
-Then use in VS Code Copilot Chat:
-
-```
-@deep-verify Check the authentication module
-@deep-explore Should we use Redis or Memcached?
-```
-
-## The processes
-
-### [Deep Verify](processes/deep-verify/docs/README.md) - Check if something is correct
-
-You wrote code, received a document, or generated something with an LLM. Is it actually correct? Deep Verify traces assumptions, finds contradictions, matches against impossibility patterns, and runs adversarial review on its own findings. Output: a structured report with exact quotes, a numeric score, and a verdict.
-
-```
-/deep-verify Check this API implementation against the requirements in docs/spec.md
-```
-
-### [Deep Explore](processes/deep-explore/docs/README.md) - Think through a decision
-
-You're stuck. You don't know what to do, or you have too many options and can't see clearly. Deep Explore separates facts from assumptions, discovers options you weren't considering, turns vague fears into specific concerns, and tells you when you're ready to decide.
-
-```
-/deep-explore Should we build this in-house or buy an existing solution?
-```
-
-### [Deep Architect](processes/deep-architect/docs/README.md) - Design software architecture
-
-You need to build something and you need a solid plan. Deep Architect runs 16 operations - 8 that build the design (decomposition, boundaries, dependencies...) and 8 that try to break it (STRIDE, FMEA, anti-patterns, pre-mortem...). The adversarial phase is where the real value is.
-
-```
-/deep-architect Design the architecture for a real-time notification service
-```
-
-### [Deep Feasibility](processes/deep-feasibility/docs/README.md) - Find out if it can be done
-
-Before committing resources, find out if the plan is realistic. Deep Feasibility checks 10 dimensions (technical, resource, knowledge, organizational, temporal, compositional, economic, scale, cognitive, dependency) and gives you a GO / CONDITIONAL GO / NO-GO verdict with confidence levels. Includes planning fallacy detection.
-
-```
-/deep-feasibility Can we migrate to microservices in 6 months with a team of 4?
-```
-
-### [Deep Risk](processes/deep-risk/docs/README.md) - Find the risks you're not seeing
-
-Standard risk lists are useless. Deep Risk discovers risks through theory-grounded analysis, scores them on 5 dimensions (probability, impact, velocity, detectability, reversibility), and - critically - maps how risks interact, cascade, and amplify each other. Includes Cobra Effect checks on proposed mitigations.
-
-```
-/deep-risk Assess the risks of our cloud migration project
-```
-
-### [Deep Synthesis](processes/deep-synthesis/docs/README.md) - Turn sources into understanding
-
-You have multiple sources, perspectives, or knowledge fragments. You need to understand what they mean *together*, not just what each one says. Deep Synthesis finds patterns across sources, resolves contradictions by finding the conditions under which each view is correct, and produces compressed understanding that passes the Shannon Test: does this insight require combining sources?
-
-```
-/deep-synthesis Synthesize these research papers on distributed consensus approaches
-```
-
-### [Deep Document](processes/deep-document/docs/README.md) - Generate documentation from code
-
-You need documentation, but you need it to be *accurate*. Deep Document inventories the codebase, extracts domain ontology, plans the docs, gathers evidence (file + line number for every claim), and then generates. Every statement in the output traces back to actual code. It won't make things up.
-
-```
-/deep-document
-```
-
-## Supported tools
-
-The installer generates commands for **11 AI tools**:
-
-| Tool | Format | Generated files |
-|------|--------|----------------|
-| **Claude Code** | Markdown | `.claude/commands/*.md` |
-| **Gemini CLI** | TOML | `.gemini/commands/*.toml` |
-| **Cursor** | Markdown | `.cursor/commands/*.md` |
-| **Continue.dev** | Prompt | `.continue/prompts/*.prompt` |
-| **GitHub Agents** | Markdown | `.github/agents/*.agent.md` |
-| **AGENTS.md** | Markdown | `AGENTS.md` (marker-based) |
-| **Cline** | Markdown | `.clinerules/*.md` |
-| **Windsurf** | Markdown | `.windsurf/rules/*.md` |
-| **Roo Code** | Markdown | `.roo/rules-{slug}/*.md` |
-| **GitHub Copilot** | Markdown | `.github/copilot-instructions.md` (marker-based) |
-| **Aider** | Markdown + YAML | `.aider/conventions/*.md` + `.aider.conf.yml` |
-
-Auto-detection: The installer scans your project for existing tool configurations and pre-selects detected tools.
-
-## Which process do I need?
+## Which skill do I need?
 
 | You're thinking... | Use this |
 |---|---|
-| "Is this code/document actually correct?" | [Deep Verify](processes/deep-verify/docs/README.md) |
-| "I don't know what to do" | [Deep Explore](processes/deep-explore/docs/README.md) |
-| "I need to design this system" | [Deep Architect](processes/deep-architect/docs/README.md) |
-| "Can we actually pull this off?" | [Deep Feasibility](processes/deep-feasibility/docs/README.md) |
-| "What could go wrong?" | [Deep Risk](processes/deep-risk/docs/README.md) |
-| "I have lots of info but no understanding" | [Deep Synthesis](processes/deep-synthesis/docs/README.md) |
-| "We need proper documentation" | [Deep Document](processes/deep-document/docs/README.md) |
+| "Is this code/document actually correct?" | `/verify` |
+| "I don't know what to do" | `/explore` |
+| "I need to design this system" | `/architect` |
+| "Can we actually pull this off?" | `/feasibility` |
+| "What could go wrong?" | `/risk` |
+| "I have lots of info but no understanding" | `/synthesize` |
+| "Stress test my plan" | `/challenge` |
+| "What are the requirements?" | `/requirements` |
+| "Plan the implementation" | `/plan` |
+| "We need proper documentation" | `/document` |
+| "What's the overall verdict?" | `/aggregate` |
 
 ## How they work together
 
-These processes aren't isolated. A typical flow might look like:
+These skills work standalone, but combine naturally:
 
-1. **Explore** the decision space to understand your options
-2. **Assess feasibility** of your top option
-3. **Identify risks** and plan mitigations
-4. **Design the architecture** with those constraints in mind
-5. **Verify** the architecture against your requirements
-6. **Document** the result
+1. `/explore` the decision space to understand options
+2. `/feasibility` of the top option
+3. `/risk` assessment and mitigation planning
+4. `/architect` the system with constraints in mind
+5. `/verify` the architecture against requirements
+6. `/plan` the implementation
+7. `/document` the result
+8. `/aggregate` everything into a GO/NO-GO decision
 
-You don't have to use them all. Each process works standalone. But when combined, the output of one naturally feeds into the next.
-
-## Development
-
-### Building from Source
-
-```powershell
-# Build all packages (Core, CLI, VS Code Extension)
-.\scripts\build\build-all.ps1
-
-# Build specific package
-.\scripts\build\build-npm.ps1       # NPM package only
-.\scripts\build\build-vscode.ps1    # VS Code extension only
-
-# Options
-.\scripts\build\build-all.ps1 -Clean           # Clean before build
-.\scripts\build\build-all.ps1 -SkipInstall     # Skip pnpm install
-.\scripts\build\build-all.ps1 -Verbose         # Detailed output
-```
-
-### Testing VS Code Extension Locally
-
-```powershell
-# Quick dev cycle: build + install locally
-.\scripts\dev\vscode-dev.ps1
-
-# Then reload VS Code (Ctrl+Shift+P → Developer: Reload Window)
-
-# Or use Extension Development Host (live debugging)
-cd packages/vscode
-code .
-# Press F5 in VS Code to launch debugger
-```
-
-### Publishing
-
-```powershell
-# Publish to npm
-.\scripts\publish\publish-npm.ps1
-
-# Publish to VS Code Marketplace
-.\scripts\publish\publish-vscode.ps1
-
-# See scripts/README.md for full documentation
-```
-
-See [scripts/README.md](scripts/README.md) for complete build/publish documentation.
-
-### Monorepo Structure
+## Project structure
 
 ```
-deep-process/
-├── processes/              # Single source of truth for all workflows
-├── packages/
-│   ├── core/              # Shared utilities (@deep-process/core)
-│   ├── cli/               # npm package (deep-process)
-│   └── vscode/            # VS Code extension
-├── scripts/               # Build, publish, and dev tools
-│   ├── build/            # Build scripts for all packages
-│   ├── publish/          # Publication scripts
-│   ├── dev/              # Local development tools
-│   └── config/           # Secrets and configuration
-├── .claude-plugin/        # Claude Code plugin config
-└── .github/workflows/     # CI/CD automation
+deep-process-skill/
+├── .claude-plugin/
+│   └── plugin.json           # Claude Code plugin config
+├── commands/                  # Slash command definitions (20 commands)
+│   ├── verify.md
+│   ├── explore.md
+│   ├── architect.md
+│   └── ...
+├── deep-verify-skill/         # Each skill is self-contained
+│   ├── SKILL.md               # Procedure (<200 lines)
+│   └── references/            # Overflow content (patterns, scoring rubrics)
+│       ├── patterns.md
+│       ├── methods.md
+│       └── report-format.md
+├── deep-risk-skill/
+│   ├── SKILL.md
+│   └── references/
+│       └── scoring.md
+├── deep-architect-skill/
+│   ├── SKILL.md
+│   └── references/
+│       └── adversarial-ops.md
+├── deep-feasibility-skill/
+│   ├── SKILL.md
+│   └── references/
+│       └── dimensions.md
+├── deep-*-skill/              # 17 more skills (SKILL.md only)
+│   └── SKILL.md
+├── methods/                   # Legacy method library (from original deep-process)
+├── processes/                 # Legacy process files (from original deep-process)
+├── img/
+└── LICENSE
 ```
+
+### Skill anatomy
+
+Each skill follows the same pattern:
+
+- **SKILL.md** — YAML frontmatter (name, description with triggers, allowed-tools) + Markdown procedure. Under 200 lines.
+- **references/** — Optional. Scoring rubrics, pattern libraries, report templates. Loaded by the LLM on demand during execution.
+
+The `description` field uses "pushy" trigger phrases so Claude activates the right skill automatically when users ask natural questions.
+
+## Design philosophy
+
+These skills were distilled from the original [Deep Process](https://github.com/deep-process-org/deep-process) project — 3500+ line execution programs with binding gates, OODA loops, and compliance sections. The conversion kept only what Claude doesn't do natively:
+
+- **Numeric scoring** — findings get severity points, verdicts have thresholds
+- **Mandatory counter-checks** — every serious finding gets challenged before inclusion
+- **Scope transparency** — explicit "Not Checked" section in every output
+- **Pattern matching** — known impossibility patterns (CAP theorem, halting problem, etc.)
+- **Standardized output** — same report format every time
+- **Steel-man enforcement** — argue against your own verdict before finalizing
+
+Everything else (gates, OODA, hypothesis YAML, compliance ceremonies) was removed. Claude handles those aspects natively.
 
 ## License
 
