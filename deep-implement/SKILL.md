@@ -107,6 +107,14 @@ Brief log of decisions made during implementation that weren't specified in arch
 
 Components from the architecture that were NOT implemented, with reason.
 
+## Safety — Bash Usage
+
+- **Scoped to project directory**: Only run Bash commands within the project being scaffolded. Never operate outside it.
+- **Allowed**: project init commands (`npm init`, `cargo init`, `mkdir`, `touch`), running tests, linting, build validation.
+- **Forbidden**: `rm -rf`, `git push`, `sudo`, `chmod 777`, force flags (`--force`, `--no-verify`), commands targeting system directories.
+- **No credential handling**: Do not echo, log, or pipe secrets, tokens, or passwords through Bash.
+- **Confirm before executing**: If a command installs dependencies (`npm install`, `pip install`) or modifies git state, describe it to the user first.
+
 ## Scope Transparency
 
 This skill does NOT:
