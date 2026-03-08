@@ -131,6 +131,14 @@ Assemble the final architecture document using the format below.
 | ... | ... | ... | ... | ... |
 ```
 
+## Safety — Bash Usage
+
+- **Read-only by default**: Use Bash only for reading project structure (`ls`, `find`, `cat`) and running diagram validators.
+- **No destructive commands**: Do not run `rm`, `mv`, `chmod`, `git push`, or anything that modifies the filesystem or external systems.
+- **No installs**: Do not run `npm install`, `pip install`, `apt-get`, or any package manager commands.
+- **No network calls**: Do not use `curl`, `wget`, or any command that contacts external services.
+- If a Bash command is needed beyond read-only inspection, describe it to the user and ask for confirmation before executing.
+
 ## Rules
 
 - Every component must justify its existence (why not merge with neighbor?)
