@@ -145,6 +145,13 @@ Key sections:
 
 ---
 
+## Success Criteria
+
+- [ ] Every finding cites exact text from the artifact
+- [ ] All CRITICAL/IMPORTANT findings survive adversarial self-review
+- [ ] Scope of what was NOT checked is explicitly stated
+- [ ] Verdict includes numeric score and confidence level
+
 ## Rules
 
 1. **No quote = no finding.** Every finding must cite exact text from the artifact.

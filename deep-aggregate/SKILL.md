@@ -140,6 +140,13 @@ Produce the decision brief.
 - {Gap 2}: partially addressed but inconclusive
 ```
 
+## Success Criteria
+
+- [ ] Decision brief contains GO / CONDITIONAL GO / NO-GO verdict
+- [ ] All source analyses inventoried with completeness assessed
+- [ ] Cross-process contradictions identified and resolved (or absence stated)
+- [ ] Unknown/blind spots section is present and non-empty
+
 ## Rules
 
 - Never upgrade a NO-GO signal without explicit justification

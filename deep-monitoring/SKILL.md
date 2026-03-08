@@ -85,7 +85,7 @@ Produce monitoring report:
 2. ...
 ```
 
-## Checklist
+## Success Criteria
 
 - [ ] Source output fully read
 - [ ] All six quality dimensions assessed

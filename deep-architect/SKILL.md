@@ -139,6 +139,13 @@ Assemble the final architecture document using the format below.
 - **No network calls**: Do not use `curl`, `wget`, or any command that contacts external services.
 - If a Bash command is needed beyond read-only inspection, describe it to the user and ask for confirmation before executing.
 
+## Success Criteria
+
+- [ ] C4 diagrams (context, container, component) generated in mermaid
+- [ ] All 8 adversarial challenges applied to significant design decisions
+- [ ] ADR produced for each significant technology/design choice
+- [ ] Every component has a stated justification for its boundary
+
 ## Rules
 
 - Every component must justify its existence (why not merge with neighbor?)

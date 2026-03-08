@@ -95,6 +95,13 @@ Total critical path duration: X weeks (buffered: Y weeks)
 - List planning assumptions
 - List items that need clarification before plan is reliable
 
+## Success Criteria
+
+- [ ] Work packages defined with dependencies and T-shirt estimates
+- [ ] Critical path identified with total duration
+- [ ] Sprint plan has clear deliverable/milestone per sprint
+- [ ] Risks mapped to specific work packages with buffered estimates
+
 ## Scope Transparency
 
 This skill produces a **plan**, not a guarantee. It does NOT:

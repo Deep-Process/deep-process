@@ -127,6 +127,13 @@ Write the documentation to the user-specified path.
 - [ ] {What is missing and why}
 ```
 
+## Success Criteria
+
+- [ ] Every factual statement has a `file:line` reference
+- [ ] Sections marked as [EVIDENCE], [INFERRED], or [UNKNOWN]
+- [ ] "Not Documented" section present listing knowledge gaps
+- [ ] Domain glossary extracted from code terms
+
 ## Rules
 
 - Every factual statement MUST have a `(file:line)` reference

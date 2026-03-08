@@ -108,6 +108,13 @@ The rollback table and steps from Step 4.
 - [ ] External integrations functioning
 - [ ] User-facing functionality spot-checked
 
+## Success Criteria
+
+- [ ] Deployment strategy selected with justification
+- [ ] Pre-deployment checklist customized for this deployment
+- [ ] Step-by-step procedure with specific commands
+- [ ] Rollback plan with triggers, actions, and verification steps
+
 ## Scope Transparency
 
 This skill does NOT:

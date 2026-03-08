@@ -91,7 +91,7 @@ Produce governance report:
 1. ...
 ```
 
-## Checklist
+## Success Criteria
 
 - [ ] All source requirements inventoried
 - [ ] Policies have clear pass/fail criteria

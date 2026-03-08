@@ -89,6 +89,13 @@ The pyramid table from Step 2, filled in for this specific project.
 
 Actual test files written to the project (if Write tool is available and user wants them).
 
+## Success Criteria
+
+- [ ] Test strategy matrix filled for this specific project
+- [ ] Priority-ordered test list with risk-based ranking
+- [ ] Coverage gaps identified with risk level and recommendation
+- [ ] Test stubs generated for highest-priority items
+
 ## Scope Transparency
 
 This skill does NOT:

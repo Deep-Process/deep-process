@@ -107,6 +107,13 @@ Brief log of decisions made during implementation that weren't specified in arch
 
 Components from the architecture that were NOT implemented, with reason.
 
+## Success Criteria
+
+- [ ] Project scaffold created following framework conventions
+- [ ] Architecture traceability matrix maps all components to files (or GAP)
+- [ ] Test stubs generated for each implemented component
+- [ ] Implementation decisions log covers choices not in architecture docs
+
 ## Safety — Bash Usage
 
 - **Scoped to project directory**: Only run Bash commands within the project being scaffolded. Never operate outside it.

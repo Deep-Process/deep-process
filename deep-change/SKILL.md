@@ -102,6 +102,13 @@ Ordered steps to implement the change safely:
 | API errors spike >5% | Revert deployment, restore old endpoint | Check error rate returns to baseline |
 | Data inconsistency detected | Stop migration, restore from backup | Verify data integrity checks pass |
 
+## Success Criteria
+
+- [ ] Direct and ripple impacts identified with severity ratings
+- [ ] Risk assessment produced with likelihood and impact
+- [ ] Recommended change sequence with ordered steps
+- [ ] Rollback plan with specific triggers, actions, and verification
+
 ## Scope Transparency
 
 This skill does NOT:

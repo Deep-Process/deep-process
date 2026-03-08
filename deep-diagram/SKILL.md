@@ -85,6 +85,13 @@ Omits: internal components (see Container diagram)
 [mermaid code block]
 ```
 
+## Success Criteria
+
+- [ ] Diagram types selected with justification for skipped types
+- [ ] Each diagram contains 5-15 entities and is readable
+- [ ] Each diagram states what it shows and what it omits
+- [ ] Key design decisions and patterns annotated
+
 ## Scope Transparency
 
 This skill does NOT:

@@ -98,6 +98,13 @@ Priority-ordered list of fixes:
 
 Items that require human judgment, runtime testing, or organizational policy review. These are explicitly called out so nothing is silently skipped.
 
+## Success Criteria
+
+- [ ] Compliance matrix maps all requirements to evidence with status
+- [ ] Gap register produced with severity and remediation effort
+- [ ] Priority-ordered remediation plan present
+- [ ] Not-assessed items explicitly listed
+
 ## Scope Transparency
 
 This skill does NOT:

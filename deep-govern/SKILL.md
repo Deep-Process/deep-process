@@ -84,7 +84,7 @@ Produce the governance dashboard:
 3. ...
 ```
 
-## Checklist
+## Success Criteria
 
 - [ ] All milestones listed with status
 - [ ] Health scores have justifications

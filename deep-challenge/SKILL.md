@@ -154,6 +154,13 @@ Provide 2-3 sentence justification referencing specific findings from the lenses
 {2-3 sentence justification with references to specific findings above}
 ```
 
+## Success Criteria
+
+- [ ] Core bet identified and confirmed before analysis
+- [ ] All 5 lenses applied (pre-mortem, assumptions, incentives, 2nd-order, reference class)
+- [ ] Steel-man alternative is genuinely compelling, not a strawman
+- [ ] Verdict (Robust / Fragile / Fatal Flaw) stated with specific evidence references
+
 ## Rules
 
 - Be genuinely adversarial, not performatively — find real problems
