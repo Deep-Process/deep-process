@@ -42,6 +42,7 @@ Copy the repository into your project. Skills are self-contained — each `deep-
 | Skill | Command | What it does |
 |-------|---------|--------------|
 | **deep-explore** | `/explore` | Systematic decision exploration: knowledge audit, research, option mapping, consequence tracing, synthesis. |
+| **deep-venture** | `/venture` | Business opportunity discovery & concept synthesis. Signal harvesting, gap detection, novel synthesis, AI absorption & adjacent pivot risk scoring, revenue architecture, validation playbook. |
 | **deep-risk** | `/risk` | 5-dimensional risk scoring (probability, impact, velocity, detectability, reversibility) with cascade analysis and Cobra Effect checking on mitigations. |
 | **deep-feasibility** | `/feasibility` | 10-dimension feasibility assessment with planning fallacy detection. GO/CONDITIONAL/NO-GO verdict. |
 | **deep-synthesis** | `/synthesize` | Turns multiple sources into understanding. Shannon Test: does the insight require combining sources? |
@@ -85,6 +86,8 @@ Copy the repository into your project. Skills are self-contained — each `deep-
 |---|---|
 | "Is this code/document actually correct?" | `/verify` |
 | "I don't know what to do" | `/explore` |
+| "What should I build?" | `/venture` |
+| "Find me a business niche" | `/venture` |
 | "I need to design this system" | `/architect` |
 | "Can we actually pull this off?" | `/feasibility` |
 | "What could go wrong?" | `/risk` |
